@@ -1,0 +1,70 @@
+name: Branch flow guard
+
+# Enforces the develop -> staging -> main promotion chain. Fails the
+# `branch-flow-guard` job when a PR's base/head pair violates the rules:
+#   - base = main:    head must equal "staging"
+#   - base = staging: head must equal "develop"
+#   - base = develop: head must match ^(feature|fix|content|chore|docs)/.+
+#   - any other base: rejected (no PRs to feature branches)
+#
+# This job is required as a status check on develop, staging, and main, so
+# a non-conforming PR cannot merge.
+
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: branch-flow-guard-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  branch-flow-guard:
+    name: branch-flow-guard
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate base and head
+        env:
+          BASE: ${{ github.event.pull_request.base.ref }}
+          HEAD: ${{ github.event.pull_request.head.ref }}
+        run: |
+          set -euo pipefail
+          echo "PR base: $BASE"
+          echo "PR head: $HEAD"
+
+          fail() {
+            echo "::error::$1"
+            echo
+            echo "Allowed PR shapes:"
+            echo "  feature/<n>_<slug>, fix/..., content/..., chore/..., docs/...  ->  develop"
+            echo "  develop                                                        ->  staging"
+            echo "  staging                                                        ->  main"
+            exit 1
+          }
+
+          case "$BASE" in
+            main)
+              if [ "$HEAD" != "staging" ]; then
+                fail "PRs to main must come from staging. Got head='$HEAD'."
+              fi
+              ;;
+            staging)
+              if [ "$HEAD" != "develop" ]; then
+                fail "PRs to staging must come from develop. Got head='$HEAD'."
+              fi
+              ;;
+            develop)
+              if ! echo "$HEAD" | grep -Eq '^(feature|fix|content|chore|docs)/.+'; then
+                fail "PRs to develop must come from feature/, fix/, content/, chore/, or docs/ branches. Got head='$HEAD'."
+              fi
+              ;;
+            *)
+              fail "PRs must target develop, staging, or main. Got base='$BASE'."
+              ;;
+          esac
+
+          echo "OK: $HEAD -> $BASE is a valid promotion."

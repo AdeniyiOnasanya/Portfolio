@@ -13,7 +13,7 @@ Counts: 77 slices across 14 phases.
 
 ---
 
-## Phase 0: Repo bootstrap and protection (5 slices)
+## Phase 0: Repo bootstrap and protection (6 slices)
 
 1. `task: cloning the repo and running pnpm install yields a green typecheck and build (Phase 0)`
    - Priority: P1
@@ -27,23 +27,29 @@ Counts: 77 slices across 14 phases.
    - Adds: `.github/workflows/ci.yml` skeleton with the three jobs and a pnpm cache.
    - Tests: CI run on the PR itself.
 
-3. `task: branch protection on main rejects direct pushes and requires CI green (Phase 0)`
+3. `task: branch protection on main, staging, and develop rejects direct pushes and requires CI green (Phase 0)`
    - Priority: P1, depends on #2.
-   - Outcome: `git push origin main` rejected; PR cannot merge until CI passes.
-   - Adds: branch protection rules via `gh api` (relaxed seed; checks list expands across phases).
-   - Tests: manual push attempt.
+   - Outcome: `git push origin main`, `git push origin staging`, `git push origin develop` all rejected; PRs require CI green; `enforce_admins=true` so I cannot bypass.
+   - Adds: `scripts/github/seed-branch-protection.sh` applies the relaxed seed to all three branches via `gh api`. Required-status-checks list ratchets up as Phases 1, 11, 12 land.
+   - Tests: manual push attempt against each branch; verify rejection messages.
 
-4. `task: a Vercel preview deploys for every PR and renders the placeholder (Phase 0)`
+4. `task: Vercel preview deploys for every PR and the staging branch alias serves staging.davidonasanya.com (Phase 0)`
    - Priority: P1, depends on #1.
-   - Outcome: PR opens, Vercel posts a preview URL, `/` renders.
-   - Adds: link Vercel project, configure env vars on Vercel, hook to repo.
-   - Tests: manual visit to the preview URL.
+   - Outcome: feature PRs get auto preview URLs; merges to `staging` deploy to `staging.davidonasanya.com`; production branch `main` is configured (DNS for `davidonasanya.com` may be deferred to Phase 13).
+   - Adds: link Vercel project; production branch = `main`; staging branch alias = `staging.davidonasanya.com`; env vars per environment.
+   - Tests: manual visit to a preview URL; manual visit to `staging.davidonasanya.com` after a develop -> staging merge (or to the auto staging preview URL until DNS lands).
 
 5. `task: pull request and issue templates render on github.com (Phase 0)`
    - Priority: P2.
-   - Outcome: opening a new issue or PR shows the project's templates.
+   - Outcome: opening a new issue or PR shows the project's templates; the PR template surfaces the target-branch checklist.
    - Adds: `.github/PULL_REQUEST_TEMPLATE.md`, `.github/ISSUE_TEMPLATE/*.yml`, `.github/CONTRIBUTING.md`, `.env.example`, `CLAUDE.md`.
    - Tests: manual.
+
+6. `task: branch flow guard rejects PRs that skip the develop -> staging -> main chain (Phase 0)`
+   - Priority: P1.
+   - Outcome: a PR `feature/X -> staging` or `develop -> main` fails the `branch-flow-guard` status check with a clear message; valid pairs (`feature/* -> develop`, `develop -> staging`, `staging -> main`) pass.
+   - Adds: `.github/workflows/branch-flow-guard.yml`. Required as a status check on all three protected branches.
+   - Tests: deliberate `feature/test -> staging` PR fails; same head opened against `develop` passes.
 
 ---
 
@@ -483,10 +489,10 @@ Counts: 77 slices across 14 phases.
    - Outcome: scope success criterion.
    - Tests: manual stopwatch.
 
-6. `task: branch protection on main is final (all required checks, enforce_admins true, no force-push, no deletion) (Phase 13)`
+6. `task: branch protection on main, staging, develop is final (all required checks, enforce_admins true, no force-push, no deletion) (Phase 13)`
    - Priority: P1.
-   - Adds: final `gh api` protection update.
-   - Tests: manual.
+   - Adds: final `gh api` protection update across all three branches via `REQUIRE_CHEAP_CHECKS=1 REQUIRE_HEAVY_CHECKS=1 bash scripts/github/seed-branch-protection.sh`.
+   - Tests: manual; verify `gh api repos/.../branches/<b>/protection` returns the expected contexts list for each branch.
 
 7. `task: CLAUDE.md documents installed Vercel skills and per-task-type preferences (Phase 13)`
    - Priority: P2.
@@ -499,7 +505,7 @@ Counts: 77 slices across 14 phases.
 
 | Phase | Slices | P1 | P2 | P3 |
 |---|---|---|---|---|
-| 0 | 5 | 4 | 1 | 0 |
+| 0 | 6 | 5 | 1 | 0 |
 | 1 | 6 | 3 | 3 | 0 |
 | 2 | 5 | 3 | 1 | 1 |
 | 3 | 6 | 5 | 1 | 0 |
@@ -513,6 +519,6 @@ Counts: 77 slices across 14 phases.
 | 11 | 4 | 4 | 0 | 0 |
 | 12 | 4 | 3 | 1 | 0 |
 | 13 | 7 | 6 | 1 | 0 |
-| **Total** | **77** | **55** | **21** | **1** |
+| **Total** | **78** | **56** | **21** | **1** |
 
 Next step: review and trim, then I will create these as GitHub Issues against `AdeniyiOnasanya/Portfolio` once the labels, milestones, and project board are seeded.

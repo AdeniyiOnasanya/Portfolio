@@ -1,5 +1,11 @@
 <!-- Use commas, periods, semicolons, parentheses, or colons. Do not use em-dash or emoji. -->
 
+## Target branch check
+
+- [ ] Feature/fix/content/chore/docs PR opens against `develop`.
+- [ ] Promotion `develop -> staging` PR titled `release: develop -> staging YYYY-MM-DD`.
+- [ ] Promotion `staging -> main` PR titled `release: staging -> main YYYY-MM-DD`.
+
 ## Summary
 
 <!-- One or two sentences. What changed and why. -->
