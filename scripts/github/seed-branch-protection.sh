@@ -9,6 +9,11 @@ set -euo pipefail
 # CI exists. Run again with REQUIRE_CHEAP_CHECKS=1 once Phase 1 lands
 # typecheck/lint/unit/forbidden-chars/build, and REQUIRE_HEAVY_CHECKS=1
 # after Phases 11 and 12 land lighthouse + e2e.
+#
+# REQUIRES GITHUB PRO ON A PRIVATE REPO. On GitHub Free this script will
+# fail with HTTP 403 ("Upgrade to GitHub Pro or make this repository
+# public to enable this feature"). Until upgraded, the chain holds via
+# branch-flow-guard.yml as a soft check (visible on PRs but not blocking).
 
 REPO="${REPO:-AdeniyiOnasanya/Portfolio}"
 REQUIRE_CHEAP_CHECKS="${REQUIRE_CHEAP_CHECKS:-0}"

@@ -75,6 +75,12 @@ Refer to the test layer for the relevant phase in `implementation-plan.md`. The 
 
 ## Branch protection summary
 
+GitHub Free does not allow branch protection on private repos. Until the repo is on GitHub Pro (or made public), the rules below are **convention plus a soft check**: `branch-flow-guard` runs on every PR and shows a red X on a non-conforming pair, but the merge button is not blocked. The chain holds because the developer follows it; the workflow is the tripwire.
+
+When the repo upgrades to GitHub Pro or goes public, run `bash scripts/github/seed-branch-protection.sh` and the rules below activate as enforced server-side gates.
+
+Target rules (active once protection is enabled):
+
 - **main:** PR required, no direct push, no force push, no deletion, all CI green, `branch-flow-guard` required, `enforce_admins=true`, linear history required.
 - **staging:** same as main, but allows merge commits (linear history off) so a `develop -> staging` merge with conflicts can land cleanly.
 - **develop:** PR required, cheap CI green (`typecheck`, `lint`, `unit`, `forbidden-chars`, `build`, `branch-flow-guard`).
