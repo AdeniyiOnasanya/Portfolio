@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0a0b0a"></stop>
+      <stop offset="1" stop-color="#11140f"></stop>
+    </linearGradient>
+    <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse">
+      <path d="M48 0H0V48" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="1"></path>
+    </pattern>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"></rect>
+  <rect width="1200" height="630" fill="url(#grid)"></rect>
+
+  
+  <g font-family="ui-monospace, &#39;JetBrains Mono&#39;, monospace" font-size="14" fill="#a8a59c" letter-spacing="2">
+    <text x="60" y="60">DO / 2026</text>
+    <text x="60" y="82" fill="#4ade80">/ AVAILABLE Q2 2026</text>
+    <text x="1140" y="60" text-anchor="end">STAFFORD · UK</text>
+    <text x="1140" y="82" text-anchor="end" fill="#a8a59c">SIX YEARS SHIPPING</text>
+  </g>
+
+  
+  <g font-family="Fraunces, Georgia, serif" fill="#f3efe7">
+    <text x="60" y="290" font-size="180" font-weight="300" letter-spacing="-6">David</text>
+    <text x="60" y="450" font-size="180" font-weight="300" font-style="italic" letter-spacing="-6">Onasanya.</text>
+  </g>
+
+  
+  <g font-family="Geist, system-ui, sans-serif" fill="#a8a59c" font-size="22">
+    <text x="60" y="510">Full-stack software engineer.</text>
+    <text x="60" y="540">Web, mobile, and cloud, end to end.</text>
+  </g>
+
+  
+  <g font-family="ui-monospace, monospace" font-size="13" fill="#7a7a72" letter-spacing="2">
+    <text x="60" y="592">LARAVEL · REACT · TYPESCRIPT · REACT NATIVE · VUE / NUXT · AWS · AZURE · POSTGRESQL · TAILWIND · FIGMA</text>
+  </g>
+
+  
+  <circle cx="1110" cy="540" r="14" fill="#4ade80"></circle>
+  <circle cx="1110" cy="540" r="38" fill="none" stroke="#4ade80" stroke-opacity="0.25" stroke-width="1"></circle>
+</svg>

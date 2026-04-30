@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Sign in, David Onasanya</title>
+<meta name="robots" content="noindex, nofollow" />
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,200..900,30..100,0..1;1,9..144,200..900,30..100,0..1&family=Geist:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="styles.css" />
+<style>
+  body { background: var(--bg); color: var(--fg); font-family: var(--sans); margin: 0; min-height: 100vh; overflow: hidden; }
+  .login-shell { display: grid; grid-template-columns: 1.1fr 1fr; min-height: 100vh; }
+  @media (max-width: 920px) { .login-shell { grid-template-columns: 1fr; } .login-brand { display: none; } }
+
+  /* Brand panel */
+  .login-brand {
+    position: relative;
+    background: linear-gradient(180deg, #0a0b0a 0%, #11140f 100%);
+    overflow: hidden;
+    padding: 48px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    border-right: 1px solid rgba(255,255,255,0.06);
+  }
+  .login-brand::before {
+    content: "";
+    position: absolute; inset: 0;
+    background-image: repeating-linear-gradient(-45deg, transparent 0, transparent 32px, rgba(255,255,255,0.025) 32px, rgba(255,255,255,0.025) 33px);
+    pointer-events: none;
+  }
+  .login-brand .topline {
+    display: flex; gap: 16px; align-items: center;
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase;
+    color: rgba(255,255,255,0.55);
+    z-index: 2; position: relative;
+  }
+  .login-brand .topline .dot { width: 8px; height: 8px; border-radius: 50%; background: oklch(0.78 0.18 145); box-shadow: 0 0 12px oklch(0.78 0.18 145 / 0.6); }
+  .login-display {
+    z-index: 2; position: relative;
+    font-family: var(--serif); font-style: italic; font-weight: 300;
+    font-size: clamp(64px, 8vw, 120px); line-height: 0.92; letter-spacing: -0.04em;
+    color: #f3efe7;
+    font-variation-settings: '"SOFT" 100, "WONK" 1, "opsz" 144';
+  }
+  .login-display em { font-style: italic; color: oklch(0.78 0.18 145); }
+  .login-foot {
+    z-index: 2; position: relative;
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: rgba(255,255,255,0.4);
+    display: flex; gap: 18px;
+  }
+
+  /* Form panel */
+  .login-form {
+    padding: 48px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    max-width: 540px;
+    width: 100%;
+    margin: 0 auto;
+  }
+  .login-eyebrow {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--fg-mute); margin-bottom: 24px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .login-eyebrow::before { content: ""; width: 24px; height: 1px; background: var(--fg-mute); }
+  .login-form h1 {
+    font-family: var(--serif); font-weight: 300;
+    font-size: clamp(40px, 5vw, 56px); line-height: 1.05; letter-spacing: -0.02em;
+    margin: 0 0 16px;
+  }
+  .login-form h1 em { font-style: italic; }
+  .login-form p.lede { font-size: 15px; line-height: 1.55; color: var(--fg-dim); margin: 0 0 32px; max-width: 44ch; }
+
+  .field {
+    display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px;
+  }
+  .field label {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--fg-mute);
+  }
+  .field input {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--line-strong, rgba(255,255,255,0.14));
+    color: var(--fg);
+    padding: 14px 16px;
+    border-radius: 10px;
+    font-family: var(--sans); font-size: 16px;
+    transition: border-color 0.18s ease, background 0.18s ease;
+    outline: none;
+  }
+  .field input:focus { border-color: oklch(0.78 0.18 145); background: rgba(255,255,255,0.05); }
+
+  .submit-btn {
+    appearance: none; border: 0;
+    background: var(--fg); color: var(--bg);
+    padding: 14px 22px; border-radius: 10px;
+    font-family: var(--sans); font-weight: 500; font-size: 15px;
+    cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+    width: 100%;
+    transition: transform 0.12s ease, opacity 0.18s ease;
+  }
+  .submit-btn:hover:not(:disabled) { transform: translateY(-1px); }
+  .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+  .submit-btn .arr { transition: transform 0.18s ease; }
+  .submit-btn:hover:not(:disabled) .arr { transform: translateX(4px); }
+
+  .helper {
+    margin-top: 20px;
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.06em;
+    color: var(--fg-mute);
+    line-height: 1.6;
+  }
+  .helper kbd {
+    padding: 2px 6px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 4px; font-size: 10px; margin: 0 2px;
+  }
+  .err {
+    margin-top: 12px;
+    color: oklch(0.7 0.2 25);
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.06em;
+  }
+
+  /* Sent state */
+  .sent-state { display: none; }
+  .sent-state.on { display: flex; flex-direction: column; gap: 18px; }
+  .sent-icon {
+    width: 56px; height: 56px; border-radius: 50%;
+    background: oklch(0.78 0.18 145 / 0.16);
+    border: 1px solid oklch(0.78 0.18 145 / 0.4);
+    display: inline-flex; align-items: center; justify-content: center;
+    color: oklch(0.78 0.18 145);
+    margin-bottom: 12px;
+  }
+  .sent-state .magic-link {
+    background: rgba(255,255,255,0.04); border: 1px dashed rgba(255,255,255,0.16);
+    padding: 14px 18px; border-radius: 10px;
+    font-family: var(--mono); font-size: 12px; color: var(--fg-dim);
+    word-break: break-all;
+  }
+  .sent-state .magic-link a { color: oklch(0.78 0.18 145); text-decoration: none; }
+  .sent-state .magic-link a:hover { text-decoration: underline; }
+  .ghost-btn {
+    background: transparent; border: 1px solid var(--line-strong, rgba(255,255,255,0.14));
+    color: var(--fg);
+    padding: 12px 18px; border-radius: 10px;
+    font-family: var(--sans); font-size: 14px; cursor: pointer;
+    align-self: flex-start;
+  }
+
+  .login-status {
+    margin-top: auto; padding-top: 32px;
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--fg-mute);
+    display: flex; gap: 18px;
+  }
+  .login-status .live { color: oklch(0.78 0.18 145); display: inline-flex; align-items: center; gap: 8px; }
+  .login-status .live::before {
+    content: ""; width: 6px; height: 6px; border-radius: 50%;
+    background: oklch(0.78 0.18 145);
+    box-shadow: 0 0 8px oklch(0.78 0.18 145);
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+</style>
+</head>
+<body>
+<div class="grain"></div>
+<div class="login-shell">
+
+  <aside class="login-brand">
+    <div class="topline"><span class="dot"></span><span>DO / ADMIN</span><span style="opacity:0.4">·</span><span>RESTRICTED ACCESS</span></div>
+    <div>
+      <div class="login-display">Sign in.<br/><em>Quietly.</em></div>
+      <p style="font-family:var(--mono); font-size:12px; letter-spacing:0.06em; color:rgba(255,255,255,0.55); margin-top:24px; max-width:38ch; line-height:1.6">
+        This is the back of the house. Magic-link sign-in for the portfolio's CMS. No public link points here, you arrived by knowing the URL.
+      </p>
+    </div>
+    <div class="login-foot">
+      <span>STAFFORD · UK</span>
+      <span>v1.0</span>
+      <span>SECURE</span>
+    </div>
+  </aside>
+
+  <main class="login-form">
+    <div id="step-email">
+      <div class="login-eyebrow">Step 01 of 02</div>
+      <h1>Welcome <em>back</em>.</h1>
+      <p class="lede">Enter the admin email and we'll send a one-time link. No password, no friction.</p>
+
+      <form id="email-form" autocomplete="off">
+        <div class="field">
+          <label for="email-input">Email address</label>
+          <input id="email-input" type="email" name="email" placeholder="onasanyaadeniyi17@gmail.com" required spellcheck="false" />
+        </div>
+        <button type="submit" class="submit-btn">
+          <span>Send magic link</span>
+          <span class="arr">→</span>
+        </button>
+      </form>
+
+      <div class="helper">
+        Tip: press <kbd>⌘</kbd><kbd>Enter</kbd> to submit. The link is generated locally for this prototype.
+      </div>
+      <div class="err" id="err" style="display:none"></div>
+    </div>
+
+    <div id="step-sent" class="sent-state">
+      <div class="login-eyebrow">Step 02 of 02</div>
+      <div class="sent-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 6"/></svg>
+      </div>
+      <h1>Check your <em>inbox</em>.</h1>
+      <p class="lede">We sent a magic link to <strong id="sent-email" style="color:var(--fg)"></strong>. It expires in 10 minutes.</p>
+
+      <div class="magic-link">
+        <div style="opacity:0.55; margin-bottom:6px; font-size:10px; letter-spacing:0.16em; text-transform:uppercase">Prototype link, click to continue</div>
+        <a id="magic-href" href="#">admin.html?token=…</a>
+      </div>
+
+      <button type="button" class="ghost-btn" id="back-btn">← Use a different email</button>
+    </div>
+
+    <div class="login-status">
+      <span class="live">SYSTEM ONLINE</span>
+      <span>NO PUBLIC LINK</span>
+      <span>LOCAL ONLY</span>
+    </div>
+  </main>
+</div>
+
+<script>
+const ADMIN_EMAIL = "onasanyaadeniyi17@gmail.com";
+const form = document.getElementById("email-form");
+const input = document.getElementById("email-input");
+const stepEmail = document.getElementById("step-email");
+const stepSent = document.getElementById("step-sent");
+const sentEmailEl = document.getElementById("sent-email");
+const magicHref = document.getElementById("magic-href");
+const errEl = document.getElementById("err");
+const backBtn = document.getElementById("back-btn");
+
+function genToken() {
+  const arr = new Uint8Array(16);
+  crypto.getRandomValues(arr);
+  return Array.from(arr).map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
+form.addEventListener("submit", (e) => {
+  e.preventDefault();
+  errEl.style.display = "none";
+  const email = input.value.trim().toLowerCase();
+  if (!email) return;
+  if (email !== ADMIN_EMAIL.toLowerCase()) {
+    errEl.textContent = "That email isn't authorised for this portfolio.";
+    errEl.style.display = "block";
+    return;
+  }
+  const token = genToken();
+  const exp = Date.now() + 10 * 60 * 1000;
+  try {
+    localStorage.setItem("portfolio.session", JSON.stringify({ token, exp, email }));
+  } catch {}
+  const url = `admin.html?token=${token}`;
+  magicHref.href = url;
+  magicHref.textContent = `${location.origin}${location.pathname.replace(/login\.html$/, "")}${url}`;
+  sentEmailEl.textContent = email;
+  stepEmail.style.display = "none";
+  stepSent.classList.add("on");
+});
+
+backBtn.addEventListener("click", () => {
+  stepSent.classList.remove("on");
+  stepEmail.style.display = "block";
+  errEl.style.display = "none";
+});
+
+// Cmd+Enter shortcut
+input.addEventListener("keydown", (e) => {
+  if ((e.metaKey || e.ctrlKey) && e.key === "Enter") form.requestSubmit();
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,374 @@
+// All portfolio content sourced from David Onasanya's CV
+window.PORTFOLIO_DATA = {
+  person: {
+    name: "David Onasanya",
+    role: "Full-stack Software Engineer",
+    location: "Stafford, United Kingdom",
+    phone: "07496 839650",
+    email: "onasanyaadeniyi17@gmail.com",
+    cvUrl: "assets/David-Onasanya-CV.pdf",
+    cvDocxUrl: "assets/David-Onasanya-CV.docx",
+    github: "https://github.com/davidonasanya",
+    linkedin: "https://www.linkedin.com/in/david-onasanya",
+    yearsExp: 6,
+    statement:
+      "Solution-driven software engineer with six years building and maintaining complex web and mobile applications across healthcare, social care, and commercial environments, turning REST APIs, OAuth, database design, and responsive UI into production systems people rely on.",
+    longBio: [
+      "Six years deep, I split my time between PHP/Laravel on the server and React, Vue, and React Native on the surface, with TypeScript, Tailwind, and Figma keeping the seams clean.",
+      "I started in real estate building an internal e-learning platform, moved into healthtech designing systems that traced medical devices and identified microplastics, and now ship a multi-cloud management platform centralising AWS and Azure for teams who'd rather not.",
+      "I care equally about the API contract and the spacing between two buttons. I think a good interface is honest about what it's doing, and a good system is boring on purpose."
+    ]
+  },
+  skills: [
+    {
+      label: "Languages",
+      items: ["JavaScript", "TypeScript", "PHP", "HTML5", "CSS3"]
+    },
+    {
+      label: "Frameworks & UI",
+      items: ["Laravel", "React", "Vue", "Nuxt", "Inertia", "React Native (Expo)", "Tailwind CSS"]
+    },
+    {
+      label: "Backend & Data",
+      items: ["REST APIs", "GraphQL", "OAuth", "MySQL", "Node / Express"]
+    },
+    {
+      label: "Cloud & Tooling",
+      items: ["AWS", "Azure Graph", "Docker", "CI/CD", "Git", "Sentry"]
+    },
+    {
+      label: "Testing & Design",
+      items: ["PHPUnit", "Jest", "Figma", "Web Sockets"]
+    },
+    {
+      label: "AI Tooling",
+      items: ["Claude Code", "Claude API", "Cursor", "Prompt engineering", "LLM integration"]
+    }
+  ],
+  experience: [
+    {
+      role: "Software Engineer",
+      company: "Next2Software",
+      where: "Stafford",
+      when: "07/2023, Present",
+      desc: "Multi-cloud management platform centralising AWS & Azure with budgeting, scheduling, and automated container scaling. Foster-care PWA, internal calendar tool, multilingual content workflows, and an Electron compliance-testing rig running on Raspberry Pi with 30+ sensors.",
+      tags: ["Laravel", "Inertia", "TypeScript", "React Native", "Electron", "Vue/Nuxt", "AWS", "Azure"]
+    },
+    {
+      role: "Software Engineer",
+      company: "Partners for Endoscopy / PFE Group",
+      where: "Stoke-on-Trent",
+      when: "09/2022, 07/2023",
+      desc: "Partnered with an AI/ML engineer to deploy a microplastics detection model into a React Native field app. Designed and shipped an automated object-identification system for endoscope handling that cut manual data entry by 50%.",
+      tags: ["React Native", "Laravel", "React", "Figma", "ML integration"]
+    },
+    {
+      role: "Full-Stack Web Developer",
+      company: "Huthmans Real Estate",
+      where: "London",
+      when: "05/2019, 05/2022",
+      desc: "Owned the design, build, and maintenance of an internal e-learning platform supporting staff training across departments. RESTful APIs for assessments and progress tracking, schema design in MySQL, and refactoring legacy code to lift performance.",
+      tags: ["Laravel", "React", "MySQL", "Tailwind", "Sentry"]
+    }
+  ],
+  projects: [
+    {
+      slug: "multi-cloud-platform",
+      n: "01",
+      title: "Stratus",
+      subtitle: "Multi-cloud management platform",
+      year: "2024",
+      role: "Lead engineer",
+      kind: "Web platform",
+      stack: ["Laravel", "Inertia + React", "TypeScript", "Tailwind", "AWS SDK", "Azure Graph"],
+      tagline: "One pane of glass for AWS and Azure.",
+      summary:
+        "A multi-tenant control plane that centralises cloud accounts, exposes resources for budgeting, scheduling, monitoring, and automated container scaling, built end-to-end from Figma to production.",
+      problem:
+        "Mid-size teams running both AWS and Azure were drowning in two consoles, two billing dashboards, and zero unified policy. Cost overruns went unnoticed for weeks; provisioning was tribal knowledge.",
+      approach: [
+        "High-fidelity Figma system covering 60+ screens before a line of code.",
+        "Inertia + React for the SPA-feel without the API duplication; Laravel queues coordinate long-running cloud sync jobs.",
+        "Role-based access control for multi-tenant orgs, with delegated admin and audit trails.",
+        "Sentry across the stack for real-time error tracking and perf telemetry."
+      ],
+      outcome:
+        "Shipped a platform handling thousands of resources across both clouds, with budget alerting and automated scaling reducing wasted spend and surfacing infra hygiene issues before they bite.",
+      visuals: [
+        { label: "Dashboard, cost overview", w: "wide", span: 2 },
+        { label: "Resource explorer", w: "tall" },
+        { label: "Scaling rules editor", w: "tall" }
+      ],
+      meta: { Year: "2024", Role: "Lead Engineer", Sector: "DevOps / SaaS", Status: "In production" },
+      deepDive: {
+        metricsIntro:
+          "Numbers from the first nine months in production. Tracked through the platform itself, sampled monthly, anonymised aggregates across pilot tenants.",
+        metrics: [
+          { value: "18", suffix: "%", label: "reduction in monthly cloud spend", note: "across pilot tenants, after auto-scaling rules went live" },
+          { value: "60", suffix: "+", label: "screens shipped to production", note: "Figma to React in tight feedback loops" },
+          { value: "2", prefix: "→", suffix: " min", label: "from new tenant to first sync", note: "down from a half-day onboarding call" },
+          { value: "92", suffix: "%", label: "of budget alerts caught issues", note: "before the next billing cycle closed" }
+        ],
+        beforeAfter: {
+          intro:
+            "Before, ops leads kept context across two consoles, a billing CSV, and a private Notion page. After, one screen, one budget, one set of rules.",
+          beforeLabel: "Two consoles · billing CSV · tribal knowledge",
+          afterLabel: "Stratus · one pane · one source of truth"
+        },
+        process: [
+          { title: "Discovery", desc: "Two weeks shadowing ops leads at the pilot tenant. Mapped where their day actually went, console-hopping, billing reconciliation, scaling decisions made on intuition." },
+          { title: "Figma system", desc: "Built a 60+ screen Figma library before code. Resource list, detail, budget, scaling rules, audit trail, every state, every empty state, every error." },
+          { title: "Spike: SDK abstraction", desc: "Three days proving I could unify AWS SDK and Azure Graph models behind a single resource interface without leaking provider concepts upward." },
+          { title: "MVP build", desc: "Inertia + React for the SPA-feel without API duplication. Laravel queues for long-running cloud syncs. RBAC and audit trails wired in from day one, not retrofitted." },
+          { title: "Pilot rollout", desc: "Two tenants, weekly syncs, a Sentry feed I checked over coffee. Iterated on the scaling-rule editor four times before it felt right." },
+          { title: "Hardening", desc: "Performance pass on the resource explorer, lazy hydration on Inertia partials, and a write-through cache for cloud reads. Budget alerting moved from polling to event-driven." }
+        ],
+        lessons: [
+          { title: "Boring is a feature.", body: "The most-loved part of the platform is the audit trail. People want to know who pushed the button. Designing for trust beat designing for delight." },
+          { title: "Spec the seams.", body: "The provider-agnostic resource interface looked like over-engineering at week two. By month four it was the only reason adding GCP was a sprint, not a quarter." },
+          { title: "RBAC from day one.", body: "I have never regretted starting a multi-tenant project with role-based access wired in. I have always regretted bolting it on later." }
+        ]
+      }
+    },
+    {
+      slug: "foster-care-platform",
+      n: "02",
+      title: "Hearth",
+      subtitle: "Foster care PWA & onboarding",
+      year: "2024",
+      role: "Full-stack engineer",
+      kind: "Web platform & PWA",
+      stack: ["Vue", "Nuxt", "Laravel", "Tailwind"],
+      tagline: "From interest to approval, in one place.",
+      summary:
+        "A web platform and PWA for a foster care service: prospective carers register interest, complete background checks, and progress through training; staff design forms, review applications, and record a young person's life story.",
+      problem:
+        "Onboarding foster carers involves dozens of forms, third-party checks, training records, and sensitive narrative content. The legacy system was a maze of PDFs and email threads.",
+      approach: [
+        "Dynamic form builder so internal staff create and version assessments without engineering.",
+        "End-to-end onboarding flow with progress tracking and document upload across devices.",
+        "Life-story module, a structured but warm space to capture a young person's history with supporting evidence.",
+        "PWA shell so social workers can keep working in places with patchy connectivity."
+      ],
+      outcome:
+        "Replaced a fragmented paper-and-email workflow with a single auditable platform. Staff design and tweak forms themselves; carers move through onboarding without losing track of where they are.",
+      visuals: [
+        { label: "Carer onboarding, step view", w: "wide", span: 2 },
+        { label: "Dynamic form builder", w: "tall" },
+        { label: "Life story timeline", w: "tall" }
+      ],
+      meta: { Year: "2024", Role: "Full-stack", Sector: "Social Care", Status: "In production" }
+    },
+    {
+      slug: "compliance-electron",
+      n: "03",
+      title: "Vessel",
+      subtitle: "Hot-water compliance testing rig",
+      year: "2024",
+      role: "Full-stack engineer",
+      kind: "Electron app on Raspberry Pi",
+      stack: ["Electron", "React", "TypeScript", "Node / Express", "Web Sockets"],
+      tagline: "30 sensors. One screen. EN16147.",
+      summary:
+        "An Electron application running on a Raspberry Pi for a domestic hot-water tapping compliance testing system. Replaces a brittle legacy app with a fast, readable interface and live sensor streaming.",
+      problem:
+        "Compliance testing under EN16147 means orchestrating tap profiles and recording data from 30+ sensors over hours. The legacy software was unmaintained and unforgiving, a single hiccup voided the test.",
+      approach: [
+        "Read EN16147 alongside the client's lab leads to translate compliance language into a UI a technician can drive at 6am.",
+        "Web Socket data streaming for sub-second sensor updates without UI jank.",
+        "Designed in Figma first, fault states, recovery flows, and live charts laid out before the hardware arrived.",
+        "Hardware-friendly Electron build that boots into the app on a Pi without a desktop."
+      ],
+      outcome:
+        "Live in the lab, replacing the legacy app. Tests are now resumable, sensor data is recoverable mid-run, and onboarding new technicians takes a shift, not a week.",
+      visuals: [
+        { label: "Live sensor dashboard", w: "wide", span: 2 },
+        { label: "Tap profile editor", w: "tall" },
+        { label: "Compliance report view", w: "tall" }
+      ],
+      meta: { Year: "2024", Role: "Full-stack", Sector: "Industrial / IoT", Status: "In production" }
+    },
+    {
+      slug: "calendar-tool",
+      n: "04",
+      title: "Quorum",
+      subtitle: "Internal meeting & calendar tool",
+      year: "2023",
+      role: "Mobile + backend",
+      kind: "React Native app",
+      stack: ["React Native (Expo)", "TypeScript", "Tailwind", "Azure Graph"],
+      tagline: "The meeting nobody had to chase.",
+      summary:
+        "An internal mobile tool that integrates with Azure-hosted company calendars to streamline scheduling, reduce coordination time, and stop the all-hands threads from sprawling.",
+      problem:
+        "Scheduling across a distributed engineering org meant juggling time zones, blocked rooms, and a half-dozen back-and-forth messages per meeting. Existing tools couldn't see the org's full calendar graph.",
+      approach: [
+        "Designed in Figma for a thumb-first, glance-able experience.",
+        "Tapped Azure Graph for calendar reads/writes and free/busy resolution across teams.",
+        "Optimistic UI for proposals, drafts feel instant, conflicts surface immediately.",
+        "Native-feeling transitions throughout, in Expo."
+      ],
+      outcome: "Reduced meeting-coordination back-and-forth across teams; proposed meetings find a slot on the first try, most of the time.",
+      visuals: [
+        { label: "Home, today's schedule", w: "tall" },
+        { label: "Propose meeting flow", w: "tall" },
+        { label: "Conflict resolution sheet", w: "wide", span: 2 }
+      ],
+      meta: { Year: "2023", Role: "Mobile + Backend", Sector: "Internal Tools", Status: "In production" }
+    },
+    {
+      slug: "microplastics-mobile",
+      n: "05",
+      title: "Plumb",
+      subtitle: "Microplastics detection mobile app",
+      year: "2023",
+      role: "Mobile + backend",
+      kind: "Field research app",
+      stack: ["React Native (Expo)", "Laravel", "ML model integration", "Figma"],
+      tagline: "AI in the field, not in the cloud demo.",
+      summary:
+        "A field app for environmental researchers, capture water and air samples, run them against a cloud-hosted ML model that identifies microplastics, log observations and authenticate users.",
+      problem:
+        "Microplastics fieldwork meant capturing photos on a phone, emailing them to a workstation, running the model, then merging results back with manual observation notes. Slow, lossy, and brittle.",
+      approach: [
+        "Mobile capture pipeline that posts directly to the model and renders detection overlays inline.",
+        "Sample observation log tied to user accounts and project tags for downstream analysis.",
+        "Designed for one-handed outdoor use, high-contrast UI, generous tap targets, offline-tolerant queue."
+      ],
+      outcome:
+        "Shortened the loop from sample to insight from days to minutes; researchers see detections in the field and re-shoot if the frame's bad.",
+      visuals: [
+        { label: "Camera with detection overlay", w: "tall" },
+        { label: "Sample log", w: "tall" },
+        { label: "Project dashboard", w: "wide", span: 2 }
+      ],
+      meta: { Year: "2023", Role: "Mobile + Backend", Sector: "Environmental", Status: "Shipped" }
+    },
+    {
+      slug: "endoscope-tracking",
+      n: "06",
+      title: "Trace",
+      subtitle: "Endoscope handling & cleaning system",
+      year: "2023",
+      role: "Full-stack engineer",
+      kind: "Hardware-integrated web app",
+      stack: ["React", "Laravel", "Hardware integration"],
+      tagline: "Every device. Every cycle. Auditable.",
+      summary:
+        "An automated object identification and data-capture system integrated with existing reprocessing equipment, tracking how endoscopes are handled and cleaned across a clinical workflow.",
+      problem:
+        "Manual logging of medical-device cleaning cycles is error-prone and audit-hostile. A scope can pass through a dozen hands a day, and a missed entry creates compliance risk.",
+      approach: [
+        "Stakeholder workshops to map the existing reprocessing flow and identify hardware integration points.",
+        "Documented the right hardware/software stack before building, then implemented a React front-end against a Laravel API.",
+        "Tested rigorously before and during rollout to keep clinical operations uninterrupted."
+      ],
+      outcome:
+        "Reduced manual data entry by 50% and gave the team end-to-end traceability of every device through every cycle.",
+      visuals: [
+        { label: "Live cycle dashboard", w: "wide", span: 2 },
+        { label: "Device timeline", w: "tall" },
+        { label: "Audit report", w: "tall" }
+      ],
+      meta: { Year: "2023", Role: "Full-stack", Sector: "Healthcare", Status: "In production" }
+    },
+    {
+      slug: "elearning-platform",
+      n: "07",
+      title: "Atrium",
+      subtitle: "Internal e-learning platform",
+      year: "2021",
+      role: "Full-stack engineer",
+      kind: "Web platform",
+      stack: ["Laravel", "MySQL", "React", "Tailwind", "Sentry"],
+      tagline: "Where the company learned to learn.",
+      summary:
+        "An internal e-learning platform for a real-estate firm, supporting staff training across multiple departments, assessments, progress tracking, and content management end-to-end.",
+      problem:
+        "Training was scattered across PDFs, calendars, and SharePoint folders. There was no single record of who had learned what.",
+      approach: [
+        "Designed and maintained a MySQL schema for users, courses, modules, and assessments.",
+        "RESTful APIs in PHP for the full lifecycle, content authoring, attempts, progress.",
+        "Refactored legacy code paths and integrated Sentry to surface real-time errors and performance regressions.",
+        "Responsive React + Tailwind UI for desktop and mobile use."
+      ],
+      outcome:
+        "Became the company's source of truth for training records. Performance regressions surfaced in minutes instead of complaints.",
+      visuals: [
+        { label: "Course catalogue", w: "wide", span: 2 },
+        { label: "Lesson player", w: "tall" },
+        { label: "Progress dashboard", w: "tall" }
+      ],
+      meta: { Year: "2021", Role: "Full-stack", Sector: "Real Estate", Status: "Shipped" }
+    }
+  ],
+  certs: [
+    "AWS Certified Solutions Architect, Amazon Web Services",
+    "Microsoft Certified: Azure Fundamentals",
+    "Certified Network Associate, Aptech Education"
+  ],
+  education: [
+    {
+      degree: "BSc Information Technology & Business Information Systems",
+      school: "Middlesex University, London",
+      result: "First-Class Honours"
+    },
+    {
+      degree: "Advanced Diploma in Software Engineering",
+      school: "Aptech Education, Nigeria",
+      result: "First-Class Honours"
+    }
+  ],
+  aiPractice: {
+    eyebrow: "AI-Assisted Development",
+    headline: "I ship faster, and better, with AI in the loop.",
+    intro:
+      "Claude Code is part of my daily toolchain. It pairs well with how I already work, small commits, sharp specs, and a willingness to throw away the first idea. I treat the model as a senior collaborator: explicit context, explicit constraints, and review every diff.",
+    pillars: [
+      {
+        n: "i.",
+        title: "Specification first.",
+        body: "Every task starts with a written intent, what's changing, what's not, and the failure modes. The agent is only as sharp as the spec it's given."
+      },
+      {
+        n: "ii.",
+        title: "Review every diff.",
+        body: "Generated code is reviewed line-by-line, against the same bar as a teammate's PR. Tests, types, and security live or die at the review."
+      },
+      {
+        n: "iii.",
+        title: "Tools, not autopilot.",
+        body: "I use Claude Code for refactors, scaffolding, migrations, and exploratory spikes, not to replace judgement. The architecture is mine; the typing is shared."
+      },
+      {
+        n: "iv.",
+        title: "LLM features in product.",
+        body: "When clients want LLM features, I integrate Claude's API with proper rate-limiting, prompt versioning, and fallbacks so the product doesn't break when the model does."
+      }
+    ],
+    workflow: [
+      { k: "Spec", v: "Plain-English intent, edge cases, non-goals." },
+      { k: "Scaffold", v: "Agent generates the skeleton, I name the seams." },
+      { k: "Iterate", v: "Tight feedback loops, run, read, refine." },
+      { k: "Review", v: "Diff-by-diff, tests in CI, Sentry on the other side." }
+    ]
+  },
+  footer: {
+    heading: "Let's talk.",
+    copy: "Open to senior full-stack roles in the UK and remote. London, Manchester, hybrid, distributed. Fully booked May 2026 onwards but happy to scope work now.",
+    availability: "Available Q2 2026",
+    copyright: "(c) 2026 David Onasanya. Built in HTML, by hand."
+  },
+  settings: {
+    defaultTheme: "system",
+    intro: true,
+    visibility: {
+      about: true,
+      skills: true,
+      experience: true,
+      ai: true,
+      work: true,
+      commandPalette: true
+    }
+  }
+};
