@@ -1,0 +1,98 @@
+name: Task
+description: A tracer-bullet vertical slice. One closeable PR.
+title: "task: <user-visible outcome>"
+labels: ["type:task", "status:triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use commas, periods, semicolons, parentheses, or colons. Do not use em-dash or emoji.
+        Each task should describe one observable outcome that can ship as a single PR.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: One or two sentences. What this slice changes.
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: User-visible outcome
+      description: What an observer sees when this PR merges. Phrase as a behaviour, not a list of files.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Checkbox list. Each item is verifiable.
+      value: |
+        - [ ]
+        - [ ]
+        - [ ]
+    validations:
+      required: true
+  - type: textarea
+    id: tests
+    attributes:
+      label: Test plan
+      description: Vitest unit, RTL, Playwright, or manual. Reference the layer from implementation-plan.md.
+    validations:
+      required: true
+  - type: textarea
+    id: files
+    attributes:
+      label: Files likely touched
+  - type: dropdown
+    id: phase
+    attributes:
+      label: Phase
+      options:
+        - "0"
+        - "1"
+        - "2"
+        - "3"
+        - "4"
+        - "5"
+        - "6"
+        - "7"
+        - "8"
+        - "9"
+        - "10"
+        - "11"
+        - "12"
+        - "13"
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - public
+        - admin
+        - content
+        - auth
+        - ci
+        - infra
+        - seo
+        - docs
+    validations:
+      required: true
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options:
+        - P0
+        - P1
+        - P2
+        - P3
+    validations:
+      required: true
+  - type: textarea
+    id: depends
+    attributes:
+      label: Depends on
+      description: Issue numbers that must close first. Example, "Depends on #12".

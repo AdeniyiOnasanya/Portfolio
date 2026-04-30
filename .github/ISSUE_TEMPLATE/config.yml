@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Project scope
+    url: https://github.com/AdeniyiOnasanya/Portfolio/blob/main/project-scope.md
+    about: What is being built and why.
+  - name: Tech stack and locked decisions
+    url: https://github.com/AdeniyiOnasanya/Portfolio/blob/main/tech-stack.md
+    about: Locked technical decisions. Read before proposing changes.
+  - name: Implementation plan
+    url: https://github.com/AdeniyiOnasanya/Portfolio/blob/main/implementation-plan.md
+    about: Phased build plan. New work belongs to a phase milestone.

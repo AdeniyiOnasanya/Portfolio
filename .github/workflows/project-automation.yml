@@ -1,0 +1,148 @@
+name: Project automation
+
+# Adds new issues and PRs to the Portfolio Build project, syncs item Status
+# from PR linkage, and applies a small number of unambiguous default labels.
+#
+# Requires a repository secret named PROJECT_PAT: a fine-grained personal
+# access token with `project` scope. The default GITHUB_TOKEN cannot manage
+# user-scoped projects.
+
+on:
+  issues:
+    types: [opened, labeled, reopened]
+  pull_request:
+    types: [opened, reopened, ready_for_review, converted_to_draft, closed]
+
+concurrency:
+  group: project-automation-${{ github.event.issue.number || github.event.pull_request.number }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: read
+
+env:
+  PROJECT_URL: https://github.com/users/AdeniyiOnasanya/projects/1
+  PROJECT_OWNER: AdeniyiOnasanya
+  PROJECT_NUMBER: "1"
+
+jobs:
+  add-to-project:
+    name: Add new item to Portfolio Build
+    if: github.event.action == 'opened'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/add-to-project@v1
+        with:
+          project-url: ${{ env.PROJECT_URL }}
+          github-token: ${{ secrets.PROJECT_PAT }}
+
+  sync-status-from-pr:
+    name: Sync project Status from PR linkage
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Compute target Status
+        id: status
+        run: |
+          action="${{ github.event.action }}"
+          merged="${{ github.event.pull_request.merged }}"
+          draft="${{ github.event.pull_request.draft }}"
+          if [ "$action" = "closed" ] && [ "$merged" = "true" ]; then
+            echo "value=Done" >> "$GITHUB_OUTPUT"
+          elif [ "$action" = "closed" ] && [ "$merged" = "false" ]; then
+            echo "value=Ready" >> "$GITHUB_OUTPUT"
+          elif [ "$action" = "converted_to_draft" ]; then
+            echo "value=In Progress" >> "$GITHUB_OUTPUT"
+          else
+            # opened, reopened, ready_for_review
+            echo "value=In Progress" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Update linked issues
+        env:
+          GH_TOKEN: ${{ secrets.PROJECT_PAT }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          OWNER: ${{ env.PROJECT_OWNER }}
+          NUMBER: ${{ env.PROJECT_NUMBER }}
+          REPO: ${{ github.repository }}
+          TARGET_STATUS: ${{ steps.status.outputs.value }}
+        run: |
+          set -euo pipefail
+          if [ -z "${PR_BODY:-}" ]; then
+            echo "No PR body, nothing to sync."
+            exit 0
+          fi
+
+          # Extract issue numbers from "Closes #N" / "closes #N" / "Fixes #N" / "Resolves #N".
+          ISSUES=$(printf "%s" "$PR_BODY" \
+            | grep -oEi '(close[sd]?|fix(e[sd])?|resolve[sd]?) #[0-9]+' \
+            | grep -oE '#[0-9]+' \
+            | tr -d '#' \
+            | sort -u || true)
+
+          if [ -z "$ISSUES" ]; then
+            echo "No closing references in PR body."
+            exit 0
+          fi
+
+          PROJECT_ID=$(gh api graphql -f query='
+            query($login:String!,$num:Int!){
+              user(login:$login){projectV2(number:$num){id}}
+            }' -F login="$OWNER" -F num="$NUMBER" --jq '.data.user.projectV2.id')
+
+          STATUS_FIELD=$(gh api graphql -f query='
+            query($login:String!,$num:Int!){
+              user(login:$login){projectV2(number:$num){
+                field(name:"Status"){... on ProjectV2SingleSelectField{
+                  id options{id name}
+                }}
+              }}
+            }' -F login="$OWNER" -F num="$NUMBER")
+          FIELD_ID=$(echo "$STATUS_FIELD" | jq -r '.data.user.projectV2.field.id')
+          OPTION_ID=$(echo "$STATUS_FIELD" | jq -r --arg n "$TARGET_STATUS" '.data.user.projectV2.field.options[] | select(.name==$n) | .id')
+
+          for n in $ISSUES; do
+            echo "Updating issue #$n to Status='$TARGET_STATUS'"
+            ISSUE_NODE=$(gh api "repos/$REPO/issues/$n" --jq '.node_id')
+            ITEM_ID=$(gh api graphql -f query='
+              mutation($p:ID!,$c:ID!){
+                addProjectV2ItemById(input:{projectId:$p,contentId:$c}){item{id}}
+              }' -F p="$PROJECT_ID" -F c="$ISSUE_NODE" --jq '.data.addProjectV2ItemById.item.id')
+            gh api graphql -f query='
+              mutation($p:ID!,$i:ID!,$f:ID!,$o:String!){
+                updateProjectV2ItemFieldValue(input:{
+                  projectId:$p,itemId:$i,fieldId:$f,
+                  value:{singleSelectOptionId:$o}
+                }){projectV2Item{id}}
+              }' -F p="$PROJECT_ID" -F i="$ITEM_ID" -F f="$FIELD_ID" -F o="$OPTION_ID" >/dev/null
+          done
+
+  route-by-label:
+    name: Default area on content type
+    if: github.event_name == 'issues' && github.event.action == 'labeled'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Add area:content if missing
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          LABEL_NAME: ${{ github.event.label.name }}
+        run: |
+          set -euo pipefail
+          case "$LABEL_NAME" in
+            type:content|type:content-gap)
+              EXISTING=$(gh api "repos/$REPO/issues/$ISSUE_NUMBER/labels" --jq '.[].name' | grep -E '^area:' || true)
+              if [ -z "$EXISTING" ]; then
+                echo "Adding area:content to issue #$ISSUE_NUMBER"
+                gh api "repos/$REPO/issues/$ISSUE_NUMBER/labels" \
+                  -X POST -f labels[]="area:content" >/dev/null
+              else
+                echo "Area label already present: $EXISTING"
+              fi
+              ;;
+            *)
+              echo "No routing rule for label '$LABEL_NAME'."
+              ;;
+          esac
