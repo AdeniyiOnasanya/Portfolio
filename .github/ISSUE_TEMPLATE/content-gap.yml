@@ -1,0 +1,38 @@
+name: Content gap
+description: Missing content the site needs but I have not produced yet.
+title: "content: gap, <short summary>"
+labels: ["type:content-gap", "area:content", "status:triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use commas, periods, semicolons, parentheses, or colons. Do not use em-dash or emoji.
+  - type: textarea
+    id: gap
+    attributes:
+      label: Gap description
+      description: What content is missing.
+    validations:
+      required: true
+  - type: input
+    id: where
+    attributes:
+      label: Where it shows on the site
+    validations:
+      required: true
+  - type: textarea
+    id: produce
+    attributes:
+      label: What needs producing
+      description: Copy, screenshots, video, OG image, etc.
+    validations:
+      required: true
+  - type: dropdown
+    id: blocking
+    attributes:
+      label: Blocking?
+      options:
+        - "Yes, blocks launch"
+        - "No, polish only"
+    validations:
+      required: true

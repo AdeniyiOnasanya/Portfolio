@@ -1,0 +1,865 @@
+{
+  "current_phase": 0,
+  "slices": [
+    {
+      "id": "0.1",
+      "phase": 0,
+      "priority": "P1",
+      "area": "infra",
+      "title": "task: cloning the repo and running pnpm install yields a green typecheck and build (Phase 0)",
+      "outcome": "Fresh clone, `pnpm install && pnpm typecheck && pnpm build` passes; placeholder page renders at `/`.",
+      "adds": "`package.json`, `tsconfig.json` (strict, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`), `next.config.ts`, `biome.json`, `app/layout.tsx`, `app/page.tsx` (placeholder), `app/globals.css` imports `tokens.css`.",
+      "tests": "None; manual run.",
+      "depends": []
+    },
+    {
+      "id": "0.2",
+      "phase": 0,
+      "priority": "P1",
+      "area": "ci",
+      "title": "task: pushing a PR triggers CI that typechecks, lints, and builds (Phase 0)",
+      "outcome": "Open a PR, see green checks for `typecheck`, `lint`, `build`.",
+      "adds": "`.github/workflows/ci.yml` skeleton with the three jobs and a pnpm cache.",
+      "tests": "CI run on the PR itself.",
+      "depends": ["0.1"]
+    },
+    {
+      "id": "0.3",
+      "phase": 0,
+      "priority": "P1",
+      "area": "ci",
+      "title": "task: branch protection on main rejects direct pushes and requires CI green (Phase 0)",
+      "outcome": "`git push origin main` rejected; PR cannot merge until CI passes.",
+      "adds": "Branch protection rules via `gh api` (relaxed seed; checks list expands across phases).",
+      "tests": "Manual push attempt.",
+      "depends": ["0.2"]
+    },
+    {
+      "id": "0.4",
+      "phase": 0,
+      "priority": "P1",
+      "area": "infra",
+      "title": "task: a Vercel preview deploys for every PR and renders the placeholder (Phase 0)",
+      "outcome": "PR opens, Vercel posts a preview URL, `/` renders.",
+      "adds": "Link Vercel project, configure env vars on Vercel, hook to repo.",
+      "tests": "Manual visit to the preview URL.",
+      "depends": ["0.1"]
+    },
+    {
+      "id": "0.5",
+      "phase": 0,
+      "priority": "P2",
+      "area": "docs",
+      "title": "task: pull request and issue templates render on github.com (Phase 0)",
+      "outcome": "Opening a new issue or PR shows the project's templates.",
+      "adds": "`.github/PULL_REQUEST_TEMPLATE.md`, `.github/ISSUE_TEMPLATE/*.yml`, `.github/CONTRIBUTING.md`, `.env.example`, `CLAUDE.md`.",
+      "tests": "Manual.",
+      "depends": []
+    },
+
+    {
+      "id": "1.1",
+      "phase": 1,
+      "priority": "P1",
+      "area": "infra",
+      "title": "task: pnpm test runs Vitest and reports zero suites green (Phase 1)",
+      "outcome": "Empty test run is green; foundation for TDD.",
+      "adds": "`vitest.config.ts`, one passing sample test, `pnpm test` script.",
+      "tests": "The run itself.",
+      "depends": []
+    },
+    {
+      "id": "1.2",
+      "phase": 1,
+      "priority": "P1",
+      "area": "ci",
+      "title": "task: forbidden-chars meta-test fails on a file containing an em-dash (Phase 1)",
+      "outcome": "Deliberate em-dash in a markdown file fails the `forbidden-chars` CI job; remove, green.",
+      "adds": "`lib/text/forbidden.ts` (U+2014 + `\\p{Extended_Pictographic}`), `scripts/check-forbidden-chars.ts`, CI job that scans `**/*.{ts,tsx,md,mdx,json,css}`.",
+      "tests": "Vitest on the scanner; CI exercise.",
+      "depends": []
+    },
+    {
+      "id": "1.3",
+      "phase": 1,
+      "priority": "P1",
+      "area": "ci",
+      "title": "task: lint and typecheck reject a deliberate any (Phase 1)",
+      "outcome": "`pnpm lint` and `pnpm typecheck` break the build on a deliberate violation.",
+      "adds": "Biome config tightened, `lint` CI job.",
+      "tests": "Deliberate violation in a throwaway PR.",
+      "depends": []
+    },
+    {
+      "id": "1.4",
+      "phase": 1,
+      "priority": "P2",
+      "area": "ci",
+      "title": "task: dependabot weekly PRs land for npm and actions (Phase 1)",
+      "outcome": "Weekly Dependabot run scheduled.",
+      "adds": "`.github/dependabot.yml`.",
+      "tests": "Manual (wait for the first weekly run).",
+      "depends": []
+    },
+    {
+      "id": "1.5",
+      "phase": 1,
+      "priority": "P2",
+      "area": "ci",
+      "title": "task: codeql runs on PR and weekly on main (Phase 1)",
+      "outcome": "CodeQL workflow attached; first run completes.",
+      "adds": "`.github/workflows/codeql.yml`.",
+      "tests": "CI run on the seeding PR.",
+      "depends": []
+    },
+    {
+      "id": "1.6",
+      "phase": 1,
+      "priority": "P2",
+      "area": "infra",
+      "title": "task: playwright config exists and an empty e2e suite passes (Phase 1)",
+      "outcome": "`pnpm test:e2e` runs, no specs yet, green.",
+      "adds": "`playwright.config.ts`, browser cache config.",
+      "tests": "The empty run.",
+      "depends": []
+    },
+
+    {
+      "id": "2.1",
+      "phase": 2,
+      "priority": "P1",
+      "area": "public",
+      "title": "task: opening / in dark mode shows token-driven colours and self-hosted fonts (Phase 2)",
+      "outcome": "`/` paints with dark tokens, Fraunces, Geist, JetBrains Mono.",
+      "adds": "`app/globals.css` imports `tokens.css`; `next/font` self-hosts the three families with Latin subset; layout consumes them.",
+      "tests": "Visual; unit on font setup.",
+      "depends": []
+    },
+    {
+      "id": "2.2",
+      "phase": 2,
+      "priority": "P1",
+      "area": "public",
+      "title": "task: clicking the theme toggle cycles system to dark to light without FOUC and persists across reload (Phase 2)",
+      "outcome": "Visible toggle cycles; cookie persists; SSR reads cookie + `Sec-CH-Prefers-Color-Scheme`.",
+      "adds": "`components/shared/{ThemeProvider,ThemeToggle}.tsx`, `lib/theme/resolve.ts`.",
+      "tests": "RTL on toggle; unit on resolver.",
+      "depends": []
+    },
+    {
+      "id": "2.3",
+      "phase": 2,
+      "priority": "P1",
+      "area": "public",
+      "title": "task: enabling prefers-reduced-motion in DevTools zeros all token durations (Phase 2)",
+      "outcome": "Durations cascade to 0 via existing tokens.",
+      "adds": "Documentation in `globals.css`; verification step in PR template.",
+      "tests": "Visual; RTL on `Reveal` (no observer when reduced-motion).",
+      "depends": []
+    },
+    {
+      "id": "2.4",
+      "phase": 2,
+      "priority": "P2",
+      "area": "public",
+      "title": "task: scroll reveal animates content in on first viewport entry (Phase 2)",
+      "outcome": "Sections fade and translate in on first viewport entry; reduced-motion bypasses.",
+      "adds": "`components/shared/Reveal.tsx`.",
+      "tests": "RTL (no observer when reduced-motion); manual scroll smoke.",
+      "depends": []
+    },
+    {
+      "id": "2.5",
+      "phase": 2,
+      "priority": "P3",
+      "area": "public",
+      "title": "task: subtle film grain overlay renders behind content (Phase 2)",
+      "outcome": "Grain overlay visible at low opacity; respects theme.",
+      "adds": "`components/shared/Grain.tsx`.",
+      "tests": "Visual.",
+      "depends": []
+    },
+
+    {
+      "id": "3.1",
+      "phase": 3,
+      "priority": "P1",
+      "area": "content",
+      "title": "task: parsing content/site.json with the canonical schema returns typed Site (Phase 3)",
+      "outcome": "Loader parses, types flow end-to-end.",
+      "adds": "`lib/schema.ts`, `lib/content.ts`, `content/site.json` ported from `design_handoff_portfolio/design/data.js` (preserve `<em>` semantics in `headline`).",
+      "tests": "Zod parsers per section; round-trip parse for valid + invalid; pinned issue-path snapshots.",
+      "depends": []
+    },
+    {
+      "id": "3.2",
+      "phase": 3,
+      "priority": "P1",
+      "area": "content",
+      "title": "task: the build fails if content/site.json is malformed (Phase 3)",
+      "outcome": "Corrupt the file, `pnpm build` exits non-zero with a clear path-aware error.",
+      "adds": "`scripts/validate-content.ts`, `prebuild` npm script.",
+      "tests": "Unit on the script (exit code, message).",
+      "depends": ["3.1"]
+    },
+    {
+      "id": "3.3",
+      "phase": 3,
+      "priority": "P1",
+      "area": "content",
+      "title": "task: each project mdx file (stratus, hearth, vessel, quorum, plumb, trace, atrium) parses against the schema (Phase 3)",
+      "outcome": "Seven mdx files exist with frontmatter; all parse.",
+      "adds": "`content/projects/*.mdx` for the seven slugs.",
+      "tests": "Parameterised parser test over all seven.",
+      "depends": ["3.1"]
+    },
+    {
+      "id": "3.4",
+      "phase": 3,
+      "priority": "P1",
+      "area": "content",
+      "title": "task: the slug normaliser produces kebab-case, strips diacritics, caps at 60, rejects reserved words (Phase 3)",
+      "outcome": "`slugify('Cafe & Sons!')` returns `cafe-and-sons`; `slugify('admin')` throws.",
+      "adds": "`lib/slug.ts`.",
+      "tests": "Vitest cases including `admin/api/login/cv/_next`.",
+      "depends": []
+    },
+    {
+      "id": "3.5",
+      "phase": 3,
+      "priority": "P1",
+      "area": "content",
+      "title": "task: any string field containing U+2014 or an emoji is rejected by the schema (Phase 3)",
+      "outcome": "Defence in depth at the schema layer.",
+      "adds": "`lib/text/safeText.ts` Zod refinement composed into every long-string field.",
+      "tests": "Positive + negative for em-dash and a sample emoji.",
+      "depends": ["3.1"]
+    },
+    {
+      "id": "3.6",
+      "phase": 3,
+      "priority": "P2",
+      "area": "content",
+      "title": "task: the typed loader memoises reads across the same request (Phase 3)",
+      "outcome": "One fs read per request.",
+      "adds": "Memoisation in `lib/content.ts`.",
+      "tests": "Unit asserting one fs read per request.",
+      "depends": ["3.1"]
+    },
+
+    {
+      "id": "4.1",
+      "phase": 4,
+      "priority": "P1",
+      "area": "public",
+      "title": "task: visiting / shows hero, about, skills, experience, AI practice, projects, footer, all from content (Phase 4)",
+      "outcome": "Server-rendered `/` with all sections, single h1, focus visible.",
+      "adds": "`app/(public)/{layout,page}.tsx`, sections under `components/public/`.",
+      "tests": "RTL per section (visibility flags, semantic landmarks, single h1).",
+      "depends": []
+    },
+    {
+      "id": "4.2",
+      "phase": 4,
+      "priority": "P1",
+      "area": "public",
+      "title": "task: visiting /projects/<slug> shows the case study for any seed project (Phase 4)",
+      "outcome": "Each of the seven projects renders.",
+      "adds": "`app/(public)/projects/[slug]/{page,not-found}.tsx`, `ProjectCaseStudy`, `DeepDive`.",
+      "tests": "RTL with parameterised slugs; not-found state.",
+      "depends": ["4.1"]
+    },
+    {
+      "id": "4.3",
+      "phase": 4,
+      "priority": "P1",
+      "area": "seo",
+      "title": "task: sitemap.xml lists every project page and robots.txt allows indexing (Phase 4)",
+      "outcome": "`/sitemap.xml` valid, `/robots.txt` correct.",
+      "adds": "`app/sitemap.ts`, `app/robots.ts`, `app/manifest.ts`.",
+      "tests": "Snapshot.",
+      "depends": []
+    },
+    {
+      "id": "4.4",
+      "phase": 4,
+      "priority": "P1",
+      "area": "public",
+      "title": "task: the page source contains all section text without JS (Phase 4)",
+      "outcome": "View-source includes every body string.",
+      "adds": "Nothing structural; verify Server Components only.",
+      "tests": "Playwright with JS disabled, assert text presence.",
+      "depends": ["4.1"]
+    },
+    {
+      "id": "4.5",
+      "phase": 4,
+      "priority": "P1",
+      "area": "seo",
+      "title": "task: JSON-LD Person and CreativeWork render in head on / and on a project page (Phase 4)",
+      "outcome": "Valid JSON-LD blocks present in head.",
+      "adds": "`lib/seo/jsonld.ts`, metadata helpers.",
+      "tests": "Snapshot of generated JSON-LD.",
+      "depends": ["4.1", "4.2"]
+    },
+    {
+      "id": "4.6",
+      "phase": 4,
+      "priority": "P2",
+      "area": "public",
+      "title": "task: a brand-on 404 page renders for unknown routes (Phase 4)",
+      "outcome": "Unknown routes show on-brand 404.",
+      "adds": "`app/not-found.tsx`.",
+      "tests": "RTL.",
+      "depends": []
+    },
+    {
+      "id": "4.7",
+      "phase": 4,
+      "priority": "P1",
+      "area": "public",
+      "title": "task: clicking the cv link downloads the pdf at /cv/David-Onasanya-CV.pdf (Phase 4)",
+      "outcome": "Link points at the static file; HEAD returns 200.",
+      "adds": "Link rendering; the file already exists at `cv/David-Onasanya-CV.pdf`; ensure `/public/cv/` placement.",
+      "tests": "E2e link smoke.",
+      "depends": []
+    },
+
+    {
+      "id": "5.1",
+      "phase": 5,
+      "priority": "P1",
+      "area": "public",
+      "title": "task: first visit shows the cinematic intro, second visit skips it (Phase 5)",
+      "outcome": "localStorage flag prevents replay; reduced-motion skips entirely.",
+      "adds": "`components/public/CinematicIntro.tsx` via `react-view-transitions`, `lib/intro/seenStorage.ts`, `lib/motion/preferences.ts`.",
+      "tests": "SSR-safe seenStorage gate; `usePrefersReducedMotion()` SSR default false.",
+      "depends": []
+    },
+    {
+      "id": "5.2",
+      "phase": 5,
+      "priority": "P2",
+      "area": "public",
+      "title": "task: a custom cursor follows the pointer on desktop only (Phase 5)",
+      "outcome": "Present on `pointer:fine`, absent on touch and reduced-motion.",
+      "adds": "`components/shared/CustomCursor.tsx`.",
+      "tests": "Hook unit (refs + raf, no per-frame React state); manual.",
+      "depends": []
+    },
+    {
+      "id": "5.3",
+      "phase": 5,
+      "priority": "P2",
+      "area": "public",
+      "title": "task: hovering primary buttons triggers a magnetic pull, disabled on touch and reduced-motion (Phase 5)",
+      "outcome": "Buttons attract the cursor on desktop; static on touch and reduced-motion.",
+      "adds": "`components/shared/MagneticButton.tsx`.",
+      "tests": "Manual.",
+      "depends": []
+    },
+    {
+      "id": "5.4",
+      "phase": 5,
+      "priority": "P2",
+      "area": "public",
+      "title": "task: skill pills marquee scrolls horizontally and freezes on reduced-motion (Phase 5)",
+      "outcome": "Marquee plays in motion mode, frozen otherwise.",
+      "adds": "`components/public/Marquee.tsx`.",
+      "tests": "Manual; RTL for the freeze.",
+      "depends": []
+    },
+    {
+      "id": "5.5",
+      "phase": 5,
+      "priority": "P1",
+      "area": "public",
+      "title": "task: pressing Cmd or Ctrl+K (or /) opens a command palette with navigation, contact, theme actions (Phase 5)",
+      "outcome": "Keyboard-only flow; escape returns focus.",
+      "adds": "`components/shared/CommandPalette.tsx` via `cmdk`, `lib/palette/items.ts`.",
+      "tests": "Deterministic palette items unit; e2e keyboard flow.",
+      "depends": []
+    },
+    {
+      "id": "5.6",
+      "phase": 5,
+      "priority": "P2",
+      "area": "public",
+      "title": "task: clicking a project row morphs into the case study via view transitions (Phase 5)",
+      "outcome": "Project-row to case-study morph plays via view transitions; reduced-motion bypasses.",
+      "adds": "View-transition wiring on the index and project pages; `react-view-transitions` named transitions.",
+      "tests": "Manual; RTL for the reduced-motion bypass.",
+      "depends": []
+    },
+
+    {
+      "id": "6.1",
+      "phase": 6,
+      "priority": "P1",
+      "area": "auth",
+      "title": "task: signing in with the admin email lands me on /admin (happy path) (Phase 6)",
+      "outcome": "Open `/login`, enter `ADMIN_EMAIL`, receive a magic link via Resend, click it, see `/admin`.",
+      "adds": "Minimal `lib/auth.ts`, Drizzle adapter, `users`/`sessions`/`verification_tokens` tables, login page, `[...nextauth]` route, middleware.",
+      "tests": "Unit on token shape; Playwright `e2e/sign-in.spec.ts` happy path against preview, intercepting Resend.",
+      "depends": []
+    },
+    {
+      "id": "6.2",
+      "phase": 6,
+      "priority": "P1",
+      "area": "auth",
+      "title": "task: signing in with a non-admin email shows generic copy and never sends mail (Phase 6)",
+      "outcome": "Any non-admin email returns the generic message; Resend never called.",
+      "adds": "`lib/auth/allowlist.ts` with case-insensitive trim, boot-time empty check.",
+      "tests": "Unit (case, trim, empty boot); Playwright assertion that Resend stub records zero sends.",
+      "depends": ["6.1"]
+    },
+    {
+      "id": "6.3",
+      "phase": 6,
+      "priority": "P1",
+      "area": "auth",
+      "title": "task: sixth sign-in attempt from one IP within fifteen minutes returns 429 (Phase 6)",
+      "outcome": "Rate-limit shows generic copy; Sentry breadcrumb on 429.",
+      "adds": "`lib/auth/rate-limit.ts` against Upstash, sliding window 5/15min/IP, fail-closed.",
+      "tests": "Unit (window arithmetic, fail-closed); Playwright burst test.",
+      "depends": ["6.1"]
+    },
+    {
+      "id": "6.4",
+      "phase": 6,
+      "priority": "P2",
+      "area": "auth",
+      "title": "task: an expired or already-used magic link shows a clear error (Phase 6)",
+      "outcome": "Stale link redirects to `/login?error=expired` with on-brand copy.",
+      "adds": "Token expiry + single-use enforcement, constant-time compare, `/login?error=expired` state.",
+      "tests": "Unit on token verifier; RTL on error state.",
+      "depends": ["6.1"]
+    },
+    {
+      "id": "6.5",
+      "phase": 6,
+      "priority": "P1",
+      "area": "auth",
+      "title": "task: sign-in emails contain no em-dash and no emoji (Phase 6)",
+      "outcome": "Email payload validated by Zod that rejects U+2014 and `\\p{Extended_Pictographic}`.",
+      "adds": "`lib/auth/email.ts` with Zod payload schema.",
+      "tests": "Unit (positive + negative including a literal em-dash and a sample emoji).",
+      "depends": ["6.1"]
+    },
+
+    {
+      "id": "7.1",
+      "phase": 7,
+      "priority": "P1",
+      "area": "admin",
+      "title": "task: signing in lands me on /admin where I see editor sections for every site area (Phase 7)",
+      "outcome": "Nav lists Hero, About, Skills, Experience, AI, Projects, Footer, Settings.",
+      "adds": "`app/(admin)/admin/{page,[section]/page}.tsx`, layout.",
+      "tests": "RTL nav.",
+      "depends": []
+    },
+    {
+      "id": "7.2",
+      "phase": 7,
+      "priority": "P1",
+      "area": "admin",
+      "title": "task: editing the hero headline auto-saves a draft within 350ms (Phase 7)",
+      "outcome": "Type, blur, draft persisted in Neon.",
+      "adds": "`lib/draft/store.ts`, debounced save, server action.",
+      "tests": "Unit on debounce; integration with test DB.",
+      "depends": ["7.1"]
+    },
+    {
+      "id": "7.3",
+      "phase": 7,
+      "priority": "P1",
+      "area": "admin",
+      "title": "task: the live preview pane reflects unsaved draft changes (Phase 7)",
+      "outcome": "Edit on left, preview pane updates without full rehydration.",
+      "adds": "`app/admin/preview/page.tsx`.",
+      "tests": "Manual + RTL.",
+      "depends": ["7.2"]
+    },
+    {
+      "id": "7.4",
+      "phase": 7,
+      "priority": "P1",
+      "area": "admin",
+      "title": "task: drag-reorder of the project list persists, n renumbered on save (Phase 7)",
+      "outcome": "Drag persists across refresh; `n` renumbers on save not on drag.",
+      "adds": "`components/admin/DragList.tsx` via `dnd-kit`, projects editor, server action.",
+      "tests": "RTL drag; server-side renumber unit.",
+      "depends": ["7.1"]
+    },
+    {
+      "id": "7.5",
+      "phase": 7,
+      "priority": "P1",
+      "area": "admin",
+      "title": "task: uploading a 2MB image returns a Blob URL written into the draft (Phase 7)",
+      "outcome": "Upload yields a Blob URL inserted into the draft; cap at 1.5MB; AVIF transform.",
+      "adds": "`app/api/cms/upload/route.ts`, signed Vercel Blob upload, `ImageUploader`, AVIF transform via sharp, 1.5MB cap.",
+      "tests": "Integration with mocked Blob; size cap unit; AVIF unit.",
+      "depends": ["7.1"]
+    },
+    {
+      "id": "7.6",
+      "phase": 7,
+      "priority": "P1",
+      "area": "admin",
+      "title": "task: every editor field shows inline Zod validation errors (Phase 7)",
+      "outcome": "Field-level Zod errors surface inline next to the field.",
+      "adds": "Shared `MarkdownField`, `VisibilityToggle`, `Modal`, `Toast` primitives composed into every editor.",
+      "tests": "RTL field validation per editor.",
+      "depends": ["7.1"]
+    },
+    {
+      "id": "7.7",
+      "phase": 7,
+      "priority": "P2",
+      "area": "admin",
+      "title": "task: hiding a section via VisibilityToggle removes it from the public preview but keeps content (Phase 7)",
+      "outcome": "Section disappears from the public render; content stays in the draft.",
+      "adds": "Visibility flag in schema (Phase 3) consumed in section components.",
+      "tests": "RTL + e2e.",
+      "depends": ["7.1", "7.6"]
+    },
+
+    {
+      "id": "8.1",
+      "phase": 8,
+      "priority": "P1",
+      "area": "admin",
+      "title": "task: pressing publish on a hero edit opens a PR on GitHub with the right diff (Phase 8)",
+      "outcome": "End-to-end happy path; modal returns a real PR URL.",
+      "adds": "`lib/github.ts`, `lib/github/{branch,commit,pr}.ts`, `app/api/cms/save/route.ts`, `PublishButton`, `PublishResultModal`.",
+      "tests": "Unit on tree builder; unit on branch shape; integration with Octokit mocks asserting create-ref / blob / tree / commit / update-ref / create-pr.",
+      "depends": []
+    },
+    {
+      "id": "8.2",
+      "phase": 8,
+      "priority": "P1",
+      "area": "admin",
+      "title": "task: publishing content with a forbidden character refuses to commit (Phase 8)",
+      "outcome": "Paste an em-dash, press publish, inline error names the field; no branch, no PR.",
+      "adds": "Defence-in-depth scan in `lib/github/commit.ts` using `lib/text/forbidden.ts` from Phase 1.",
+      "tests": "Unit; RTL on the publish modal error state.",
+      "depends": ["8.1"]
+    },
+    {
+      "id": "8.3",
+      "phase": 8,
+      "priority": "P2",
+      "area": "admin",
+      "title": "task: publishing the same draft twice updates the existing PR rather than opening a second (Phase 8)",
+      "outcome": "Second publish force-updates the branch and posts \"draft updated\"; PR URL unchanged.",
+      "adds": "Collision detection on branch name, refs PATCH path, 422 mapping.",
+      "tests": "Unit on 422 reuse; integration mock asserting PATCH on existing ref.",
+      "depends": ["8.1"]
+    },
+    {
+      "id": "8.4",
+      "phase": 8,
+      "priority": "P2",
+      "area": "admin",
+      "title": "task: a stale or wrong GitHub token surfaces a clear configuration error in the admin UI (Phase 8)",
+      "outcome": "401 from Octokit yields \"GitHub credentials missing or invalid\" in the modal, not a stack trace.",
+      "adds": "Error mapping in `lib/github/commit.ts` (401, 403, 404, 422).",
+      "tests": "Unit on each mapping branch.",
+      "depends": ["8.1"]
+    },
+    {
+      "id": "8.5",
+      "phase": 8,
+      "priority": "P2",
+      "area": "admin",
+      "title": "task: the PR body lists what changed in plain language, no em-dash, no emoji (Phase 8)",
+      "outcome": "PR body lists per-file diffs with section names and a one-line summary; passes the forbidden-chars meta-test.",
+      "adds": "`lib/github/diff.ts` summariser.",
+      "tests": "Unit (snapshot for a fixture diff; assertion the snapshot is forbidden-char clean).",
+      "depends": ["8.1"]
+    },
+
+    {
+      "id": "9.1",
+      "phase": 9,
+      "priority": "P1",
+      "area": "seo",
+      "title": "task: requesting /api/og returns a generated OpenGraph image for the home page (Phase 9)",
+      "outcome": "200 response, png, brand stripe + Fraunces title.",
+      "adds": "`app/api/og/route.tsx`, `lib/seo/og-template.tsx`.",
+      "tests": "Content assertion (title, role, year).",
+      "depends": []
+    },
+    {
+      "id": "9.2",
+      "phase": 9,
+      "priority": "P1",
+      "area": "seo",
+      "title": "task: requesting /api/og/<slug> returns a per-project OpenGraph image (Phase 9)",
+      "outcome": "Each of the seven projects has a generated OG card.",
+      "adds": "`app/api/og/[slug]/route.tsx`.",
+      "tests": "Parameterised over the seven projects; rejects U+2014 in inputs.",
+      "depends": ["9.1"]
+    },
+    {
+      "id": "9.3",
+      "phase": 9,
+      "priority": "P2",
+      "area": "seo",
+      "title": "task: legacy paths redirect to canonical urls (Phase 9)",
+      "outcome": "`/about`, `/work`, etc. 308 to canonical.",
+      "adds": "`next.config.ts` `redirects()`, `lib/seo/redirects.ts`.",
+      "tests": "Snapshot of redirect map; e2e.",
+      "depends": []
+    },
+    {
+      "id": "9.4",
+      "phase": 9,
+      "priority": "P2",
+      "area": "seo",
+      "title": "task: pwa manifest renders with theme-color from brand 500 (Phase 9)",
+      "outcome": "Manifest finalised with brand theme-color.",
+      "adds": "Finalise `app/manifest.ts`.",
+      "tests": "Snapshot.",
+      "depends": []
+    },
+    {
+      "id": "9.5",
+      "phase": 9,
+      "priority": "P1",
+      "area": "seo",
+      "title": "task: rich-results test passes for Person on / and CreativeWork on a project page (Phase 9)",
+      "outcome": "Twitter, LinkedIn, Google validators green against preview URL.",
+      "adds": "Any JSON-LD tweaks needed.",
+      "tests": "Manual against preview; snapshot regression.",
+      "depends": []
+    },
+
+    {
+      "id": "10.1",
+      "phase": 10,
+      "priority": "P1",
+      "area": "public",
+      "title": "task: clicking show contact form reveals a form behind Turnstile (Phase 10)",
+      "outcome": "Form not on first paint; appears on action.",
+      "adds": "`components/public/ContactForm.tsx`, `app/api/contact/route.ts`, Turnstile widget.",
+      "tests": "RTL show/hide; Turnstile verifier unit.",
+      "depends": []
+    },
+    {
+      "id": "10.2",
+      "phase": 10,
+      "priority": "P1",
+      "area": "public",
+      "title": "task: submitting a valid contact message lands an email and shows a success state (Phase 10)",
+      "outcome": "Real submission delivers via Resend; success copy shown.",
+      "adds": "Contact handler via Resend; Zod payload schema rejecting U+2014/emoji.",
+      "tests": "Integration with mocked Resend.",
+      "depends": ["10.1"]
+    },
+    {
+      "id": "10.3",
+      "phase": 10,
+      "priority": "P2",
+      "area": "public",
+      "title": "task: rapid resubmits are blocked by Turnstile (Phase 10)",
+      "outcome": "Turnstile blocks repeat submission.",
+      "adds": "Turnstile token verification in handler.",
+      "tests": "Integration with stubbed verifier; manual.",
+      "depends": ["10.1"]
+    },
+    {
+      "id": "10.4",
+      "phase": 10,
+      "priority": "P1",
+      "area": "infra",
+      "title": "task: page views appear in Vercel Web Analytics (Phase 10)",
+      "outcome": "Analytics dashboard records page views from the preview.",
+      "adds": "`@vercel/analytics` init in `app/layout.tsx`.",
+      "tests": "Manual.",
+      "depends": []
+    },
+    {
+      "id": "10.5",
+      "phase": 10,
+      "priority": "P1",
+      "area": "infra",
+      "title": "task: a thrown error surfaces in Sentry with source maps (Phase 10)",
+      "outcome": "Triggered server and client errors land in Sentry with readable stack traces.",
+      "adds": "Sentry init server + client; source map upload in CI.",
+      "tests": "Manual error trigger on preview.",
+      "depends": []
+    },
+
+    {
+      "id": "11.1",
+      "phase": 11,
+      "priority": "P1",
+      "area": "ci",
+      "title": "task: lighthouse CI runs against / on every preview and posts a comment (Phase 11)",
+      "outcome": "Lighthouse run posts a PR comment with scores.",
+      "adds": "`.lighthouserc.json` for `/`, `.github/workflows/lighthouse.yml` triggered on Vercel deployment-status success.",
+      "tests": "CI run.",
+      "depends": []
+    },
+    {
+      "id": "11.2",
+      "phase": 11,
+      "priority": "P1",
+      "area": "ci",
+      "title": "task: lighthouse CI gates a project page and a deep-dive page on the same budget (Phase 11)",
+      "outcome": "Budgets cover one project page and one deep-dive page.",
+      "adds": "Budgets for one project and one project-with-deep-dive.",
+      "tests": "CI run.",
+      "depends": ["11.1"]
+    },
+    {
+      "id": "11.3",
+      "phase": 11,
+      "priority": "P1",
+      "area": "ci",
+      "title": "task: a deliberately unoptimised png in a PR fails the lighthouse job (Phase 11)",
+      "outcome": "Regression catches; revert turns it green.",
+      "adds": "Nothing structural; demonstration only.",
+      "tests": "PR exercise.",
+      "depends": ["11.1"]
+    },
+    {
+      "id": "11.4",
+      "phase": 11,
+      "priority": "P1",
+      "area": "ci",
+      "title": "task: lighthouse is required on main alongside ci, e2e, codeql (Phase 11)",
+      "outcome": "A red lighthouse blocks merge to `main`.",
+      "adds": "Branch protection update via `gh api`.",
+      "tests": "Manual try-merge with red lighthouse.",
+      "depends": ["11.1"]
+    },
+
+    {
+      "id": "12.1",
+      "phase": 12,
+      "priority": "P1",
+      "area": "ci",
+      "title": "task: e2e/sign-in.spec.ts runs against every preview and asserts the magic link round-trip (Phase 12)",
+      "outcome": "Sign-in spec runs in CI on every preview.",
+      "adds": "Spec relocated and expanded from Phase 6; CI workflow `e2e.yml` triggered on Vercel preview ready.",
+      "tests": "CI run.",
+      "depends": []
+    },
+    {
+      "id": "12.2",
+      "phase": 12,
+      "priority": "P1",
+      "area": "ci",
+      "title": "task: e2e/publish-flow.spec.ts signs in, edits the headline, publishes, asserts a real PR url (Phase 12)",
+      "outcome": "End-to-end publish smoke green.",
+      "adds": "Spec; uses the test GitHub token.",
+      "tests": "CI run.",
+      "depends": ["12.1"]
+    },
+    {
+      "id": "12.3",
+      "phase": 12,
+      "priority": "P1",
+      "area": "ci",
+      "title": "task: e2e/public-smoke.spec.ts visits / and two project pages, asserts h1, og meta, no console errors (Phase 12)",
+      "outcome": "Public smoke green on every preview.",
+      "adds": "Spec.",
+      "tests": "CI run.",
+      "depends": ["12.1"]
+    },
+    {
+      "id": "12.4",
+      "phase": 12,
+      "priority": "P2",
+      "area": "ci",
+      "title": "task: e2e and lighthouse skip on docs-only PRs to save Actions minutes (Phase 12)",
+      "outcome": "Docs-only PR (markdown change) sees the e2e and lighthouse jobs skipped.",
+      "adds": "Path filters in `e2e.yml` and `lighthouse.yml`.",
+      "tests": "Docs-only PR exercise.",
+      "depends": ["12.1"]
+    },
+
+    {
+      "id": "13.1",
+      "phase": 13,
+      "priority": "P1",
+      "area": "public",
+      "title": "task: NVDA and VoiceOver navigate every public page using landmarks and palette announcements (Phase 13)",
+      "outcome": "Documented audit; fixes shipped.",
+      "adds": "A11y fixes per audit; PR template manual checklist.",
+      "tests": "Manual.",
+      "depends": []
+    },
+    {
+      "id": "13.2",
+      "phase": 13,
+      "priority": "P1",
+      "area": "public",
+      "title": "task: the real-device matrix (Safari macOS, Safari iOS, Chrome Android, Firefox, Edge) renders without breakage (Phase 13)",
+      "outcome": "Site renders correctly across the documented browser/device matrix.",
+      "adds": "Any browser-specific fixes.",
+      "tests": "Manual.",
+      "depends": []
+    },
+    {
+      "id": "13.3",
+      "phase": 13,
+      "priority": "P1",
+      "area": "infra",
+      "title": "task: davidonasanya.com resolves to the production deployment over https (Phase 13)",
+      "outcome": "Domain serves the live site over HTTPS.",
+      "adds": "DNS records, Vercel domain, `AUTH_URL` env update.",
+      "tests": "dig + curl smoke.",
+      "depends": []
+    },
+    {
+      "id": "13.4",
+      "phase": 13,
+      "priority": "P1",
+      "area": "ci",
+      "title": "task: production lighthouse scores 95+ on Performance, Accessibility, Best Practices, SEO (Phase 13)",
+      "outcome": "Success criterion: 95+ on all four axes.",
+      "adds": "Any final perf tweaks.",
+      "tests": "Lighthouse run.",
+      "depends": ["13.3"]
+    },
+    {
+      "id": "13.5",
+      "phase": 13,
+      "priority": "P1",
+      "area": "admin",
+      "title": "task: a phone-to-live edit round-trip completes in under five minutes (Phase 13)",
+      "outcome": "Scope success criterion.",
+      "adds": "No new code; verification only.",
+      "tests": "Manual stopwatch.",
+      "depends": ["13.3"]
+    },
+    {
+      "id": "13.6",
+      "phase": 13,
+      "priority": "P1",
+      "area": "ci",
+      "title": "task: branch protection on main is final (all required checks, enforce_admins true, no force-push, no deletion) (Phase 13)",
+      "outcome": "Branch protection locked to the launch state.",
+      "adds": "Final `gh api` protection update.",
+      "tests": "Manual.",
+      "depends": []
+    },
+    {
+      "id": "13.7",
+      "phase": 13,
+      "priority": "P2",
+      "area": "docs",
+      "title": "task: CLAUDE.md documents installed Vercel skills and per-task-type preferences (Phase 13)",
+      "outcome": "Future sessions know which skills are installed and which to prefer per task.",
+      "adds": "`CLAUDE.md` finalisation.",
+      "tests": "Manual review.",
+      "depends": []
+    }
+  ]
+}
