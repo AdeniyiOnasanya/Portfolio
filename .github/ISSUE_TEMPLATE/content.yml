@@ -1,0 +1,36 @@
+name: Content
+description: A content edit, addition, or asset swap.
+title: "content: <short summary>"
+labels: ["type:content", "area:content", "status:triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use commas, periods, semicolons, parentheses, or colons. Do not use em-dash or emoji.
+  - type: input
+    id: section
+    attributes:
+      label: Section or project slug
+      description: For example, hero, about, projects/stratus.
+    validations:
+      required: true
+  - type: textarea
+    id: change
+    attributes:
+      label: Change requested
+    validations:
+      required: true
+  - type: textarea
+    id: source
+    attributes:
+      label: Source or reference
+      description: Links, screenshots, or attached files.
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      value: |
+        - [ ]
+        - [ ]
+    validations:
+      required: true

@@ -1,6 +1,6 @@
 ## Tech Stack
 
-Suggestions, with reasoning and the alternatives I considered. Mark each one accept / change before we start building.
+Locked decisions: Vercel-first, free tier where it exists, private repo, every publish goes through a PR that I merge by hand. The picks below assume those rules.
 
 ### Framework
 
@@ -37,16 +37,16 @@ Why: history, rollback, review, backups, and offline editing all come for free. 
 ### CMS-to-Git pipeline
 
 **Octokit (GitHub REST + GraphQL) from a server route.**
-Admin form submit -> server validates with Zod -> server uses Octokit with a fine-scoped PAT (or a GitHub App, see below) to:
+Admin form submit -> server validates with Zod -> server uses Octokit with a fine-grained PAT to:
 
 1. Create a branch `cms/<timestamp>-<slug>`.
 2. Commit the updated content files.
-3. Open a PR with a generated title and body summarising the diff.
-4. Optionally auto-merge if I tick "publish immediately."
+3. Open a PR against `develop` with a generated title and body summarising the diff (content changes ride the same `develop -> staging -> main` chain as code).
+4. Return the PR URL to the admin UI; I open it, review the diff on GitHub, and merge by hand.
 
-Vercel picks up the merge and redeploys. The admin UI links straight to the PR for review.
+**No auto-merge.** Every content change ships through a PR I read and merge. Vercel picks up the merge and redeploys.
 
-**GitHub App vs PAT:** start with a fine-grained PAT in env (`GITHUB_TOKEN`) for speed, migrate to a GitHub App when we want fewer permissions and proper rotation.
+**GitHub App vs PAT:** start with a fine-grained PAT in env (`GITHUB_TOKEN`, scoped to this one private repo, contents + pull-requests write only). Migrate to a GitHub App later if we want rotation or to share with other agents.
 
 ### Authentication
 
@@ -54,7 +54,7 @@ Vercel picks up the merge and redeploys. The admin UI links straight to the PR f
 
 - Magic link to my admin email only (env: `ADMIN_EMAIL`). Anyone else gets generic "if that email is registered, we sent a link."
 - httpOnly, Secure, SameSite=Lax session cookie. 30-day sliding session.
-- Rate-limit the sign-in endpoint with Upstash Redis (5 attempts / 15 min / IP).
+- Rate-limit the sign-in endpoint with Upstash Redis (free tier, available via Vercel Marketplace integration). 5 attempts / 15 min / IP.
 - CSRF protection comes for free with Auth.js.
 
 Alternatives: Clerk (overkill and paid for one user), Lucia (great but more code), DIY (don't).
@@ -67,19 +67,23 @@ Alternatives: Postmark (best deliverability, more expensive), SES (cheapest at s
 
 ### Database
 
-**One small Postgres for sessions and rate-limit state. Neon (free tier) or Vercel Postgres.**
-Drizzle ORM for typed queries. No content tables; content is in Git.
+**Neon Postgres via the Vercel Marketplace integration (free tier).**
+0.5 GB storage, plenty for sessions and rate-limit state since content lives in Git, not the DB. Drizzle ORM for typed queries. Auth.js Drizzle adapter for the session table.
 
-Alternatives: SQLite via Turso (works, but Auth.js's adapters are smoother on Postgres), no database at all and use signed JWTs (workable but harder to revoke).
+Alternatives ruled out: SQLite via Turso (works, but Auth.js's Drizzle adapter is smoother on Postgres), no database at all (signed JWTs work but cannot be revoked, and we want a clean "sign me out everywhere" path).
 
-### Object storage (images, CV)
+### Object storage (images)
 
-**Vercel Blob if we deploy on Vercel; otherwise Cloudflare R2.**
-Uploaded images get a stable URL. The CMS writes the URL into the content file. We do not commit large binaries to the repo.
+**Vercel Blob (free tier).**
+1 GB storage and 10 GB bandwidth on Hobby is comfortable for a portfolio with under a hundred images. Uploads from the admin UI write to Blob; the CMS writes the returned URL into the content file. The repo never holds binary image uploads.
 
-For very small assets (favicon, OG SVG template) keep them in `/public`.
+Small static assets (favicon, OG template SVG, default placeholder images) live in `/public` and ship with the repo.
 
-Alternatives: commit everything to the repo (simple, but bloats Git history fast), Cloudinary (great transforms, more cost).
+### CV (PDF + DOCX)
+
+**Committed to the repo at `/public/cv/`, served at `/cv/David-Onasanya-CV.pdf` and `/cv/David-Onasanya-CV.docx`.**
+
+The admin UI does not upload the CV. To replace it, drop the new file into `/public/cv/`, open a PR, merge. Same gate as content. Trade-off: cannot replace from my phone, but the CV changes a few times a year at most, and keeping it in Git means it is versioned with the rest of the site.
 
 ### Image optimisation
 
@@ -87,18 +91,21 @@ Alternatives: commit everything to the repo (simple, but bloats Git history fast
 
 ### Deployment
 
-**Vercel.** SSG for the public site, ISR with on-demand revalidation triggered by GitHub merge webhook (or just rely on push-to-deploy). Preview deployments per PR. Production on `main`.
+**Vercel, Hobby plan (free).** SSG for the public site, with on-demand revalidation triggered by Vercel's git integration on merge to `main`. Production deploys from `main` to `davidonasanya.com`. A staging branch alias deploys from `staging` to `staging.davidonasanya.com`. Preview deployments per PR for `develop` and feature branches use Vercel's auto-generated URLs.
 
-Alternatives: Cloudflare Pages + Workers (cheaper, more setup), self-hosted (overkill).
+Hobby plan is fine for a personal portfolio. If we ever want to put this behind a custom commercial brand or run paid features, we move to Pro. Until then: free.
+
+Free-tier limits to keep an eye on (Hobby, at the time of writing): 100 GB bandwidth/month, 1,000 image transformations/month for `next/image`, 1 GB Blob storage, 6,000 build hours/month. None should bite for a portfolio.
 
 ### CI/CD
 
-**GitHub Actions.**
+**GitHub Actions for CI, Vercel git integration for CD.**
 
-- `ci.yml` on every PR: install, type-check, lint, unit test, Playwright smoke, build.
-- `deploy.yml` is implicit: Vercel handles preview-on-PR and production-on-merge.
-- Branch protection on `main`: required status checks, required PR review (self-approve allowed for solo).
-- Dependabot for weekly dep PRs.
+- `ci.yml` on every PR and on push to `main`: install, type-check, lint, unit test, Playwright smoke, build. Cached `pnpm` store for speed.
+- Deploy is implicit: Vercel makes a preview per PR and promotes `main` to production on merge.
+- **Branch protection on `main`:** PR required, no direct pushes (including from me), all CI checks required green, conversations resolved, no force-push, no deletion. Self-review counts; the gate is that nothing reaches `main` without going through a PR.
+- Dependabot for weekly dependency PRs (npm + GitHub Actions).
+- CodeQL on the default branch for the security signal.
 
 ### Testing
 
@@ -113,8 +120,9 @@ Alternative: ESLint + Prettier if we hit a Biome rule we cannot live without. Bi
 
 ### Analytics
 
-**Plausible (self-hosted or cloud) or Vercel Analytics.** Cookieless, no consent banner.
-Plausible if we want script tag simplicity and a public dashboard, Vercel Analytics if we already pay Vercel.
+**Vercel Web Analytics (free tier).** Cookieless, no consent banner, one-line install via `@vercel/analytics`. Hobby tier gives a daily event allowance that a portfolio will not exhaust.
+
+Skip Speed Insights for now (paid on Hobby in some regions); we can rely on Lighthouse + Vercel build output for perf signals.
 
 ### Error monitoring
 
@@ -187,16 +195,19 @@ None. Server components, server actions, URL state. The CMS has light client sta
 ### Environment variables
 
 ```
+NEXT_PUBLIC_SITE_URL=           https://davidonasanya.com
 ADMIN_EMAIL=                    only address allowed to receive magic links
 AUTH_SECRET=                    Auth.js
+AUTH_URL=                       https://davidonasanya.com (prod), preview URL otherwise
 RESEND_API_KEY=
-GITHUB_TOKEN=                   fine-grained PAT, repo scope
-GITHUB_REPO=                    "davidonasanya/portfolio"
+RESEND_FROM=                    e.g. "David <hello@davidonasanya.com>"
+GITHUB_TOKEN=                   fine-grained PAT, contents + pull-requests write, this repo only
+GITHUB_REPO=                    "<owner>/<portfolio-repo>"
 GITHUB_BRANCH_BASE=             "main"
-DATABASE_URL=                   Postgres
-UPSTASH_REDIS_URL=
-UPSTASH_REDIS_TOKEN=
-BLOB_READ_WRITE_TOKEN=          Vercel Blob (if used)
+DATABASE_URL=                   Neon Postgres (Vercel Marketplace)
+UPSTASH_REDIS_REST_URL=
+UPSTASH_REDIS_REST_TOKEN=
+BLOB_READ_WRITE_TOKEN=          Vercel Blob
 SENTRY_DSN=
 ```
 
@@ -257,11 +268,14 @@ Lower priority for us, since prod deploys go through GitHub merges to `main` (Ve
 - For new components, ask the agent to apply `react-best-practices` upfront rather than refactor after.
 - Add a one-liner to `CLAUDE.md` (project root) telling future sessions these skills are installed and which to prefer per task type.
 
-### Open questions
+### Decisions locked
 
-1. **Deploy host: Vercel or Cloudflare Pages?** Vercel is the path of least resistance. Cloudflare is cheaper and faster at the edge but more bring-your-own.
-2. **Object storage: Vercel Blob or R2 or commit to repo?** Decided by host above plus how many images we expect (gut: under 100, R2 is fine, repo also fine).
-3. **Analytics: Plausible (paid) or Vercel Analytics (paid if we exceed free)?** Either works.
-4. **Custom domain.** What is it? `davidonasanya.com`?
-5. **GitHub repo name + visibility.** Public so people can read the code (good signal for a portfolio), or private (the live site is the artefact)?
-6. **Auto-merge on publish, or always require a PR review (even from myself)?** Auto-merge is faster, manual is safer.
+1. **Host:** Vercel, Hobby plan (free).
+2. **Domain:** `davidonasanya.com`. Canonical URL across metadata, OG, sitemap, JSON-LD, `AUTH_URL`. DNS pointed at Vercel.
+3. **Storage:** Vercel Blob (free tier) for image uploads from the admin.
+4. **CV:** committed to the repo at `/public/cv/`, served at `/cv/David-Onasanya-CV.pdf` and `/cv/David-Onasanya-CV.docx`. Replaced by a PR like any other content.
+5. **Database:** Neon Postgres via Vercel Marketplace integration (free tier), sessions and rate-limit only.
+6. **Analytics:** Vercel Web Analytics (free tier, cookieless).
+7. **Repo visibility:** private (already created).
+8. **CI:** GitHub Actions on the personal account's 2,000 free minutes/month. If Playwright pushes the budget, we trim or move it to a Vercel-side check, but default to Actions.
+9. **Publish flow:** every change rides `feature/<n>_<slug> -> develop -> staging -> main`. CMS content edits open a PR against `develop` (not `main`). **No auto-merge.** I review and merge each rung by hand. Branch protection on all three branches enforces this. `branch-flow-guard` rejects PRs that skip a rung. No hotfix path.
