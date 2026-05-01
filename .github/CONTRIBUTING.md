@@ -68,15 +68,16 @@ The slug is a kebab-case fragment of the issue title, max 40 characters. Phase n
 
 ## PR review contract
 
-Every non-trivial PR runs a three-agent review pass before it opens. The author dispatches each subagent in parallel against `git diff develop...HEAD`:
+Every non-trivial PR runs a multi-agent review pass before it opens. The author dispatches each subagent in parallel against `git diff develop...HEAD`:
 
 1. **`qa-runner`** runs whichever quality gates are wired in `package.json` (`pnpm typecheck`, `pnpm lint`, `pnpm build`, `pnpm test`, etc.). Missing scripts are skipped, never failed.
 2. **`code-reviewer`** flags blockers, warnings, and suggestions against repo conventions, the installed Vercel agent skills, and React/Next.js best practices.
 3. **`security-reviewer`** scans the diff for secret leaks, env misuse, route-handler injection, auth allowlist correctness, Zod boundary checks, GitHub-token scope creep, and dangerous file ops in `lib/github/*`.
+4. **`browser-tester`** drives a live Chrome session via the `chrome-devtools-mcp` server, walks the golden path on the running dev server (`/` plus any route the diff touches), captures console messages, verifies reduced-motion handling, checks keyboard focus, and screenshots each route. Required whenever the diff touches a UI surface (`app/`, `components/`, `tokens.css`, anything that renders to a page). Skipped for slices that ship no UI surface (workflow YAML, scripts, agent definitions, docs only).
 
-The PR body opens with `Closes #N` and includes three collapsible `<details>` blocks containing the three reports verbatim. Findings are advisory; the author reconciles. The reviewer subagents do not block the merge button.
+The PR body opens with `Closes #N` and includes one collapsible `<details>` block per dispatched subagent containing each report verbatim. Findings are advisory; the author reconciles. The reviewer subagents do not block the merge button.
 
-Trivial slices may skip the review trio. A slice is trivial if it changes no executable code, no workflow YAML, no schema, and no auth or GitHub-pipeline surface (typo fixes, label tweaks, single-line doc edits).
+Trivial slices may skip the review pass. A slice is trivial if it changes no executable code, no workflow YAML, no schema, and no auth or GitHub-pipeline surface (typo fixes, label tweaks, single-line doc edits).
 
 Strict TDD slices carry the `tdd:strict` label, applied during triage when the Task form's "TDD strict?" dropdown is set to `yes` (typically slices in `implementation-plan.md` Phases 1, 3, 6, 8). Those slices route to the `tdd-author` subagent instead of `scaffolder`. Red, green, refactor is mechanical: no implementation file may be edited until a failing test exists in the working tree.
 
