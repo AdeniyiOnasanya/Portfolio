@@ -142,10 +142,12 @@
      5. Typography
      ---------------------------------------------------------------------- */
 
-  /* Families */
-  --font-sans: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-serif: "Fraunces", ui-serif, Georgia, "Times New Roman", serif;
-  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  /* Families. The `--font-*` variables on the left are the project tokens.
+     They thread through `var(--font-geist)` etc. that next/font sets on the
+     <html> element in `app/layout.tsx`, with explicit system fallbacks. */
+  --font-sans: var(--font-geist), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-serif: var(--font-fraunces), ui-serif, Georgia, "Times New Roman", serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
   /* Weights */
   --font-light: 300;
