@@ -9,6 +9,7 @@ This repo is a Next.js 16 / TypeScript / pnpm portfolio for David Onasanya. The 
 - Every change ships through `feature/<n>_<slug> -> develop -> staging -> main`. No skipping. No hotfixes.
 - No auto-merge. No force-push. No direct push to a protected branch (once GitHub Pro flips classic protection on; until then the rule is honoured by hand).
 - Every animation honours `prefers-reduced-motion`.
+- No AI-attribution trailers anywhere: never write `Co-Authored-By: Claude`, `Generated with Claude Code`, or any equivalent line in commit messages, PR or issue bodies, or code comments. Work is attributed to the human author.
 
 ## Vercel agent skills installed for this project
 
