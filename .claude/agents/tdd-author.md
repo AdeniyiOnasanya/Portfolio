@@ -35,7 +35,7 @@ If step 1 or 2 is not satisfied, stop and write the test first. Do not edit impl
 - No em-dash, no emoji, no AI-attribution trailers.
 - No `any` in TypeScript. No test-only escape hatches like `as unknown as` unless the plan explicitly allows it.
 - Never disable a test, never `.skip`, never `xit` to make a build green. Investigate the failure.
-- Branch model: same as scaffolder; never push or merge.
+- Branch model: work on the current feature branch; never push or merge.
 
 ## Output shape
 

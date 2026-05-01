@@ -79,7 +79,7 @@ The PR body opens with `Closes #N` and includes one collapsible `<details>` bloc
 
 Trivial slices may skip the review pass. A slice is trivial if it changes no executable code, no workflow YAML, no schema, and no auth or GitHub-pipeline surface (typo fixes, label tweaks, single-line doc edits).
 
-Strict TDD slices carry the `tdd:strict` label, applied during triage when the Task form's "TDD strict?" dropdown is set to `yes` (typically slices in `implementation-plan.md` Phases 1, 3, 6, 8). Those slices route to the `tdd-author` subagent instead of `scaffolder`. Red, green, refactor is mechanical: no implementation file may be edited until a failing test exists in the working tree.
+Strict TDD slices carry the `tdd:strict` label, applied during triage when the Task form's "TDD strict?" dropdown is set to `yes` (typically slices in `implementation-plan.md` Phases 1, 3, 6, 8). Those slices route to the `tdd-author` subagent rather than running inline in the main session. Red, green, refactor is mechanical: no implementation file may be edited until a failing test exists in the working tree.
 
 ## Tests
 

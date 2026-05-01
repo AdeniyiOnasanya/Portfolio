@@ -94,7 +94,7 @@ Branch types allowed off `develop`: `feature/`, `fix/`, `content/`, `chore/`, `d
    ```
 5. Decide the implementation route:
    - If the issue carries the `tdd:strict` label (slices in `implementation-plan.md` Phases 1, 3, 6, 8), drive the work via the `tdd-author` subagent. Red, green, refactor: write the failing test first, see it fail for the right reason, then write the minimum implementation, then refactor. Do not edit implementation files speculatively.
-   - Otherwise drive via the `scaffolder` subagent (or inline if the slice is small enough).
+   - Otherwise drive the work inline in the main session.
 6. Do the work in small commits with conventional commit subjects. Run `pnpm typecheck && pnpm build` (and the test runner once Phase 1 lands) before opening the PR.
 7. Run the review pass in parallel against `git diff develop...HEAD`: `qa-runner`, `code-reviewer`, `security-reviewer`, plus `browser-tester` whenever the diff touches a UI surface (`app/`, `components/`, `tokens.css`, anything that renders to a page). Address blockers; file follow-ups for non-blocking warnings.
 8. Push and open a PR against `develop`. Body opens with `Closes #<n>`, ticks the target-branch checklist, and includes one collapsible `<details>` block per dispatched subagent containing each report verbatim.
