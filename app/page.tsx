@@ -3,6 +3,7 @@ export default function HomePage() {
     <main>
       <h1>David Onasanya</h1>
       <p>Portfolio scaffold. Under construction.</p>
+      <div className="bg-canvas" />
     </main>
   );
 }
