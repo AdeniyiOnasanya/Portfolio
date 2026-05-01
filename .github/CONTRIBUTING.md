@@ -14,6 +14,7 @@ Solo build. These rules keep the repo reviewable, the deploys safe, and the audi
 - No emoji anywhere.
 - Every change ships through the chain: `feature/<n>_<slug> -> develop -> staging -> main`. No direct push to any of the three protected branches. No auto-merge. No force-push. No hotfixes.
 - Every animation honours `prefers-reduced-motion`.
+- No AI-attribution trailers anywhere: never write `Co-Authored-By: Claude`, `Generated with Claude Code`, or any equivalent line in commit messages, PR or issue bodies, or code comments. Work is attributed to the human author.
 
 ## Branch model
 
@@ -63,6 +64,7 @@ The slug is a kebab-case fragment of the issue title, max 40 characters. Phase n
 - PR body opens with `Closes #N`. Use `Refs #N` for related but not closing.
 - Conventional commit subjects on the squash-merge default.
 - No em-dash, no emoji in any commit message, PR title, or PR body.
+- No AI-attribution trailers in commits, PR bodies, or issue bodies. The author is the human running the workflow.
 
 ## Tests
 
