@@ -96,9 +96,9 @@ Branch types allowed off `develop`: `feature/`, `fix/`, `content/`, `chore/`, `d
    - If the issue carries the `tdd:strict` label (slices in `implementation-plan.md` Phases 1, 3, 6, 8), drive the work via the `tdd-author` subagent. Red, green, refactor: write the failing test first, see it fail for the right reason, then write the minimum implementation, then refactor. Do not edit implementation files speculatively.
    - Otherwise drive via the `scaffolder` subagent (or inline if the slice is small enough).
 6. Do the work in small commits with conventional commit subjects. Run `pnpm typecheck && pnpm build` (and the test runner once Phase 1 lands) before opening the PR.
-7. Run the review trio in parallel against `git diff develop...HEAD`: `qa-runner`, `code-reviewer`, `security-reviewer`. Address blockers; file follow-ups for non-blocking warnings.
-8. Push and open a PR against `develop`. Body opens with `Closes #<n>`, ticks the target-branch checklist, and includes three collapsible `<details>` blocks containing the qa, code-review, and security-review reports verbatim.
-9. When CI is green and the review trio reports are clean, read your own diff. Merge. The `auto-close-on-develop` workflow closes the issue; the project Status flips to `Done` via the automation workflow.
+7. Run the review pass in parallel against `git diff develop...HEAD`: `qa-runner`, `code-reviewer`, `security-reviewer`, plus `browser-tester` whenever the diff touches a UI surface (`app/`, `components/`, `tokens.css`, anything that renders to a page). Address blockers; file follow-ups for non-blocking warnings.
+8. Push and open a PR against `develop`. Body opens with `Closes #<n>`, ticks the target-branch checklist, and includes one collapsible `<details>` block per dispatched subagent containing each report verbatim.
+9. When CI is green and the review pass reports are clean, read your own diff. Merge. The `auto-close-on-develop` workflow closes the issue; the project Status flips to `Done` via the automation workflow.
 
 ### Red, green, refactor (when `tdd:strict`)
 
@@ -248,7 +248,7 @@ When the last open slice in a phase merges, run these checks before closing the 
 1. All issues in the milestone are closed (or moved to `phase:future`).
 2. The Phase column on the project board shows zero `In Progress` or `Ready`.
 3. The verification row from `implementation-plan.md` for that phase passes by hand.
-4. Every merged PR in this phase carried a clean `qa-runner` report and zero unresolved blockers from `code-reviewer` and `security-reviewer`.
+4. Every merged PR in this phase carried a clean `qa-runner` report and zero unresolved blockers from `code-reviewer`, `security-reviewer`, and (where dispatched) `browser-tester`.
 5. Open a `develop -> staging` release PR, then `staging -> main`, naming the phase in the title (`release: develop -> staging YYYY-MM-DD (Phase N close)`).
 6. Re-tag any deferred slices with `phase:future`.
 7. Update the `Current Phase` view filter in the project board to the next phase number.
