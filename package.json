@@ -14,7 +14,8 @@
     "lint": "biome check .",
     "format": "biome format --write .",
     "format:check": "biome format .",
-    "test": "vitest run"
+    "test": "vitest run",
+    "check:forbidden": "tsx scripts/check-forbidden-chars.ts"
   },
   "dependencies": {
     "next": "^16.2.4",
@@ -29,6 +30,8 @@
     "@types/react-dom": "^19.2.3",
     "postcss": "^8.5.13",
     "tailwindcss": "^4.2.4",
+    "tinyglobby": "^0.2.16",
+    "tsx": "^4.21.0",
     "typescript": "^6.0.3",
     "vitest": "^3"
   }
