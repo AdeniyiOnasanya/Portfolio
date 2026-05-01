@@ -21,7 +21,8 @@
       "!**/.vercel",
       "!**/.turbo",
       "!**/pnpm-lock.yaml",
-      "!**/cv"
+      "!**/cv",
+      "!next-env.d.ts"
     ]
   },
   "formatter": {
