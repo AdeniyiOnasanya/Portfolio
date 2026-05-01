@@ -13,43 +13,50 @@ Counts: 77 slices across 14 phases.
 
 ---
 
-## Phase 0: Repo bootstrap and protection (6 slices)
+## Phase 0: Repo bootstrap and protection (8 slices, 2 closed)
 
-1. `task: cloning the repo and running pnpm install yields a green typecheck and build (Phase 0)`
-   - Priority: P1
-   - Outcome: fresh clone, `pnpm install && pnpm typecheck && pnpm build` passes; placeholder page renders at `/`.
-   - Adds: `package.json`, `tsconfig.json` (strict, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`), `next.config.ts`, `biome.json`, `app/layout.tsx`, `app/page.tsx` (placeholder), `app/globals.css` imports `tokens.css`.
-   - Tests: none; manual run.
+This is the project. Issues #5 (templates) and #78 (branch flow guard) closed when PR #80 propagated the `.github/` tree to `main`. Issue #3 (branch protection) is blocked on GitHub Pro. The remaining work installs Next.js, Tailwind v4, Biome, the CI skeleton, and the Vercel hookup. Library setup is grounded in Context7 docs at execution time.
+
+1. `task: scaffolding Next.js 16 in this repo yields a green pnpm build and a placeholder at / (Phase 0)`
+   - Priority: P1.
+   - Outcome: `pnpm install && pnpm build` produces a working Next.js 16 App Router app; `/` renders a placeholder.
+   - Adds: `package.json` (Node 22+, pnpm 9+), `tsconfig.json` strict, `next.config.ts`, `app/{layout,page}.tsx`, `app/globals.css` (imports `tokens.css`), `.gitignore`, `.nvmrc`, `.env.example`, `CLAUDE.md`. Deps: `next`, `react`, `react-dom` per Context7 `/vercel/next.js/v16.2.2`.
+   - Tests: `pnpm typecheck` and `pnpm build` green; manual visit to `/`.
 
 2. `task: pushing a PR triggers CI that typechecks, lints, and builds (Phase 0)`
    - Priority: P1, depends on #1.
-   - Outcome: open a PR, see green checks for `typecheck`, `lint`, `build`.
-   - Adds: `.github/workflows/ci.yml` skeleton with the three jobs and a pnpm cache.
-   - Tests: CI run on the PR itself.
+   - Outcome: PR to `develop`, `staging`, or `main` shows green `typecheck`, `lint`, `build` status checks. `branch-flow-guard` is its own check (already on `main` from PR #80).
+   - Adds: `.github/workflows/ci.yml` with three jobs, pnpm cache, Node 22, concurrency cancel.
+   - Tests: CI run on the PR.
 
-3. `task: branch protection on main, staging, and develop rejects direct pushes and requires CI green (Phase 0)`
+3. `task: branch protection on main, staging, and develop rejects direct pushes and requires CI green (Phase 0)` [BLOCKED]
    - Priority: P1, depends on #2.
-   - Outcome: `git push origin main`, `git push origin staging`, `git push origin develop` all rejected; PRs require CI green; `enforce_admins=true` so I cannot bypass.
-   - Adds: `scripts/github/seed-branch-protection.sh` applies the relaxed seed to all three branches via `gh api`. Required-status-checks list ratchets up as Phases 1, 11, 12 land.
-   - Tests: manual push attempt against each branch; verify rejection messages.
+   - Status: Blocked on GitHub Pro. Soft mode via `branch-flow-guard` until upgraded.
+   - Adds: `scripts/github/seed-branch-protection.sh` (already in repo, gated on Pro).
 
 4. `task: Vercel preview deploys for every PR and the staging branch alias serves staging.davidonasanya.com (Phase 0)`
    - Priority: P1, depends on #1.
-   - Outcome: feature PRs get auto preview URLs; merges to `staging` deploy to `staging.davidonasanya.com`; production branch `main` is configured (DNS for `davidonasanya.com` may be deferred to Phase 13).
-   - Adds: link Vercel project; production branch = `main`; staging branch alias = `staging.davidonasanya.com`; env vars per environment.
-   - Tests: manual visit to a preview URL; manual visit to `staging.davidonasanya.com` after a develop -> staging merge (or to the auto staging preview URL until DNS lands).
-
-5. `task: pull request and issue templates render on github.com (Phase 0)`
-   - Priority: P2.
-   - Outcome: opening a new issue or PR shows the project's templates; the PR template surfaces the target-branch checklist.
-   - Adds: `.github/PULL_REQUEST_TEMPLATE.md`, `.github/ISSUE_TEMPLATE/*.yml`, `.github/CONTRIBUTING.md`, `.env.example`, `CLAUDE.md`.
+   - Outcome: feature PRs get auto preview URLs; merges to `staging` deploy to `staging.davidonasanya.com`; `main` is the production branch.
+   - Adds: Vercel project linked; production = `main`; staging branch domain alias; env vars per environment.
    - Tests: manual.
 
-6. `task: branch flow guard rejects PRs that skip the develop -> staging -> main chain (Phase 0)`
-   - Priority: P1.
-   - Outcome: a PR `feature/X -> staging` or `develop -> main` fails the `branch-flow-guard` status check with a clear message; valid pairs (`feature/* -> develop`, `develop -> staging`, `staging -> main`) pass.
-   - Adds: `.github/workflows/branch-flow-guard.yml`. Required as a status check on all three protected branches.
-   - Tests: deliberate `feature/test -> staging` PR fails; same head opened against `develop` passes.
+5. `task: pull request and issue templates render on github.com (Phase 0)` [CLOSED]
+   - Closed by PR #80 (bootstrap merge). Templates live on `main`.
+
+6. `task: branch flow guard rejects PRs that skip the develop -> staging -> main chain (Phase 0)` [CLOSED]
+   - Closed by PR #80 (bootstrap merge). Workflow lives on `main`; runs as a soft check until GitHub Pro turns on protection.
+
+7. `task: Tailwind v4 generates utility classes against tokens.css (Phase 0)`
+   - Priority: P1, depends on #1.
+   - Outcome: a placeholder element on `/` uses a Tailwind utility tied to a token from `tokens.css`. CSS-first config via `@theme` in `app/globals.css`; no `tailwind.config.js`.
+   - Adds: dev deps `tailwindcss` and `@tailwindcss/postcss`; `postcss.config.mjs`; `@import "tailwindcss"` and `@theme { ... }` block in `app/globals.css`. Per Context7 `/tailwindlabs/tailwindcss.com`, `postcss-import` and `autoprefixer` are not needed in v4.
+   - Tests: manual; covered by the existing `build` job.
+
+8. `task: Biome formats and lints the repo with strict rules (Phase 0)`
+   - Priority: P1, depends on #1.
+   - Outcome: `pnpm lint` and `pnpm format:check` run Biome over `app/`, `components/`, `lib/`, `scripts/`. Phase 1 makes `lint` a required CI check; this slice only installs and configures.
+   - Adds: dev dep `@biomejs/biome` (`--save-exact`), `biome.json` v2 schema (recommended + `noExplicitAny`, `noUnusedImports`, `noUnusedVariables`, `useImportType`, formatter on), scripts `lint`, `format`, `format:check`. Per Context7 `/biomejs/biome`.
+   - Tests: `pnpm lint` clean on the tree; deliberate `any` fails; deliberate mis-format gets rewritten by `pnpm format`.
 
 ---
 
@@ -503,22 +510,22 @@ Counts: 77 slices across 14 phases.
 
 ## Summary
 
-| Phase | Slices | P1 | P2 | P3 |
-|---|---|---|---|---|
-| 0 | 6 | 5 | 1 | 0 |
-| 1 | 6 | 3 | 3 | 0 |
-| 2 | 5 | 3 | 1 | 1 |
-| 3 | 6 | 5 | 1 | 0 |
-| 4 | 7 | 6 | 1 | 0 |
-| 5 | 6 | 2 | 4 | 0 |
-| 6 | 5 | 4 | 1 | 0 |
-| 7 | 7 | 6 | 1 | 0 |
-| 8 | 5 | 2 | 3 | 0 |
-| 9 | 5 | 3 | 2 | 0 |
-| 10 | 5 | 4 | 1 | 0 |
-| 11 | 4 | 4 | 0 | 0 |
-| 12 | 4 | 3 | 1 | 0 |
-| 13 | 7 | 6 | 1 | 0 |
-| **Total** | **78** | **56** | **21** | **1** |
+| Phase | Slices | P1 | P2 | P3 | Notes |
+|---|---|---|---|---|---|
+| 0 | 8 | 7 | 0 | 0 | 2 closed (#5, #78); #3 blocked |
+| 1 | 6 | 3 | 3 | 0 | |
+| 2 | 5 | 3 | 1 | 1 | |
+| 3 | 6 | 5 | 1 | 0 | |
+| 4 | 7 | 6 | 1 | 0 | |
+| 5 | 6 | 2 | 4 | 0 | |
+| 6 | 5 | 4 | 1 | 0 | |
+| 7 | 7 | 6 | 1 | 0 | |
+| 8 | 5 | 2 | 3 | 0 | |
+| 9 | 5 | 3 | 2 | 0 | |
+| 10 | 5 | 4 | 1 | 0 | |
+| 11 | 4 | 4 | 0 | 0 | |
+| 12 | 4 | 3 | 1 | 0 | |
+| 13 | 7 | 6 | 1 | 0 | |
+| **Total** | **80** | **58** | **20** | **1** | **2 closed** |
 
 Next step: review and trim, then I will create these as GitHub Issues against `AdeniyiOnasanya/Portfolio` once the labels, milestones, and project board are seeded.
