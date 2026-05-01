@@ -98,7 +98,7 @@ Branch types allowed off `develop`: `feature/`, `fix/`, `content/`, `chore/`, `d
 6. Do the work in small commits with conventional commit subjects. Run `pnpm typecheck && pnpm build` (and the test runner once Phase 1 lands) before opening the PR.
 7. Run the review pass in parallel against `git diff develop...HEAD`: `qa-runner`, `code-reviewer`, `security-reviewer`, plus `browser-tester` whenever the diff touches a UI surface (`app/`, `components/`, `tokens.css`, anything that renders to a page). Address blockers; file follow-ups for non-blocking warnings.
 8. Push and open a PR against `develop`. Body opens with `Closes #<n>`, ticks the target-branch checklist, and includes one collapsible `<details>` block per dispatched subagent containing each report verbatim.
-9. When CI is green and the review trio reports are clean, read your own diff. Merge. The `auto-close-on-develop` workflow closes the issue; the project Status flips to `Done` via the automation workflow.
+9. When CI is green and the review pass reports are clean, read your own diff. Merge. The `auto-close-on-develop` workflow closes the issue; the project Status flips to `Done` via the automation workflow.
 
 ### Red, green, refactor (when `tdd:strict`)
 
