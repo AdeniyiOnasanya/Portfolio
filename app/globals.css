@@ -3,6 +3,21 @@
 
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
+/* ==========================================================================
+   Reduced-motion contract
+   --------------------------------------------------------------------------
+   Every animation, transition, and view transition in this project drives
+   timing through the duration tokens: var(--duration-fast),
+   var(--duration-base), var(--duration-slow). The :root @media block in
+   tokens.css zeros all three when prefers-reduced-motion: reduce, so the
+   cascade alone honours the user setting. Authors must not hardcode literal
+   durations in component CSS or inline style. The CI verification path is:
+   DevTools, Rendering pane, Emulate CSS prefers-reduced-motion: reduce, then
+   confirm motion is stilled. The same toggle is part of the PR manual
+   checklist whenever the diff touches a UI surface (see
+   .github/PULL_REQUEST_TEMPLATE.md).
+   ========================================================================== */
+
 body {
   background: var(--color-surface-canvas);
   color: var(--color-text-primary);
