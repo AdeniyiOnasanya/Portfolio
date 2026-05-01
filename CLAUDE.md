@@ -59,19 +59,17 @@ All gates run via pnpm scripts and must exit 0 before opening a PR:
 - `pnpm lint`: Biome 2.x check.
 - `pnpm format:check`: Biome formatter check (use `pnpm format` to apply).
 - `pnpm test`: Vitest unit tests (config: `vitest.config.mts`, Node environment, `e2e/**` excluded).
-- `pnpm test:e2e`: Playwright e2e tests (config: `playwright.config.ts`, single `chromium` project; `webServer` and `baseURL` arrive in Phase 6 #67).
+- `pnpm test:e2e`: Playwright e2e tests (config: `playwright.config.ts`, single `chromium` project). Lands with PR #113; `webServer` and `baseURL` plumbing arrives in Phase 6 #67.
 - `pnpm check:forbidden`: scans `**/*.{ts,tsx,md,mdx,json,css}` for U+2014 and `\p{Extended_Pictographic}`. Same gate runs in CI.
 - `pnpm build`: `next build` (Turbopack).
 
-CI (`.github/workflows/ci.yml`) runs the cheap quartet (`typecheck`, `lint`, `build`, `forbidden-chars`) on every PR and push to `develop`, `staging`, `main`. CodeQL (`codeql.yml`) and Dependabot (`.github/dependabot.yml`) run on the same surface. Heavier gates (e2e, lighthouse) join in Phases 11 and 12.
+CI (`.github/workflows/ci.yml`) runs four cheap jobs on every PR and push to `develop`, `staging`, `main`: `typecheck`, `lint`, `build`, `forbidden-chars`. CodeQL (`codeql.yml`) and Dependabot (`.github/dependabot.yml`) are in flight as PRs #115 and #114 and run on the same surface once merged. Heavier gates (e2e, lighthouse) join in Phases 11 and 12.
 
 ## Git identity
 
 Set repo-local git author to match the GitHub account on the Vercel team allowlist. Without this, Vercel previews fail with `Git author ... must have access to the project`. Future docs slice (#108) will codify this in `.github/CONTRIBUTING.md`. For now, the override lives in `.git/config`:
 
-```
-git config --local user.name "AdeniyiOnasanya"
-git config --local user.email "98977109+AdeniyiOnasanya@users.noreply.github.com"
+
 ```
 
 ## Where to look
