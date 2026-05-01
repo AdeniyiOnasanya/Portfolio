@@ -279,6 +279,10 @@ Re-flip issue #3 to `status:ready` (or close it) once protection is enforced.
 ## Daily commands cheat sheet
 
 ```bash
+# First-time setup on a fresh clone (see .github/CONTRIBUTING.md)
+git config --local user.name  "<your-github-account-name>"
+git config --local user.email "<your-no-reply-email-from-github-settings>"
+
 # Start the day
 git checkout develop && git pull --ff-only
 

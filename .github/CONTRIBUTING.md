@@ -8,6 +8,34 @@ Solo build. These rules keep the repo reviewable, the deploys safe, and the audi
 - `tech-stack.md`: locked technical decisions.
 - `implementation-plan.md`: phased build plan; new work belongs to a phase milestone.
 
+## First-time setup (every fresh clone)
+
+Vercel deploys this project under a team allowlist. The allowlist is checked against the **commit author**, not the push credential. If a commit lands authored by an account that is not on the allowlist, the preview deployment fails with `Git author <name> must have access to the project on Vercel to create deployments.` (this happened on PR #102).
+
+A global `~/.gitconfig` `user.name` and `user.email` will not be the allowlisted account on most machines, so every fresh clone needs a repo-local override. Set it once, immediately after cloning:
+
+```bash
+git config --local user.name  "<your-github-account-name>"
+git config --local user.email "<your-no-reply-email>"
+```
+
+Where:
+
+- `<your-github-account-name>` is the GitHub username on the Vercel team allowlist (the same handle that appears as the project owner on Vercel).
+- `<your-no-reply-email>` is the no-reply address GitHub generates for that account, copied verbatim from `https://github.com/settings/emails` (look for "Keep my email addresses private" and the address shown beside it). The form is `<id>+<account-name>@users.noreply.github.com`.
+
+Do not commit the literal values into any tracked file, issue body, PR body, or commit message. They live only in `.git/config`, which is per-clone and untracked.
+
+To verify the override is in place before pushing:
+
+```bash
+git config --local user.name
+git config --local user.email
+git log -1 --format='%an <%ae>'
+```
+
+The first two should print the values you set; the third confirms the most recent commit was authored as expected.
+
 ## Hard rules
 
 - No em-dash (U+2014) anywhere in code, content, comments, commit messages, issues, or PR text. Use commas, periods, semicolons, parentheses, or colons.
