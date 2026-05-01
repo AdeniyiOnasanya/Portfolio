@@ -41,7 +41,7 @@ The slug is a kebab-case fragment of the issue title, max 40 characters. Phase n
 ## Issue workflow
 
 1. Open an issue from a template (`task`, `bug`, `content`, `content-gap`). Default labels apply.
-2. During triage, set: milestone (the phase), `area:*`, `priority:*`, sharpen acceptance criteria, flip to `status:ready`.
+2. During triage, set: milestone (the phase), `area:*`, `priority:*`, sharpen acceptance criteria, flip to `status:ready`. If the Task form's "TDD strict?" dropdown is set to `yes`, also apply the `tdd:strict` label so the `tdd-author` subagent picks it up.
 3. To pick up: create a branch off `develop`, set the issue's project Status to `In Progress`.
 4. Open a PR against `develop` with `Closes #N` in the body.
 5. CI green, manual checklist done, merge by hand. Issue auto-closes.
