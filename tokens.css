@@ -1,0 +1,359 @@
+/* ==========================================================================
+   Design Tokens
+   David Onasanya, Portfolio
+
+   Brand feel: cinematic, editorial, dark-first, luminous green accent.
+   Primary brand colour: oklch(0.78 0.18 145) (luminous green).
+   Font preference: Fraunces (display, italic), Geist (UI), JetBrains Mono (code).
+
+   Rules:
+   1. All primitive values live inside :root.
+   2. Outside :root, only semantic aliases referencing other tokens.
+   3. Theme overrides (dark, light, data-theme) only re-point semantic
+      aliases at existing primitives. They never declare new raw values.
+   ========================================================================== */
+
+:root {
+  /* ----------------------------------------------------------------------
+     1. Color primitives
+     ---------------------------------------------------------------------- */
+
+  /* Brand, luminous green */
+  --color-brand-50:  oklch(0.97 0.04 145);
+  --color-brand-100: oklch(0.94 0.07 145);
+  --color-brand-200: oklch(0.89 0.11 145);
+  --color-brand-300: oklch(0.84 0.14 145);
+  --color-brand-400: oklch(0.81 0.17 145);
+  --color-brand-500: oklch(0.78 0.18 145);
+  --color-brand-600: oklch(0.70 0.19 145);
+  --color-brand-700: oklch(0.60 0.18 145);
+  --color-brand-800: oklch(0.48 0.15 145);
+  --color-brand-900: oklch(0.34 0.10 145);
+
+  /* Neutral, warm cream to warm charcoal */
+  --color-neutral-50:  oklch(0.98 0.004 85);
+  --color-neutral-100: oklch(0.95 0.006 85);
+  --color-neutral-200: oklch(0.90 0.008 85);
+  --color-neutral-300: oklch(0.82 0.010 85);
+  --color-neutral-400: oklch(0.66 0.010 85);
+  --color-neutral-500: oklch(0.50 0.010 85);
+  --color-neutral-600: oklch(0.38 0.010 85);
+  --color-neutral-700: oklch(0.27 0.008 85);
+  --color-neutral-800: oklch(0.18 0.006 85);
+  --color-neutral-900: oklch(0.10 0.004 85);
+
+  /* Success, slightly cooler green than brand to avoid collision */
+  --color-success-50:  oklch(0.97 0.04 152);
+  --color-success-100: oklch(0.93 0.07 152);
+  --color-success-200: oklch(0.88 0.11 152);
+  --color-success-300: oklch(0.80 0.15 152);
+  --color-success-400: oklch(0.72 0.18 152);
+  --color-success-500: oklch(0.62 0.18 152);
+  --color-success-600: oklch(0.52 0.16 152);
+  --color-success-700: oklch(0.42 0.13 152);
+  --color-success-800: oklch(0.32 0.10 152);
+  --color-success-900: oklch(0.22 0.07 152);
+
+  /* Warning, warm amber */
+  --color-warning-50:  oklch(0.98 0.04 85);
+  --color-warning-100: oklch(0.95 0.08 85);
+  --color-warning-200: oklch(0.90 0.13 85);
+  --color-warning-300: oklch(0.85 0.16 85);
+  --color-warning-400: oklch(0.78 0.18 85);
+  --color-warning-500: oklch(0.72 0.18 85);
+  --color-warning-600: oklch(0.62 0.16 85);
+  --color-warning-700: oklch(0.50 0.13 85);
+  --color-warning-800: oklch(0.38 0.10 85);
+  --color-warning-900: oklch(0.28 0.07 85);
+
+  /* Danger, red */
+  --color-danger-50:  oklch(0.97 0.03 25);
+  --color-danger-100: oklch(0.94 0.06 25);
+  --color-danger-200: oklch(0.88 0.12 25);
+  --color-danger-300: oklch(0.80 0.16 25);
+  --color-danger-400: oklch(0.74 0.19 25);
+  --color-danger-500: oklch(0.68 0.20 25);
+  --color-danger-600: oklch(0.58 0.20 25);
+  --color-danger-700: oklch(0.48 0.18 25);
+  --color-danger-800: oklch(0.38 0.14 25);
+  --color-danger-900: oklch(0.28 0.10 25);
+
+  /* ----------------------------------------------------------------------
+     2. Semantic aliases (light theme defaults)
+        Theme blocks below re-point these without introducing raw values.
+     ---------------------------------------------------------------------- */
+
+  /* Surfaces */
+  --color-surface-canvas:  var(--color-neutral-50);
+  --color-surface-raised:  var(--color-neutral-100);
+  --color-surface-sunken:  var(--color-neutral-200);
+  --color-surface-inverse: var(--color-neutral-900);
+
+  /* Text */
+  --color-text-primary:   var(--color-neutral-900);
+  --color-text-secondary: var(--color-neutral-700);
+  --color-text-muted:     var(--color-neutral-500);
+  --color-text-disabled:  var(--color-neutral-400);
+  --color-text-inverse:   var(--color-neutral-50);
+  --color-text-on-brand:  var(--color-neutral-900);
+
+  /* Borders */
+  --color-border:         var(--color-neutral-200);
+  --color-border-strong:  var(--color-neutral-300);
+  --color-border-subtle:  var(--color-neutral-100);
+
+  /* Interactive */
+  --color-accent:           var(--color-brand-500);
+  --color-accent-hover:     var(--color-brand-600);
+  --color-accent-active:    var(--color-brand-700);
+  --color-accent-subtle:    var(--color-brand-50);
+  --color-focus-ring:       var(--color-brand-500);
+
+  /* Status */
+  --color-success:        var(--color-success-600);
+  --color-success-bg:     var(--color-success-50);
+  --color-warning:        var(--color-warning-600);
+  --color-warning-bg:     var(--color-warning-50);
+  --color-danger:         var(--color-danger-600);
+  --color-danger-bg:      var(--color-danger-50);
+
+  /* ----------------------------------------------------------------------
+     3. Spacing scale (8px base, fractional steps for tight UI)
+     ---------------------------------------------------------------------- */
+  --space-xs:  0.25rem;  /*  4px */
+  --space-sm:  0.5rem;   /*  8px */
+  --space-md:  1rem;     /* 16px */
+  --space-lg:  1.5rem;   /* 24px */
+  --space-xl:  2rem;     /* 32px */
+  --space-2xl: 3rem;     /* 48px */
+  --space-3xl: 4.5rem;   /* 72px */
+
+  /* ----------------------------------------------------------------------
+     4. Border radius
+     ---------------------------------------------------------------------- */
+  --radius-sm:   0.25rem;  /*  4px */
+  --radius-md:   0.5rem;   /*  8px */
+  --radius-lg:   0.75rem;  /* 12px */
+  --radius-xl:   1rem;     /* 16px */
+  --radius-2xl:  1.5rem;   /* 24px */
+  --radius-full: 9999px;
+
+  /* ----------------------------------------------------------------------
+     5. Typography
+     ---------------------------------------------------------------------- */
+
+  /* Families */
+  --font-sans:  "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-serif: "Fraunces", ui-serif, Georgia, "Times New Roman", serif;
+  --font-mono:  "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* Weights */
+  --font-light:    300;
+  --font-normal:   400;
+  --font-medium:   500;
+  --font-semibold: 600;
+
+  /* Sizes */
+  --text-xs:   0.75rem;   /* 12px */
+  --text-sm:   0.875rem;  /* 14px */
+  --text-base: 1rem;      /* 16px */
+  --text-lg:   1.125rem;  /* 18px */
+  --text-xl:   1.25rem;   /* 20px */
+  --text-2xl:  1.5rem;    /* 24px */
+  --text-3xl:  1.875rem;  /* 30px */
+  --text-4xl:  2.25rem;   /* 36px */
+  --text-5xl:  3rem;      /* 48px */
+  --text-6xl:  4.5rem;    /* 72px */
+
+  /* Display sizes (for the editorial hero / section titles) */
+  --text-display-section: clamp(2.5rem, 6vw, 6rem);   /* 40 -> 96 */
+  --text-display-hero:    clamp(4.5rem, 11vw, 11.25rem); /* 72 -> 180 */
+
+  /* Line heights */
+  --leading-tight:   1.1;
+  --leading-snug:    1.25;
+  --leading-normal:  1.55;
+  --leading-relaxed: 1.7;
+
+  /* Letter spacing */
+  --tracking-tight:   -0.02em;
+  --tracking-display: -0.04em;
+  --tracking-normal:  0;
+  --tracking-wide:    0.06em;
+  --tracking-eyebrow: 0.16em;
+
+  /* ----------------------------------------------------------------------
+     6. Shadows (light theme; dark theme overrides below)
+     ---------------------------------------------------------------------- */
+  --shadow-sm:   0 1px 2px 0 oklch(0 0 0 / 0.06),
+                 0 1px 1px 0 oklch(0 0 0 / 0.04);
+  --shadow-md:   0 4px 6px -1px oklch(0 0 0 / 0.08),
+                 0 2px 4px -2px oklch(0 0 0 / 0.06);
+  --shadow-lg:   0 12px 20px -8px oklch(0 0 0 / 0.16),
+                 0 4px 8px -4px oklch(0 0 0 / 0.08);
+  --shadow-focus: 0 0 0 3px var(--color-brand-200);
+
+  /* ----------------------------------------------------------------------
+     7. Motion
+     ---------------------------------------------------------------------- */
+  --duration-fast: 150ms;
+  --duration-base: 250ms;
+  --duration-slow: 400ms;
+
+  --ease-out:    cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+  /* ----------------------------------------------------------------------
+     8. Layout helpers
+     ---------------------------------------------------------------------- */
+  --max-width-prose:   65ch;
+  --max-width-content: 80rem; /* 1280px */
+  --z-base:    0;
+  --z-raised:  10;
+  --z-overlay: 50;
+  --z-modal:   100;
+  --z-toast:   200;
+  --z-cursor:  9999;
+}
+
+/* ==========================================================================
+   Dark theme via system preference
+   No raw values, only re-points to existing primitives.
+   ========================================================================== */
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Surfaces */
+    --color-surface-canvas:  var(--color-neutral-900);
+    --color-surface-raised:  var(--color-neutral-800);
+    --color-surface-sunken:  var(--color-neutral-900);
+    --color-surface-inverse: var(--color-neutral-50);
+
+    /* Text */
+    --color-text-primary:   var(--color-neutral-50);
+    --color-text-secondary: var(--color-neutral-200);
+    --color-text-muted:     var(--color-neutral-400);
+    --color-text-disabled:  var(--color-neutral-600);
+    --color-text-inverse:   var(--color-neutral-900);
+    --color-text-on-brand:  var(--color-neutral-900);
+
+    /* Borders */
+    --color-border:        var(--color-neutral-700);
+    --color-border-strong: var(--color-neutral-600);
+    --color-border-subtle: var(--color-neutral-800);
+
+    /* Interactive (the brand sits brighter on dark) */
+    --color-accent:        var(--color-brand-500);
+    --color-accent-hover:  var(--color-brand-400);
+    --color-accent-active: var(--color-brand-300);
+    --color-accent-subtle: var(--color-brand-900);
+    --color-focus-ring:    var(--color-brand-400);
+
+    /* Status (shift bg toward darker primitives so it sits on the dark canvas) */
+    --color-success:    var(--color-success-400);
+    --color-success-bg: var(--color-success-900);
+    --color-warning:    var(--color-warning-400);
+    --color-warning-bg: var(--color-warning-900);
+    --color-danger:     var(--color-danger-400);
+    --color-danger-bg:  var(--color-danger-900);
+
+    /* Shadows lose definition on dark surfaces; lean on borders + glow instead */
+    --shadow-sm:   0 1px 2px 0 oklch(0 0 0 / 0.40);
+    --shadow-md:   0 4px 12px -2px oklch(0 0 0 / 0.50);
+    --shadow-lg:   0 16px 32px -8px oklch(0 0 0 / 0.60);
+    --shadow-focus: 0 0 0 3px var(--color-brand-800);
+  }
+}
+
+/* ==========================================================================
+   Explicit theme overrides
+   The toggle in the nav sets [data-theme] on <html>. These selectors must
+   beat the media query above, so they sit later in the cascade.
+   ========================================================================== */
+
+[data-theme="light"] {
+  --color-surface-canvas:  var(--color-neutral-50);
+  --color-surface-raised:  var(--color-neutral-100);
+  --color-surface-sunken:  var(--color-neutral-200);
+  --color-surface-inverse: var(--color-neutral-900);
+
+  --color-text-primary:   var(--color-neutral-900);
+  --color-text-secondary: var(--color-neutral-700);
+  --color-text-muted:     var(--color-neutral-500);
+  --color-text-disabled:  var(--color-neutral-400);
+  --color-text-inverse:   var(--color-neutral-50);
+  --color-text-on-brand:  var(--color-neutral-900);
+
+  --color-border:        var(--color-neutral-200);
+  --color-border-strong: var(--color-neutral-300);
+  --color-border-subtle: var(--color-neutral-100);
+
+  --color-accent:        var(--color-brand-500);
+  --color-accent-hover:  var(--color-brand-600);
+  --color-accent-active: var(--color-brand-700);
+  --color-accent-subtle: var(--color-brand-50);
+  --color-focus-ring:    var(--color-brand-500);
+
+  --color-success:    var(--color-success-600);
+  --color-success-bg: var(--color-success-50);
+  --color-warning:    var(--color-warning-600);
+  --color-warning-bg: var(--color-warning-50);
+  --color-danger:     var(--color-danger-600);
+  --color-danger-bg:  var(--color-danger-50);
+
+  --shadow-sm:   0 1px 2px 0 oklch(0 0 0 / 0.06),
+                 0 1px 1px 0 oklch(0 0 0 / 0.04);
+  --shadow-md:   0 4px 6px -1px oklch(0 0 0 / 0.08),
+                 0 2px 4px -2px oklch(0 0 0 / 0.06);
+  --shadow-lg:   0 12px 20px -8px oklch(0 0 0 / 0.16),
+                 0 4px 8px -4px oklch(0 0 0 / 0.08);
+  --shadow-focus: 0 0 0 3px var(--color-brand-200);
+}
+
+[data-theme="dark"] {
+  --color-surface-canvas:  var(--color-neutral-900);
+  --color-surface-raised:  var(--color-neutral-800);
+  --color-surface-sunken:  var(--color-neutral-900);
+  --color-surface-inverse: var(--color-neutral-50);
+
+  --color-text-primary:   var(--color-neutral-50);
+  --color-text-secondary: var(--color-neutral-200);
+  --color-text-muted:     var(--color-neutral-400);
+  --color-text-disabled:  var(--color-neutral-600);
+  --color-text-inverse:   var(--color-neutral-900);
+  --color-text-on-brand:  var(--color-neutral-900);
+
+  --color-border:        var(--color-neutral-700);
+  --color-border-strong: var(--color-neutral-600);
+  --color-border-subtle: var(--color-neutral-800);
+
+  --color-accent:        var(--color-brand-500);
+  --color-accent-hover:  var(--color-brand-400);
+  --color-accent-active: var(--color-brand-300);
+  --color-accent-subtle: var(--color-brand-900);
+  --color-focus-ring:    var(--color-brand-400);
+
+  --color-success:    var(--color-success-400);
+  --color-success-bg: var(--color-success-900);
+  --color-warning:    var(--color-warning-400);
+  --color-warning-bg: var(--color-warning-900);
+  --color-danger:     var(--color-danger-400);
+  --color-danger-bg:  var(--color-danger-900);
+
+  --shadow-sm:   0 1px 2px 0 oklch(0 0 0 / 0.40);
+  --shadow-md:   0 4px 12px -2px oklch(0 0 0 / 0.50);
+  --shadow-lg:   0 16px 32px -8px oklch(0 0 0 / 0.60);
+  --shadow-focus: 0 0 0 3px var(--color-brand-800);
+}
+
+/* ==========================================================================
+   Reduced motion: zero out durations so motion tokens cascade safely
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 0ms;
+    --duration-base: 0ms;
+    --duration-slow: 0ms;
+  }
+}

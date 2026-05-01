@@ -65,7 +65,9 @@ Run after the bootstrap merge so the workflow files exist on `main`. Order:
 
 ## Branch protection
 
-After the bootstrap merge, run `seed-branch-protection.sh` to protect all three branches with the relaxed seed (PR required, no force-push, no deletion, no required-status-checks contexts yet). Tighten the contexts list as CI lands:
+**Status: blocked on GitHub Free.** Branch protection rules and rulesets on private repos require GitHub Pro (or making the repo public). Until then, the chain is enforced by convention plus the `branch-flow-guard` workflow as a visible-but-soft check. Direct push and non-conforming merges are not server-side blocked.
+
+When the repo is on GitHub Pro (or public), run:
 
 ```bash
 bash scripts/github/seed-branch-protection.sh                                                 # initial seed
@@ -73,7 +75,7 @@ REQUIRE_CHEAP_CHECKS=1 bash scripts/github/seed-branch-protection.sh            
 REQUIRE_CHEAP_CHECKS=1 REQUIRE_HEAVY_CHECKS=1 bash scripts/github/seed-branch-protection.sh   # after Phases 11/12
 ```
 
-`enforce_admins=true` on all three: even the repo owner cannot bypass.
+`enforce_admins=true` on all three: even the repo owner cannot bypass once active.
 
 ## Project automation
 
