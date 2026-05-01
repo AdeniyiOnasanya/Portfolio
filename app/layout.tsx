@@ -1,10 +1,10 @@
-import type { Metadata } from "next";
-import type { ReactNode } from "react";
-import "./globals.css";
+import type { Metadata } from 'next';
+import type { ReactNode } from 'react';
+import './globals.css';
 
 export const metadata: Metadata = {
-  title: "David Onasanya",
-  description: "Portfolio. Work in progress.",
+  title: 'David Onasanya',
+  description: 'Portfolio. Work in progress.',
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
