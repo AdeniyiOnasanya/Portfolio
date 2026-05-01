@@ -66,6 +66,20 @@ The slug is a kebab-case fragment of the issue title, max 40 characters. Phase n
 - No em-dash, no emoji in any commit message, PR title, or PR body.
 - No AI-attribution trailers in commits, PR bodies, or issue bodies. The author is the human running the workflow.
 
+## PR review contract
+
+Every non-trivial PR runs a three-agent review pass before it opens. The author dispatches each subagent in parallel against `git diff develop...HEAD`:
+
+1. **`qa-runner`** runs whichever quality gates are wired in `package.json` (`pnpm typecheck`, `pnpm lint`, `pnpm build`, `pnpm test`, etc.). Missing scripts are skipped, never failed.
+2. **`code-reviewer`** flags blockers, warnings, and suggestions against repo conventions, the installed Vercel agent skills, and React/Next.js best practices.
+3. **`security-reviewer`** scans the diff for secret leaks, env misuse, route-handler injection, auth allowlist correctness, Zod boundary checks, GitHub-token scope creep, and dangerous file ops in `lib/github/*`.
+
+The PR body opens with `Closes #N` and includes three collapsible `<details>` blocks containing the three reports verbatim. Findings are advisory; the author reconciles. The reviewer subagents do not block the merge button.
+
+Trivial slices may skip the review trio. A slice is trivial if it changes no executable code, no workflow YAML, no schema, and no auth or GitHub-pipeline surface (typo fixes, label tweaks, single-line doc edits).
+
+Strict TDD slices carry the `tdd:strict` label, applied during triage when the Task form's "TDD strict?" dropdown is set to `yes` (typically slices in `implementation-plan.md` Phases 1, 3, 6, 8). Those slices route to the `tdd-author` subagent instead of `scaffolder`. Red, green, refactor is mechanical: no implementation file may be edited until a failing test exists in the working tree.
+
 ## Tests
 
 Refer to the test layer for the relevant phase in `implementation-plan.md`. The default expectation per layer:
