@@ -1,0 +1,56 @@
+name: CodeQL
+
+# Static security analysis. CodeQL parses the JS/TS source for known vulnerable
+# patterns and posts findings to the Security tab. Three triggers:
+#   - pull_request: every PR to develop, staging, main gets analysed before merge.
+#   - push: every merge into those branches re-runs against the post-merge state.
+#   - schedule: weekly Monday cron catches new CVE rules added to the CodeQL
+#     query packs against unchanged code.
+#
+# Single language: javascript-typescript (the unified pack covers both .js and
+# .ts files). No autobuild step needed; the action's "build-mode: none" path
+# scans source directly without compiling.
+#
+# Required permissions:
+#   - security-events: write   to upload SARIF results to the Security tab.
+#   - contents: read           to check out the code.
+#   - actions: read            to call the CodeQL action's helpers.
+
+on:
+  pull_request:
+    branches: [develop, staging, main]
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [develop, staging, main]
+  schedule:
+    - cron: '0 7 * * 1'  # Monday 07:00 UTC (08:00 Europe/London winter / 09:00 BST)
+
+permissions:
+  contents: read
+
+concurrency:
+  group: codeql-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze:
+    name: analyze
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      contents: read
+      actions: read
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [javascript-typescript]
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+      - uses: github/codeql-action/init@e46ed2cbd01164d986452f91f178727624ae40d7  # v4.35.3
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: none
+          queries: security-and-quality
+      - uses: github/codeql-action/analyze@e46ed2cbd01164d986452f91f178727624ae40d7  # v4.35.3
+        with:
+          category: '/language:${{ matrix.language }}'
