@@ -14,6 +14,7 @@ Solo build. These rules keep the repo reviewable, the deploys safe, and the audi
 - No emoji anywhere.
 - Every change ships through the chain: `feature/<n>_<slug> -> develop -> staging -> main`. No direct push to any of the three protected branches. No auto-merge. No force-push. No hotfixes.
 - Every animation honours `prefers-reduced-motion`.
+- No AI-attribution trailers anywhere: never write `Co-Authored-By: Claude`, `Generated with Claude Code`, or any equivalent line in commit messages, PR or issue bodies, or code comments. Work is attributed to the human author.
 
 ## Branch model
 
@@ -40,7 +41,7 @@ The slug is a kebab-case fragment of the issue title, max 40 characters. Phase n
 ## Issue workflow
 
 1. Open an issue from a template (`task`, `bug`, `content`, `content-gap`). Default labels apply.
-2. During triage, set: milestone (the phase), `area:*`, `priority:*`, sharpen acceptance criteria, flip to `status:ready`.
+2. During triage, set: milestone (the phase), `area:*`, `priority:*`, sharpen acceptance criteria, flip to `status:ready`. If the Task form's "TDD strict?" dropdown is set to `yes`, also apply the `tdd:strict` label so the `tdd-author` subagent picks it up.
 3. To pick up: create a branch off `develop`, set the issue's project Status to `In Progress`.
 4. Open a PR against `develop` with `Closes #N` in the body.
 5. CI green, manual checklist done, merge by hand. Issue auto-closes.
@@ -63,6 +64,21 @@ The slug is a kebab-case fragment of the issue title, max 40 characters. Phase n
 - PR body opens with `Closes #N`. Use `Refs #N` for related but not closing.
 - Conventional commit subjects on the squash-merge default.
 - No em-dash, no emoji in any commit message, PR title, or PR body.
+- No AI-attribution trailers in commits, PR bodies, or issue bodies. The author is the human running the workflow.
+
+## PR review contract
+
+Every non-trivial PR runs a three-agent review pass before it opens. The author dispatches each subagent in parallel against `git diff develop...HEAD`:
+
+1. **`qa-runner`** runs whichever quality gates are wired in `package.json` (`pnpm typecheck`, `pnpm lint`, `pnpm build`, `pnpm test`, etc.). Missing scripts are skipped, never failed.
+2. **`code-reviewer`** flags blockers, warnings, and suggestions against repo conventions, the installed Vercel agent skills, and React/Next.js best practices.
+3. **`security-reviewer`** scans the diff for secret leaks, env misuse, route-handler injection, auth allowlist correctness, Zod boundary checks, GitHub-token scope creep, and dangerous file ops in `lib/github/*`.
+
+The PR body opens with `Closes #N` and includes three collapsible `<details>` blocks containing the three reports verbatim. Findings are advisory; the author reconciles. The reviewer subagents do not block the merge button.
+
+Trivial slices may skip the review trio. A slice is trivial if it changes no executable code, no workflow YAML, no schema, and no auth or GitHub-pipeline surface (typo fixes, label tweaks, single-line doc edits).
+
+Strict TDD slices carry the `tdd:strict` label, applied during triage when the Task form's "TDD strict?" dropdown is set to `yes` (typically slices in `implementation-plan.md` Phases 1, 3, 6, 8). Those slices route to the `tdd-author` subagent instead of `scaffolder`. Red, green, refactor is mechanical: no implementation file may be edited until a failing test exists in the working tree.
 
 ## Tests
 
@@ -74,6 +90,12 @@ Refer to the test layer for the relevant phase in `implementation-plan.md`. The 
 - Animations and look-and-feel: manual checklist baked into the PR template.
 
 ## Branch protection summary
+
+GitHub Free does not allow branch protection on private repos. Until the repo is on GitHub Pro (or made public), the rules below are **convention plus a soft check**: `branch-flow-guard` runs on every PR and shows a red X on a non-conforming pair, but the merge button is not blocked. The chain holds because the developer follows it; the workflow is the tripwire.
+
+When the repo upgrades to GitHub Pro or goes public, run `bash scripts/github/seed-branch-protection.sh` and the rules below activate as enforced server-side gates.
+
+Target rules (active once protection is enabled):
 
 - **main:** PR required, no direct push, no force push, no deletion, all CI green, `branch-flow-guard` required, `enforce_admins=true`, linear history required.
 - **staging:** same as main, but allows merge commits (linear history off) so a `develop -> staging` merge with conflicts can land cleanly.

@@ -91,6 +91,17 @@ body:
         - P3
     validations:
       required: true
+  - type: dropdown
+    id: tdd_strict
+    attributes:
+      label: TDD strict?
+      description: Pick "yes" if this slice falls in implementation-plan.md Phases 1, 3, 6, or 8 (schemas, auth, GitHub commit pipeline). Triagers apply the `tdd:strict` label by hand if the answer is "yes".
+      options:
+        - "no"
+        - "yes"
+      default: 0
+    validations:
+      required: true
   - type: textarea
     id: depends
     attributes:

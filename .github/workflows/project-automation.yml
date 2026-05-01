@@ -3,9 +3,10 @@ name: Project automation
 # Adds new issues and PRs to the Portfolio Build project, syncs item Status
 # from PR linkage, and applies a small number of unambiguous default labels.
 #
-# Requires a repository secret named PROJECT_PAT: a fine-grained personal
-# access token with `project` scope. The default GITHUB_TOKEN cannot manage
-# user-scoped projects.
+# Requires a repository secret named PROJECT_PAT: a classic personal
+# access token with `repo`, `project`, and `read:org` scopes. The default
+# GITHUB_TOKEN cannot manage user-scoped projects, and fine-grained PATs
+# have historically lagged ProjectsV2 support for user-owned projects.
 
 on:
   issues:
@@ -33,7 +34,7 @@ jobs:
     if: github.event.action == 'opened'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/add-to-project@v1
+      - uses: actions/add-to-project@244f685bbc3b7adfa8466e08b698b5577571133e # v1.0.2
         with:
           project-url: ${{ env.PROJECT_URL }}
           github-token: ${{ secrets.PROJECT_PAT }}

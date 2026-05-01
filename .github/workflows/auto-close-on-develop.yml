@@ -1,0 +1,63 @@
+name: Auto-close issues on develop merge
+
+# GitHub's native "Closes #N" auto-close fires only on default-branch merges.
+# This repo's default branch is `main`, but feature work merges first to
+# `develop`. This workflow plugs the gap: on each push to `develop`, parse the
+# pushed commits for closing references and close those issues. Identical
+# behaviour to the native feature, just earlier in the chain.
+
+on:
+  push:
+    branches:
+      - develop
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  close-linked-issues:
+    name: Close issues referenced in develop commits
+    runs-on: ubuntu-latest
+    steps:
+      - name: Parse commits and close referenced issues
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.event.after }}
+        run: |
+          set -euo pipefail
+
+          # Skip the very first push (BEFORE is all zeros) and any branch deletion.
+          ZEROES="0000000000000000000000000000000000000000"
+          if [ "$BEFORE" = "$ZEROES" ] || [ "$AFTER" = "$ZEROES" ]; then
+            echo "First push or branch deletion; nothing to compare."
+            exit 0
+          fi
+
+          MESSAGES=$(gh api "repos/$REPO/compare/$BEFORE...$AFTER" --jq '.commits[].commit.message')
+
+          ISSUES=$(printf "%s\n" "$MESSAGES" \
+            | grep -oEi '(close[sd]?|fix(e[sd])?|resolve[sd]?) #[0-9]+' \
+            | grep -oE '#[0-9]+' \
+            | tr -d '#' \
+            | sort -u || true)
+
+          if [ -z "$ISSUES" ]; then
+            echo "No closing references in pushed commits."
+            exit 0
+          fi
+
+          for n in $ISSUES; do
+            STATE=$(gh api "repos/$REPO/issues/$n" --jq '.state' 2>/dev/null || echo "missing")
+            if [ "$STATE" = "open" ]; then
+              echo "Closing #$n"
+              gh issue close "$n" --repo "$REPO" \
+                --comment "Auto-closed by merge to develop." >/dev/null
+            elif [ "$STATE" = "closed" ]; then
+              echo "Issue #$n already closed; skipping."
+            else
+              echo "Issue #$n not found; skipping."
+            fi
+          done
