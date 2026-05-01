@@ -24,16 +24,13 @@ The `vercel-labs/agent-skills` set is loaded. Skills the agent should reach for 
 
 ## Subagents installed in this repo
 
-The `.claude/agents/` directory holds eight role-specific subagents. Reach for them by `subagent_type` via the `Agent` tool:
+The `.claude/agents/` directory holds five role-specific subagents. Reach for them by `subagent_type` via the `Agent` tool:
 
-- `planner`: design implementation plans for non-trivial slices. Calls Context7 for any new or upgraded library.
-- `scaffolder`: pure execution against a plan for non-TDD slices.
 - `tdd-author`: strict red, green, refactor for slices labelled `tdd:strict` (schemas, auth, GitHub commit pipeline).
 - `code-reviewer`: reviews `git diff develop...HEAD` against repo conventions and the Vercel skills.
 - `qa-runner`: runs whichever quality gates are wired in `package.json`.
 - `security-reviewer`: scans diffs for secret leaks, env misuse, route-handler injection, GitHub-token scope creep.
 - `browser-tester`: drives a live Chrome session via `chrome-devtools-mcp` for UI-touching slices. Note: if the agent registry was loaded before the file landed, a Claude Code restart is required to dispatch it.
-- `release-manager`: drafts release-PR bodies for `develop -> staging` and `staging -> main`. Never merges.
 
 The PR review contract (`.github/CONTRIBUTING.md`): every non-trivial PR runs `qa-runner`, `code-reviewer`, `security-reviewer` in parallel before opening, plus `browser-tester` whenever the diff touches a UI surface. Each report goes into a collapsible `<details>` block in the PR body. Findings are advisory; the author reconciles.
 
@@ -67,10 +64,7 @@ CI (`.github/workflows/ci.yml`) runs four cheap jobs on every PR and push to `de
 
 ## Git identity
 
-Set repo-local git author to match the GitHub account on the Vercel team allowlist. Without this, Vercel previews fail with `Git author ... must have access to the project`. Future docs slice (#108) will codify this in `.github/CONTRIBUTING.md`. For now, the override lives in `.git/config`:
-
-
-```
+Commits in this repo must be authored by the GitHub account on the Vercel team allowlist, otherwise previews fail with `Git author ... must have access to the project`. Set the override at the repo level via `git config --local user.name` and `git config --local user.email` using the no-reply address shown at `https://github.com/settings/emails`. Keep the actual values out of every tracked file, every issue body, every PR body, and every commit message. Future docs slice (#108) describes the pattern in `.github/CONTRIBUTING.md` without embedding personal values.
 
 ## Where to look
 
@@ -81,5 +75,5 @@ Set repo-local git author to match the GitHub account on the Vercel team allowli
 - `guide.md`: daily flow, promotion rules, milestone close-out checklist.
 - `.github/CONTRIBUTING.md`: branch model, PR conventions, and the multi-agent review contract.
 - `.github/PROJECT.md`: project board view spec.
-- `.claude/agents/`: eight role-specific subagents listed above.
+- `.claude/agents/`: five role-specific subagents listed above.
 - `scripts/github/README.md`: setup script run order and Vercel hookup steps.
