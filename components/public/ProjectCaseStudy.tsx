@@ -51,7 +51,7 @@ export function ProjectCaseStudy({ file }: { file: ProjectFile }) {
       <p className="mt-2xl font-serif text-2xl leading-snug max-w-prose">{frontmatter.tagline}</p>
       <p className="mt-md text-fg-secondary leading-relaxed max-w-prose">{frontmatter.summary}</p>
 
-      <ul className="mt-2xl grid gap-md md:grid-cols-2">
+      <ul aria-label="Project visuals" className="mt-2xl grid gap-md md:grid-cols-2">
         {frontmatter.visuals.map((visual) => (
           <li
             key={visual.label}
