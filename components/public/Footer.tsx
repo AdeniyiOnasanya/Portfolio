@@ -1,5 +1,15 @@
 import type { Footer as FooterType, Person } from '../../lib/schema';
 
+// The <footer> element is not given aria-labelledby because Biome's
+// useAriaPropsSupportedByRole rejects it on the implicit contentinfo
+// role and contentinfo is unique per page, so screen readers locate it
+// by role alone. Other sections still pair aria-labelledby with their
+// h2 because they are <section role="region"> landmarks that need an
+// accessible name to be exposed to assistive tech.
+
+const linkClass =
+  'text-fg-primary hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg rounded-sm';
+
 export function Footer({
   footer,
   person,
@@ -16,28 +26,17 @@ export function Footer({
       </p>
       <ul className="mt-lg flex flex-wrap gap-md text-sm">
         <li>
-          <a
-            href={`mailto:${person.email}`}
-            className="text-fg-primary hover:text-accent focus-visible:text-accent"
-          >
+          <a href={`mailto:${person.email}`} className={linkClass}>
             Email
           </a>
         </li>
         <li>
-          <a
-            href={person.github}
-            className="text-fg-primary hover:text-accent focus-visible:text-accent"
-            rel="me"
-          >
+          <a href={person.github} className={linkClass} rel="me">
             GitHub
           </a>
         </li>
         <li>
-          <a
-            href={person.linkedin}
-            className="text-fg-primary hover:text-accent focus-visible:text-accent"
-            rel="me"
-          >
+          <a href={person.linkedin} className={linkClass} rel="me">
             LinkedIn
           </a>
         </li>
