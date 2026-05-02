@@ -174,11 +174,15 @@ None. Server components, server actions, URL state. The CMS has light client sta
     /cms/save/route.ts          opens PR
     /cms/upload/route.ts        signs blob upload URL
 /content
-  site.json
+  site.json                       site-wide content + ordered slug list
   /projects
-    stratus.mdx
-    hearth.mdx
-    ...
+    multi-cloud-platform.mdx      (Stratus)
+    foster-care-platform.mdx      (Hearth)
+    compliance-electron.mdx       (Vessel)
+    calendar-tool.mdx             (Quorum)
+    microplastics-mobile.mdx      (Plumb)
+    endoscope-tracking.mdx        (Trace)
+    elearning-platform.mdx        (Atrium)
 /lib
   schema.ts                     Zod
   content.ts                    typed loader

@@ -98,6 +98,12 @@ const DeepDiveSchema = z.object({
   lessons: z.array(LessonSchema).min(1),
 });
 
+// ProjectSchema describes the structured fields of a project: enough for the
+// home-page index card and for the case-study page header. Long-form prose
+// (problem, approach, outcome) lives in the MDX body of
+// content/projects/<slug>.mdx. The structured deepDive optionally lives in
+// the MDX frontmatter rather than site.json so the case-study page can read
+// the whole project from a single file.
 export const ProjectSchema = z.object({
   slug: SlugString,
   n: NonEmptyString,
@@ -109,30 +115,32 @@ export const ProjectSchema = z.object({
   stack: z.array(NonEmptyString).min(1),
   tagline: SafeText,
   summary: SafeText,
-  problem: SafeText,
-  approach: z.array(SafeText).min(1),
-  outcome: SafeText,
   visuals: z.array(VisualSchema).min(1),
   meta: MetaSchema,
   deepDive: DeepDiveSchema.optional(),
 });
 export type Project = z.infer<typeof ProjectSchema>;
 
+// site.json.projects is the ordered slug list that drives the home-page
+// index strip. The structured fields (n, title, subtitle, ...) plus the
+// case-study prose live in content/projects/<slug>.mdx and are loaded via
+// lib/projects.ts. Keeping site.json lean removes the parallel source of
+// truth that earlier slices created.
 export const ProjectsSchema = z
-  .array(ProjectSchema)
+  .array(SlugString)
   .min(1)
-  .superRefine((projects, ctx) => {
+  .superRefine((slugs, ctx) => {
     const seen = new Map<string, number>();
-    projects.forEach((project, index) => {
-      const previous = seen.get(project.slug);
+    slugs.forEach((slug, index) => {
+      const previous = seen.get(slug);
       if (previous !== undefined) {
         ctx.addIssue({
           code: 'custom',
-          path: [index, 'slug'],
-          message: `Duplicate slug "${project.slug}" (also at index ${previous}).`,
+          path: [index],
+          message: `Duplicate slug "${slug}" (also at index ${previous}).`,
         });
       } else {
-        seen.set(project.slug, index);
+        seen.set(slug, index);
       }
     });
   });
