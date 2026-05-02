@@ -2,6 +2,7 @@ import type { AiPractice, Experience, Footer, Person, Projects, Skills } from '.
 
 export const samplePerson: Person = {
   name: 'Ada Lovelace',
+  nameAccent: 'Lovelace',
   role: 'Software Engineer',
   location: 'London, United Kingdom',
   phone: '07000 000000',

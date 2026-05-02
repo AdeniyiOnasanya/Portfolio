@@ -21,20 +21,29 @@ const SlugString = z.string().regex(SLUG_PATTERN, {
   message: 'slug must be kebab-case lowercase, digits and dashes only.',
 });
 
-export const PersonSchema = z.object({
-  name: NonEmptyString,
-  role: NonEmptyString,
-  location: NonEmptyString,
-  phone: NonEmptyString,
-  email: z.email(),
-  cvUrl: NonEmptyString,
-  cvDocxUrl: NonEmptyString,
-  github: z.url(),
-  linkedin: z.url(),
-  yearsExp: z.number().int().nonnegative(),
-  statement: SafeText,
-  longBio: z.array(SafeText).min(1),
-});
+export const PersonSchema = z
+  .object({
+    name: NonEmptyString,
+    // Optional substring of `name` that should render with the brand accent in
+    // the hero. Must appear verbatim in `name`; the schema enforces that here so
+    // a typo cannot ship a hero where the accent silently vanishes at runtime.
+    nameAccent: NonEmptyString.optional(),
+    role: NonEmptyString,
+    location: NonEmptyString,
+    phone: NonEmptyString,
+    email: z.email(),
+    cvUrl: NonEmptyString,
+    cvDocxUrl: NonEmptyString,
+    github: z.url(),
+    linkedin: z.url(),
+    yearsExp: z.number().int().nonnegative(),
+    statement: SafeText,
+    longBio: z.array(SafeText).min(1),
+  })
+  .refine((person) => person.nameAccent === undefined || person.name.includes(person.nameAccent), {
+    message: 'nameAccent must appear verbatim in name.',
+    path: ['nameAccent'],
+  });
 export type Person = z.infer<typeof PersonSchema>;
 
 const SkillGroupSchema = z.object({
