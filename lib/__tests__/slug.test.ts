@@ -49,12 +49,9 @@ describe('slugify', () => {
     expect(() => slugify('---')).toThrow(/empty/i);
   });
 
-  it.each(['admin', 'api', 'login', 'cv', '_next', 'next'])(
-    'rejects reserved slug %s',
-    (input) => {
-      expect(() => slugify(input)).toThrow(/reserved/i);
-    },
-  );
+  it.each(['admin', 'api', 'login', 'cv', '_next', 'next'])('rejects reserved slug %s', (input) => {
+    expect(() => slugify(input)).toThrow(/reserved/i);
+  });
 
   it('rejects an input that normalises to a reserved slug', () => {
     expect(() => slugify('Admin')).toThrow(/reserved/i);
