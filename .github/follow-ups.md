@@ -79,6 +79,36 @@ Recommended fix: write a tiny diagnostic test that renders twice without manual 
 
 Priority: P3.
 
+### F8: Add `import 'server-only'` to lib/content.ts and lib/projects.ts
+
+Source: PR #?? (slice #24), code-reviewer warning 3.
+
+Problem: both modules import `node:fs/promises` and `node:path`, which only exist on the server. Today no client component imports them, so nothing leaks. A future refactor that adds `'use client'` to a component that happens to import from these modules would fail at runtime rather than at build time. The `server-only` package would turn that into a build-time error.
+
+Recommended fix: `pnpm add server-only`, then add `import 'server-only';` as the first line of `lib/content.ts` and `lib/projects.ts`. Cite Context7 for the `server-only` page if asked.
+
+Priority: P3.
+
+### F9: Schema-level uniqueness on deepDive process and lessons titles
+
+Source: PR #?? (slice #24), code-reviewer warning 7.
+
+Problem: `DeepDive.tsx` uses `key={step.title}` and `key={lesson.title}` for React list keys. The Zod schema enforces `NonEmptyString` but not uniqueness on `process[].title` or `lessons[].title`. Two entries with the same title would cause React's duplicate-key warning. Today's seed content does not collide, but the admin editor in Phase 7 onward could.
+
+Recommended fix: extend `DeepDiveSchema` in `lib/schema.ts` with the same `superRefine` uniqueness pattern used by `ProjectsSchema`. Apply to both `process` and `lessons` arrays.
+
+Priority: P3.
+
+### F10: Tighten the `notFound()` mock in route tests
+
+Source: PR #?? (slice #24), code-reviewer warning 5.
+
+Problem: `app/(public)/projects/[slug]/__tests__/page.test.tsx` mocks `notFound()` with `vi.fn(() => { throw new Error('NEXT_NOT_FOUND'); })`. The inferred type happens to align with `next/navigation`'s `(): never` signature because the body always throws, but if a future maintainer modifies the mock to return undefined, the production code's narrowing will still pass typecheck in tests because the mock's types are not re-checked against the upstream module.
+
+Recommended fix: cast the mock as `unknown as () => never`, or use `vi.spyOn` over the actual import.
+
+Priority: P3.
+
 ## Closed
 
 (none yet)
