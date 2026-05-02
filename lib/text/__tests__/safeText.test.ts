@@ -24,7 +24,7 @@ describe('SafeText', () => {
   });
 
   it('rejects U+2014 with em-dash named in the message', () => {
-    const result = SafeText.safeParse('before—after');
+    const result = SafeText.safeParse('before\u2014after');
     expect(result.success).toBe(false);
     if (!result.success) {
       const message = result.error.issues.map((i) => i.message).join(' ');
@@ -61,13 +61,11 @@ describe('PersonSchema integration with SafeText', () => {
   it('rejects when person.statement contains U+2014, with the path pointing at statement', () => {
     const result = PersonSchema.safeParse({
       ...baseValidPerson,
-      statement: 'before—after',
+      statement: 'before\u2014after',
     });
     expect(result.success).toBe(false);
     if (!result.success) {
-      const offendingIssue = result.error.issues.find(
-        (issue) => issue.path[0] === 'statement',
-      );
+      const offendingIssue = result.error.issues.find((issue) => issue.path[0] === 'statement');
       expect(offendingIssue).toBeDefined();
       expect(offendingIssue?.message).toMatch(/em-dash/);
     }

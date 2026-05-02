@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { SafeText } from './text/safeText';
 import { THEME_MODES } from './theme/resolve';
 
 // Object schemas in this file do not call .strict(); Zod 4 strips unknown keys
@@ -10,11 +11,12 @@ import { THEME_MODES } from './theme/resolve';
 const SLUG_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
 // NonEmptyString is for short identifiers and labels (slugs, tech names,
-// titles). SafeText is the alias used for long-form prose. The two are
-// behaviourally identical today; slice #21 will fold a U+2014/emoji
-// refinement into SafeText only, leaving identifier fields untouched.
+// titles); it stays permissive so identifier fields are never tripped by the
+// long-form refinement. SafeText (in lib/text/safeText.ts) is the alias used
+// for prose: it adds runtime rejection of U+2014 and Extended_Pictographic on
+// top of the same min(1), giving defence-in-depth alongside the static
+// scripts/check-forbidden-chars.ts file scan.
 const NonEmptyString = z.string().min(1);
-const SafeText = z.string().min(1);
 const SlugString = z.string().regex(SLUG_PATTERN, {
   message: 'slug must be kebab-case lowercase, digits and dashes only.',
 });
