@@ -98,6 +98,12 @@ const DeepDiveSchema = z.object({
   lessons: z.array(LessonSchema).min(1),
 });
 
+// ProjectSchema describes the structured fields of a project: enough for the
+// home-page index card and for the case-study page header. Long-form prose
+// (problem, approach, outcome) lives in the MDX body of
+// content/projects/<slug>.mdx. The structured deepDive optionally lives in
+// the MDX frontmatter rather than site.json so the case-study page can read
+// the whole project from a single file.
 export const ProjectSchema = z.object({
   slug: SlugString,
   n: NonEmptyString,
@@ -109,9 +115,6 @@ export const ProjectSchema = z.object({
   stack: z.array(NonEmptyString).min(1),
   tagline: SafeText,
   summary: SafeText,
-  problem: SafeText,
-  approach: z.array(SafeText).min(1),
-  outcome: SafeText,
   visuals: z.array(VisualSchema).min(1),
   meta: MetaSchema,
   deepDive: DeepDiveSchema.optional(),

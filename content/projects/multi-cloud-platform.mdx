@@ -1,0 +1,64 @@
+---
+slug: multi-cloud-platform
+n: "01"
+title: Stratus
+subtitle: Multi-cloud management platform
+year: "2024"
+role: Lead engineer
+kind: Web platform
+stack:
+  - Laravel
+  - Inertia + React
+  - TypeScript
+  - Tailwind
+  - AWS SDK
+  - Azure Graph
+tagline: One pane of glass for AWS and Azure.
+summary: A multi-tenant control plane that centralises cloud accounts, exposes resources for budgeting, scheduling, monitoring, and automated container scaling, built end-to-end from Figma to production.
+visuals:
+  - { label: Dashboard cost overview, w: wide, span: 2 }
+  - { label: Resource explorer, w: tall }
+  - { label: Scaling rules editor, w: tall }
+meta:
+  Year: "2024"
+  Role: Lead Engineer
+  Sector: DevOps / SaaS
+  Status: In production
+deepDive:
+  metricsIntro: Numbers from the first nine months in production. Tracked through the platform itself, sampled monthly, anonymised aggregates across pilot tenants.
+  metrics:
+    - { value: "18", suffix: "%", label: reduction in monthly cloud spend, note: "across pilot tenants, after auto-scaling rules went live" }
+    - { value: "60", suffix: "+", label: screens shipped to production, note: "Figma to React in tight feedback loops" }
+    - { value: "2", prefix: to, suffix: " min", label: from new tenant to first sync, note: "down from a half-day onboarding call" }
+    - { value: "92", suffix: "%", label: of budget alerts caught issues, note: "before the next billing cycle closed" }
+  beforeAfter:
+    intro: Before, ops leads kept context across two consoles, a billing CSV, and a private Notion page. After, one screen, one budget, one set of rules.
+    beforeLabel: Two consoles, billing CSV, tribal knowledge
+    afterLabel: Stratus, one pane, one source of truth
+  process:
+    - { title: Discovery, desc: "Two weeks shadowing ops leads at the pilot tenant. Mapped where their day actually went, console-hopping, billing reconciliation, scaling decisions made on intuition." }
+    - { title: Figma system, desc: "Built a 60+ screen Figma library before code. Resource list, detail, budget, scaling rules, audit trail, every state, every empty state, every error." }
+    - { title: "Spike: SDK abstraction", desc: "Three days proving I could unify AWS SDK and Azure Graph models behind a single resource interface without leaking provider concepts upward." }
+    - { title: MVP build, desc: "Inertia + React for the SPA-feel without API duplication. Laravel queues for long-running cloud syncs. RBAC and audit trails wired in from day one, not retrofitted." }
+    - { title: Pilot rollout, desc: "Two tenants, weekly syncs, a Sentry feed I checked over coffee. Iterated on the scaling-rule editor four times before it felt right." }
+    - { title: Hardening, desc: "Performance pass on the resource explorer, lazy hydration on Inertia partials, and a write-through cache for cloud reads. Budget alerting moved from polling to event-driven." }
+  lessons:
+    - { title: Boring is a feature., body: "The most-loved part of the platform is the audit trail. People want to know who pushed the button. Designing for trust beat designing for delight." }
+    - { title: Spec the seams., body: "The provider-agnostic resource interface looked like over-engineering at week two. By month four it was the only reason adding GCP was a sprint, not a quarter." }
+    - { title: RBAC from day one., body: "I have never regretted starting a multi-tenant project with role-based access wired in. I have always regretted bolting it on later." }
+---
+
+## Problem
+
+Mid-size teams running both AWS and Azure were drowning in two consoles, two billing dashboards, and zero unified policy. Cost overruns went unnoticed for weeks; provisioning was tribal knowledge.
+
+## Approach
+
+- High-fidelity Figma system covering 60+ screens before a line of code.
+- Inertia + React for the SPA-feel without the API duplication; Laravel queues coordinate long-running cloud sync jobs.
+- Role-based access control for multi-tenant orgs, with delegated admin and audit trails.
+- Sentry across the stack for real-time error tracking and perf telemetry.
+
+## Outcome
+
+Shipped a platform handling thousands of resources across both clouds, with budget alerting and automated scaling reducing wasted spend and surfacing infra hygiene issues before they bite.

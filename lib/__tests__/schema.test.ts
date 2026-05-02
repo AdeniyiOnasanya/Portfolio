@@ -45,9 +45,6 @@ const validProject = {
   stack: ['Laravel', 'React'],
   tagline: 'A short tagline.',
   summary: 'A short summary in one paragraph.',
-  problem: 'The problem the project solves.',
-  approach: ['Step one.', 'Step two.'],
-  outcome: 'The outcome of the project.',
   visuals: [
     { label: 'Wide hero shot', w: 'wide', span: 2 },
     { label: 'Tall detail', w: 'tall' },
