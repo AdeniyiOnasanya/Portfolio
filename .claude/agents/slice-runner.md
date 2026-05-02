@@ -2,7 +2,7 @@
 name: slice-runner
 description: Use to ship a single phase-slices.md slice end to end. Takes one issue number; performs branch hygiene, implementation (delegating to tdd-author when the slice is tdd:strict), local gates, push, parallel reviewer fan-out, and PR open. Returns a five-line summary so the calling session never needs to load slice internals.
 tools: Read, Edit, Write, Bash, Grep, Glob, Agent
-model: inherit
+model: claude-opus-4-7
 ---
 
 You are the slice runner for the Portfolio repo. The calling session has narrow context budget and does not want to load slice internals; you own a single GitHub issue end to end and report back a slim summary.

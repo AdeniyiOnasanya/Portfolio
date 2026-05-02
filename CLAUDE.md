@@ -24,14 +24,16 @@ The `vercel-labs/agent-skills` set is loaded. Skills the agent should reach for 
 
 ## Subagents installed in this repo
 
-The `.claude/agents/` directory holds six role-specific subagents. Reach for them by `subagent_type` via the `Agent` tool:
+The `.claude/agents/` directory holds six role-specific subagents. Each pins a model in its frontmatter so token spend stays bounded. Reach for them by `subagent_type` via the `Agent` tool:
 
-- `slice-runner`: ships a single `phase-slices.md` slice end to end from one issue number. Owns branch hygiene, implementation (delegates to `tdd-author` for `tdd:strict` slices), local gates, push, parallel reviewer fan-out, and PR open. Returns a five-line summary so the calling session never loads slice internals.
-- `tdd-author`: strict red, green, refactor for slices labelled `tdd:strict` (schemas, auth, GitHub commit pipeline).
-- `code-reviewer`: reviews `git diff develop...HEAD` against repo conventions and the Vercel skills.
-- `qa-runner`: runs whichever quality gates are wired in `package.json`.
-- `security-reviewer`: scans diffs for secret leaks, env misuse, route-handler injection, GitHub-token scope creep.
-- `browser-tester`: drives a live Chrome session via `chrome-devtools-mcp` for UI-touching slices. Note: if the agent registry was loaded before the file landed, a Claude Code restart is required to dispatch it.
+- `slice-runner` (Opus 4.7): ships a single `phase-slices.md` slice end to end from one issue number. Owns branch hygiene, implementation (delegates to `tdd-author` for `tdd:strict` slices, otherwise writes the code itself), local gates, push, parallel reviewer fan-out, and PR open. Returns a five-line summary so the calling session never loads slice internals. Pinned to Opus because for non-`tdd:strict` slices it is the implementation author, not just an orchestrator.
+- `tdd-author` (Sonnet 4.6): strict red, green, refactor for slices labelled `tdd:strict` (schemas, auth, GitHub commit pipeline).
+- `code-reviewer` (Sonnet 4.6): reviews `git diff develop...HEAD` against repo conventions and the Vercel skills.
+- `qa-runner` (Haiku 4.5): runs whichever quality gates are wired in `package.json`. Mechanical script runner with structured output; Haiku is the right tier.
+- `security-reviewer` (Sonnet 4.6): scans diffs for secret leaks, env misuse, route-handler injection, GitHub-token scope creep.
+- `browser-tester` (Sonnet 4.6): drives a live Chrome session via `chrome-devtools-mcp` for UI-touching slices. Note: if the agent registry was loaded before the file landed, a Claude Code restart is required to dispatch it.
+
+**Model overrides at dispatch time.** When a single dispatch genuinely needs a stronger model than the agent's pin, pass a `model` argument to the `Agent` tool. Two known cases: (1) the deep `security-reviewer` pass before promoting `staging` to `main`, escalated to `model: 'opus'`; (2) a `tdd-author` slice that turns out to be unusually hard, also escalated to `model: 'opus'`. The agent file's pinned default stays untouched.
 
 ## How slices ship
 
