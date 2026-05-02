@@ -96,7 +96,7 @@ The slug is a kebab-case fragment of the issue title, max 40 characters. Phase n
 
 ## PR review contract
 
-Every non-trivial PR runs a multi-agent review pass before it opens. The author dispatches each subagent in parallel against `git diff develop...HEAD`:
+Every non-trivial PR runs a multi-agent review pass before it opens. By default this is orchestrated by the `slice-runner` subagent (see "Slice dispatch" below); the calling session does not run the reviewers by hand. When the slice-runner fans out, it dispatches each reviewer in parallel against `git diff develop...HEAD`:
 
 1. **`qa-runner`** runs whichever quality gates are wired in `package.json` (`pnpm typecheck`, `pnpm lint`, `pnpm build`, `pnpm test`, etc.). Missing scripts are skipped, never failed.
 2. **`code-reviewer`** flags blockers, warnings, and suggestions against repo conventions, the installed Vercel agent skills, and React/Next.js best practices.
@@ -107,7 +107,17 @@ The PR body opens with `Closes #N` and includes one collapsible `<details>` bloc
 
 Trivial slices may skip the review pass. A slice is trivial if it changes no executable code, no workflow YAML, no schema, and no auth or GitHub-pipeline surface (typo fixes, label tweaks, single-line doc edits).
 
-Strict TDD slices carry the `tdd:strict` label, applied during triage when the Task form's "TDD strict?" dropdown is set to `yes` (typically slices in `implementation-plan.md` Phases 1, 3, 6, 8). Those slices route to the `tdd-author` subagent rather than running inline in the main session. Red, green, refactor is mechanical: no implementation file may be edited until a failing test exists in the working tree.
+Strict TDD slices carry the `tdd:strict` label, applied during triage when the Task form's "TDD strict?" dropdown is set to `yes` (typically slices in `implementation-plan.md` Phases 1, 3, 6, 8). Those slices route to the `tdd-author` subagent (dispatched by `slice-runner` for that step) rather than running inline. Red, green, refactor is mechanical: no implementation file may be edited until a failing test exists in the working tree.
+
+## Slice dispatch
+
+The default unit of work is one `phase-slices.md` slice = one closed issue = one PR, shipped end to end by the `slice-runner` subagent. The calling session does not load slice internals; it dispatches the runner and consumes its five-line summary.
+
+1. **Pick the slice.** Read `.github/phase-log.md` and choose the next `open` row in the current phase.
+2. **Dispatch.** Call `slice-runner` via the `Agent` tool with one input, e.g. `Ship issue #21. Target develop.`. The runner discovers acceptance criteria, branches, implements (delegating to `tdd-author` for `tdd:strict` slices), runs gates via `qa-runner`, pushes, fans `code-reviewer` / `security-reviewer` / `browser-tester` out in parallel, composes the PR body, and opens the PR against `develop`.
+3. **Update the phase log.** Append the runner's five-line summary as a row update in `.github/phase-log.md` (status `merged` once the PR lands, with the PR number and outcome).
+
+Trivial slices and one-off chores can be authored inline without the runner, but every non-trivial slice should route through it so context budget stays at the phase level.
 
 ## Tests
 
