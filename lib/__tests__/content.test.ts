@@ -55,4 +55,13 @@ describe('loadSite memoisation', () => {
     expect(a).toBe(b);
     expect(b).toBe(c);
   });
+
+  it('clears the cache on rejection so the next caller can retry', async () => {
+    const { loadSite } = await import('../content');
+    readSpy.mockRejectedValueOnce(new Error('transient read failure'));
+    await expect(loadSite()).rejects.toThrow('transient read failure');
+    const site = await loadSite();
+    expect(readSpy).toHaveBeenCalledTimes(2);
+    expect(site.person.name.length).toBeGreaterThan(0);
+  });
 });
