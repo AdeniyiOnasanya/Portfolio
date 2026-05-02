@@ -29,6 +29,38 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+/* ==========================================================================
+   Film grain overlay
+   --------------------------------------------------------------------------
+   Static SVG fractal-noise texture. Opacity tracks the active theme via
+   --grain-opacity (set in tokens.css) so light surfaces stay legible. The
+   layer is non-interactive (pointer-events: none), aria-hidden, and is
+   suppressed under prefers-reduced-motion and on print so the noise never
+   distracts users who opted out or readers of a printed page.
+   ========================================================================== */
+
+.grain {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-grain);
+  opacity: var(--grain-opacity);
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/></filter><rect width='200' height='200' filter='url(%23n)'/></svg>");
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grain {
+    display: none;
+  }
+}
+
+@media print {
+  .grain {
+    display: none;
+  }
+}
+
 @theme {
   --color-brand-50: var(--color-brand-50);
   --color-brand-100: var(--color-brand-100);

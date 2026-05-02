@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { cookies, headers } from 'next/headers';
 import type { ReactNode } from 'react';
+import { Grain } from '../components/shared/Grain';
 import { ThemeProvider } from '../components/shared/ThemeProvider';
 import { fraunces, geist, jetbrainsMono } from '../lib/fonts';
 import { resolveTheme, THEME_COOKIE_NAME } from '../lib/theme/resolve';
@@ -29,6 +30,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
       <body>
         <ThemeProvider initialMode={mode} initialEffective={effective ?? 'dark'}>
           {children}
+          <Grain />
         </ThemeProvider>
       </body>
     </html>
