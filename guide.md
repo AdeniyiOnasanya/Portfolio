@@ -82,27 +82,27 @@ Branch types allowed off `develop`: `feature/`, `fix/`, `content/`, `chore/`, `d
 
 ## How to pick up the next slice
 
-1. Open the project board, `Current Phase` view, filter `Phase = 0`.
-2. Pick the topmost `Ready` card. P1 first, then P2, then P3. Respect `Depends on` (visible in the body).
-3. Set its project Status to `In Progress` and the `status:in-progress` label on the issue.
-4. Branch off `develop`:
-   ```bash
-   git fetch origin
-   git checkout develop
-   git pull --ff-only
-   git checkout -b feature/<n>_<short-slug>
+The default route is to dispatch the `slice-runner` subagent, which owns the full per-slice loop. The calling session keeps its context budget on the **phase**, not the slice.
+
+1. Read `.github/phase-log.md` and pick the topmost `open` row in the current phase. P1 first, then P2, then P3. Respect `Depends on` from the issue body.
+2. Set the project Status to `In Progress` and the `status:in-progress` label on the issue (board hygiene; the runner does not touch project fields).
+3. Dispatch `slice-runner` with one input, e.g.:
    ```
-5. Decide the implementation route:
-   - If the issue carries the `tdd:strict` label (slices in `implementation-plan.md` Phases 1, 3, 6, 8), drive the work via the `tdd-author` subagent. Red, green, refactor: write the failing test first, see it fail for the right reason, then write the minimum implementation, then refactor. Do not edit implementation files speculatively.
-   - Otherwise drive the work inline in the main session.
-6. Do the work in small commits with conventional commit subjects. Run `pnpm typecheck && pnpm build` (and the test runner once Phase 1 lands) before opening the PR.
-7. Run the review pass in parallel against `git diff develop...HEAD`: `qa-runner`, `code-reviewer`, `security-reviewer`, plus `browser-tester` whenever the diff touches a UI surface (`app/`, `components/`, `tokens.css`, anything that renders to a page). Address blockers; file follow-ups for non-blocking warnings.
-8. Push and open a PR against `develop`. Body opens with `Closes #<n>`, ticks the target-branch checklist, and includes one collapsible `<details>` block per dispatched subagent containing each report verbatim.
-9. When CI is green and the review pass reports are clean, read your own diff. Merge. The `auto-close-on-develop` workflow closes the issue; the project Status flips to `Done` via the automation workflow.
+   Agent(
+     description="Ship slice #N via slice-runner",
+     subagent_type="slice-runner",
+     prompt="Ship issue #<n>. Target branch: develop."
+   )
+   ```
+   The runner cleans up branch state, cuts `feature/<n>_<short-slug>` off refreshed `develop`, implements (delegating to `tdd-author` for `tdd:strict` slices), runs `qa-runner`, pushes, fans `code-reviewer` / `security-reviewer` / `browser-tester` out in parallel, composes the PR body from the template in `CLAUDE.md`, and opens the PR. It returns a five-line summary: issue, branch + PR, gate verdicts, review verdicts, outcome.
+4. Append the runner's outcome line to the matching row in `.github/phase-log.md` (status flips to `merged` once the PR lands, with PR number).
+5. When CI is green and the review reports are clean, read your own diff. Merge. The `auto-close-on-develop` workflow closes the issue; the project Status flips to `Done` via the automation workflow.
+
+Trivial slices and one-off chores can be authored inline (typo fixes, label tweaks, single-line doc edits). Anything that touches executable code, workflow YAML, schema, auth, or the GitHub pipeline routes through `slice-runner`.
 
 ### Red, green, refactor (when `tdd:strict`)
 
-The `tdd-author` subagent enforces the loop mechanically:
+`slice-runner` dispatches the `tdd-author` subagent for the implementation step. The TDD loop is mechanical:
 
 - **Red.** Write the smallest test that captures the next behaviour. Run the test command. Confirm the test fails for the right reason. Commit the failing test on its own when the slice is large enough to justify separate commits.
 - **Green.** Write the minimum implementation to pass. Run the full test command. Confirm green.

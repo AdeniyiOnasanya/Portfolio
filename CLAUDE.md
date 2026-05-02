@@ -24,15 +24,24 @@ The `vercel-labs/agent-skills` set is loaded. Skills the agent should reach for 
 
 ## Subagents installed in this repo
 
-The `.claude/agents/` directory holds five role-specific subagents. Reach for them by `subagent_type` via the `Agent` tool:
+The `.claude/agents/` directory holds six role-specific subagents. Reach for them by `subagent_type` via the `Agent` tool:
 
+- `slice-runner`: ships a single `phase-slices.md` slice end to end from one issue number. Owns branch hygiene, implementation (delegates to `tdd-author` for `tdd:strict` slices), local gates, push, parallel reviewer fan-out, and PR open. Returns a five-line summary so the calling session never loads slice internals.
 - `tdd-author`: strict red, green, refactor for slices labelled `tdd:strict` (schemas, auth, GitHub commit pipeline).
 - `code-reviewer`: reviews `git diff develop...HEAD` against repo conventions and the Vercel skills.
 - `qa-runner`: runs whichever quality gates are wired in `package.json`.
 - `security-reviewer`: scans diffs for secret leaks, env misuse, route-handler injection, GitHub-token scope creep.
 - `browser-tester`: drives a live Chrome session via `chrome-devtools-mcp` for UI-touching slices. Note: if the agent registry was loaded before the file landed, a Claude Code restart is required to dispatch it.
 
-The PR review contract (`.github/CONTRIBUTING.md`): every non-trivial PR runs `qa-runner`, `code-reviewer`, `security-reviewer` in parallel before opening, plus `browser-tester` whenever the diff touches a UI surface. Each report goes into a collapsible `<details>` block in the PR body. Findings are advisory; the author reconciles.
+## How slices ship
+
+The main session stays focused on the **phase**, not the slice. Per-slice work routes through `slice-runner`:
+
+1. Read `.github/phase-log.md` to pick the next `open` row in the current phase.
+2. Dispatch `slice-runner` with one input, e.g. `"Ship issue #21. Target develop."`. The slice-runner discovers acceptance criteria, branches, implements, runs gates, fans reviewers out in parallel, and opens the PR.
+3. Append the returned five-line summary as a row update in `.github/phase-log.md`. Move to the next slice.
+
+The reviewer fan-out (`qa-runner`, `code-reviewer`, `security-reviewer`, plus `browser-tester` for UI surfaces) happens inside `slice-runner`. Each report goes into a collapsible `<details>` block in the PR body. Findings are advisory; the author reconciles.
 
 ## PR body template
 
