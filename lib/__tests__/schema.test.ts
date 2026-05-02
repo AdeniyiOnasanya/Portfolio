@@ -107,6 +107,27 @@ describe('PersonSchema', () => {
     const result = PersonSchema.safeParse({ ...validPerson, longBio: [] });
     expect(result.success).toBe(false);
   });
+
+  it('accepts a nameAccent that is a substring of name', () => {
+    const result = PersonSchema.safeParse({
+      ...validPerson,
+      name: 'Ada Lovelace',
+      nameAccent: 'Lovelace',
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('rejects when nameAccent is not a substring of name', () => {
+    const result = PersonSchema.safeParse({
+      ...validPerson,
+      name: 'Ada Lovelace',
+      nameAccent: 'Babbage',
+    });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues.map((i) => i.path.join('.'))).toContain('nameAccent');
+    }
+  });
 });
 
 describe('SkillsSchema', () => {

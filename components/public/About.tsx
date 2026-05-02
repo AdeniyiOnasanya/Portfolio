@@ -1,0 +1,18 @@
+import type { Person } from '../../lib/schema';
+
+export function About({ longBio }: { longBio: Person['longBio'] }) {
+  return (
+    <section aria-labelledby="about-heading" className="py-2xl">
+      <h2 id="about-heading" className="font-serif tracking-display text-3xl md:text-4xl">
+        About
+      </h2>
+      <div className="mt-lg space-y-md max-w-prose">
+        {longBio.map((paragraph) => (
+          <p key={paragraph} className="text-fg-secondary leading-relaxed">
+            {paragraph}
+          </p>
+        ))}
+      </div>
+    </section>
+  );
+}

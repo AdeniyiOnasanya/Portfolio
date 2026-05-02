@@ -49,6 +49,36 @@ Recommended discipline going forward: when a slice will need a new test seam (a 
 
 Priority: process note, no PR.
 
+### F5: Sanitise SafeText HTML before the admin CMS goes live
+
+Source: PR #138, code-reviewer warning 4.
+
+Problem: `SafeText` rejects U+2014 and `\p{Extended_Pictographic}` but does not strip or allowlist HTML tags. `aiPractice.headline` is rendered with `dangerouslySetInnerHTML` so the inline `<em>` is preserved. The current source is repo-controlled (`content/site.json` behind PR review), so the residual XSS surface is essentially nil today. Once Phase 7 onward lets the admin CMS write to `headline`, an authenticated editor could inject `<script>` or event-handler attributes.
+
+Recommended fix: extend `lib/text/safeText.ts` with a tag-allowlist refinement (e.g. `em`, `strong`, `code` only; reject anything else) at parse time. A lightweight regex check is sufficient; a full DOMPurify is not required because the surface is small and the schema runs server-side. Land before the admin CMS ships.
+
+Priority: P2, must land before Phase 7 (admin CMS).
+
+### F6: Use `vi.mocked` instead of `as unknown as` casts in test helpers
+
+Source: PR #138, code-reviewer warning 1.
+
+Problem: `app/(public)/__tests__/page.test.tsx` uses `loadSite as unknown as ReturnType<typeof vi.fn>` to get a typed mock handle. The double cast bypasses TypeScript: if `loadSite`'s signature changes (return type, parameter list), nothing here will catch the drift.
+
+Recommended fix: replace with `vi.mocked(loadSite)` after the `vi.mock(...)` call. Apply the same pattern to `lib/__tests__/content.test.ts` and any other test that double-casts mocked imports.
+
+Priority: P3.
+
+### F7: Confirm `afterEach(cleanup)` in vitest.setup.ts is needed
+
+Source: PR #138, code-reviewer suggestion 8.
+
+Problem: `@testing-library/react` v16+ may auto-call `cleanup` after each test when it detects Vitest's globals. The explicit `afterEach(cleanup)` in `vitest.setup.ts` may be redundant. The reviewer noted: "If there is a specific reason it was kept, e.g. observed double-render artefacts in happy-dom, document it." This slice originally added it because tests failed without it (Hero saw "multiple regions named Ada Lovelace" before the explicit cleanup landed), so removing it without verification would regress.
+
+Recommended fix: write a tiny diagnostic test that renders twice without manual cleanup and assert the DOM is empty between tests; if it passes, drop the explicit `afterEach`. Otherwise leave the call in place and add a one-line comment in the setup file pointing at this follow-up.
+
+Priority: P3.
+
 ## Closed
 
 (none yet)
