@@ -312,12 +312,25 @@ describe('CertsSchema and EducationSchema', () => {
 });
 
 describe('ProjectsSchema', () => {
-  it('rejects duplicate project slugs', () => {
-    const result = ProjectsSchema.safeParse([
-      { ...validProject, slug: 'one', n: '01' },
-      { ...validProject, slug: 'one', n: '02' },
-    ]);
+  it('parses an ordered list of kebab-case slugs', () => {
+    expect(() => ProjectsSchema.parse(['one', 'two-things', 'three'])).not.toThrow();
+  });
+
+  it('rejects an empty slug list', () => {
+    expect(ProjectsSchema.safeParse([]).success).toBe(false);
+  });
+
+  it('rejects an entry that is not kebab-case', () => {
+    expect(ProjectsSchema.safeParse(['Bad-Slug']).success).toBe(false);
+  });
+
+  it('rejects duplicate slugs and reports the duplicate index', () => {
+    const result = ProjectsSchema.safeParse(['one', 'two', 'one']);
     expect(result.success).toBe(false);
+    if (!result.success) {
+      const paths = result.error.issues.map((i) => i.path.join('.'));
+      expect(paths).toContain('2');
+    }
   });
 });
 

@@ -1,32 +1,18 @@
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import matter from 'gray-matter';
+import { loadSite } from './content';
 import { type Project, ProjectSchema } from './schema';
 
-// Source of truth for the seven case studies. Order matches the index in
-// content/site.json so the home-page strip and the case-study pages stay in
-// sync until a future slice derives one from the other.
-export const PROJECT_SLUGS = [
-  'multi-cloud-platform',
-  'foster-care-platform',
-  'compliance-electron',
-  'calendar-tool',
-  'microplastics-mobile',
-  'endoscope-tracking',
-  'elearning-platform',
-] as const;
-
-export type ProjectSlug = (typeof PROJECT_SLUGS)[number];
-
 export interface ProjectFile {
-  slug: ProjectSlug;
+  slug: string;
   frontmatter: Project;
   body: string;
 }
 
 const PROJECTS_DIR = join(process.cwd(), 'content', 'projects');
 
-async function loadProjectFile(slug: ProjectSlug): Promise<ProjectFile> {
+async function loadProjectFile(slug: string): Promise<ProjectFile> {
   const path = join(PROJECTS_DIR, `${slug}.mdx`);
   const raw = await readFile(path, 'utf8');
   const parsed = matter(raw);
@@ -39,6 +25,12 @@ async function loadProjectFile(slug: ProjectSlug): Promise<ProjectFile> {
   return { slug, frontmatter, body: parsed.content };
 }
 
+// Source of order: content/site.json's projects array (validated by
+// SiteSchema as a non-empty list of unique kebab-case slugs). The loader
+// reads each named MDX file, parses its frontmatter via gray-matter,
+// validates it against ProjectSchema, and returns the case-study payload
+// in the same order site.json declares.
 export async function loadProjectFiles(): Promise<ProjectFile[]> {
-  return Promise.all(PROJECT_SLUGS.map(loadProjectFile));
+  const site = await loadSite();
+  return Promise.all(site.projects.map(loadProjectFile));
 }

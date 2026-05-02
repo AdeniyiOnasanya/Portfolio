@@ -121,21 +121,26 @@ export const ProjectSchema = z.object({
 });
 export type Project = z.infer<typeof ProjectSchema>;
 
+// site.json.projects is the ordered slug list that drives the home-page
+// index strip. The structured fields (n, title, subtitle, ...) plus the
+// case-study prose live in content/projects/<slug>.mdx and are loaded via
+// lib/projects.ts. Keeping site.json lean removes the parallel source of
+// truth that earlier slices created.
 export const ProjectsSchema = z
-  .array(ProjectSchema)
+  .array(SlugString)
   .min(1)
-  .superRefine((projects, ctx) => {
+  .superRefine((slugs, ctx) => {
     const seen = new Map<string, number>();
-    projects.forEach((project, index) => {
-      const previous = seen.get(project.slug);
+    slugs.forEach((slug, index) => {
+      const previous = seen.get(slug);
       if (previous !== undefined) {
         ctx.addIssue({
           code: 'custom',
-          path: [index, 'slug'],
-          message: `Duplicate slug "${project.slug}" (also at index ${previous}).`,
+          path: [index],
+          message: `Duplicate slug "${slug}" (also at index ${previous}).`,
         });
       } else {
-        seen.set(project.slug, index);
+        seen.set(slug, index);
       }
     });
   });

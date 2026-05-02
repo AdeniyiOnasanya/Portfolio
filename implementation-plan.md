@@ -63,7 +63,7 @@ Each phase is split into 3 to 7 tracer-bullet vertical slices on GitHub Issues. 
 
 ### Phase 3, Content schema, loaders, seed content
 **Goal:** single Zod source of truth; build refuses invalid content. Strictly TDD.
-**Adds:** `lib/schema.ts`, `lib/content.ts`, `lib/slug.ts`, `lib/text/safeText.ts`, `scripts/validate-content.ts` (called from `prebuild`); `content/site.json` ported from `design_handoff_portfolio/design/data.js` (preserve `<em>` semantics in `headline`); seven `content/projects/{stratus,hearth,vessel,quorum,plumb,trace,atrium}.mdx` files with frontmatter for structured fields and MDX body for `problem`/`approach`/`outcome`/optional deep-dive.
+**Adds:** `lib/schema.ts`, `lib/content.ts`, `lib/projects.ts`, `lib/slug.ts`, `lib/text/safeText.ts`, `scripts/validate-content.ts` (called from `prebuild`); `content/site.json` ported from `design_handoff_portfolio/design/data.js` (preserve `<em>` semantics in `headline`; `projects` is now an ordered slug list, not a list of objects); seven `content/projects/<slug>.mdx` files (`multi-cloud-platform`, `foster-care-platform`, `compliance-electron`, `calendar-tool`, `microplastics-mobile`, `endoscope-tracking`, `elearning-platform`) with frontmatter for structured fields and MDX body for `problem`/`approach`/`outcome`/optional deep-dive.
 **Tests:** every Zod parser; round-trip parse for valid + invalid; pinned issue-path snapshots; loader memoisation; slug normaliser (kebab-case, diacritics stripped, max 60, reserved words `admin/api/login/cv/_next` rejected); `validate-content` exits non-zero on bad input. `safeText()` refinement rejects U+2014/emoji.
 **Verify:** `pnpm validate-content` green; deliberately corrupted `site.json` fails `pnpm build`.
 

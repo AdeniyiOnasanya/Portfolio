@@ -1,13 +1,23 @@
 import { describe, expect, it } from 'vitest';
-import { loadProjectFiles, PROJECT_SLUGS } from '../projects';
+import { loadProjectFiles } from '../projects';
+
+const KNOWN_SLUGS = [
+  'multi-cloud-platform',
+  'foster-care-platform',
+  'compliance-electron',
+  'calendar-tool',
+  'microplastics-mobile',
+  'endoscope-tracking',
+  'elearning-platform',
+] as const;
 
 describe('loadProjectFiles', () => {
-  it('returns one file per known slug', async () => {
+  it('returns files in the order declared by site.json projects[]', async () => {
     const files = await loadProjectFiles();
-    expect(files.map((f) => f.slug).sort()).toEqual([...PROJECT_SLUGS].sort());
+    expect(files.map((f) => f.slug)).toEqual([...KNOWN_SLUGS]);
   });
 
-  it.each(PROJECT_SLUGS)('parses frontmatter and yields a non-empty body for %s', async (slug) => {
+  it.each(KNOWN_SLUGS)('parses frontmatter and yields a non-empty body for %s', async (slug) => {
     const files = await loadProjectFiles();
     const file = files.find((f) => f.slug === slug);
     expect(file, `expected an mdx file for slug ${slug}`).toBeDefined();
