@@ -16,7 +16,9 @@
     "format:check": "biome format .",
     "test": "vitest run",
     "test:e2e": "playwright test",
-    "check:forbidden": "tsx scripts/check-forbidden-chars.ts"
+    "check:forbidden": "tsx scripts/check-forbidden-chars.ts",
+    "validate:content": "tsx scripts/validate-content.ts",
+    "prebuild": "tsx scripts/validate-content.ts"
   },
   "dependencies": {
     "next": "^16.2.4",
