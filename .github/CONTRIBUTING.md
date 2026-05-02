@@ -105,6 +105,8 @@ Every non-trivial PR runs a multi-agent review pass before it opens. By default 
 
 The PR body opens with `Closes #N` and includes one collapsible `<details>` block per dispatched subagent containing each report verbatim. Findings are advisory; the author reconciles. The reviewer subagents do not block the merge button.
 
+Each reviewer subagent pins a model in its frontmatter (`qa-runner` Haiku 4.5; `code-reviewer`, `security-reviewer`, `browser-tester` Sonnet 4.6). Before promoting `staging` to `main`, escalate `security-reviewer` to Opus by passing `model: 'opus'` to the `Agent` dispatch; the cheap PR pass stays on Sonnet.
+
 Trivial slices may skip the review pass. A slice is trivial if it changes no executable code, no workflow YAML, no schema, and no auth or GitHub-pipeline surface (typo fixes, label tweaks, single-line doc edits).
 
 Strict TDD slices carry the `tdd:strict` label, applied during triage when the Task form's "TDD strict?" dropdown is set to `yes` (typically slices in `implementation-plan.md` Phases 1, 3, 6, 8). Those slices route to the `tdd-author` subagent (dispatched by `slice-runner` for that step) rather than running inline. Red, green, refactor is mechanical: no implementation file may be edited until a failing test exists in the working tree.
