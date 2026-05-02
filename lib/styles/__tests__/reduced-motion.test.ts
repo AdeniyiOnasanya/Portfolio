@@ -28,4 +28,11 @@ describe('prefers-reduced-motion contract', () => {
     expect(GLOBALS_CSS).toMatch(/var\(--duration-/);
     expect(GLOBALS_CSS).toMatch(/PULL_REQUEST_TEMPLATE\.md/);
   });
+
+  it('app/globals.css hides the grain overlay under reduced-motion and print', () => {
+    expect(GLOBALS_CSS).toMatch(
+      /@media\s*\(\s*prefers-reduced-motion\s*:\s*reduce\s*\)[\s\S]*?\.grain[\s\S]*?display\s*:\s*none/,
+    );
+    expect(GLOBALS_CSS).toMatch(/@media\s+print[\s\S]*?\.grain[\s\S]*?display\s*:\s*none/);
+  });
 });

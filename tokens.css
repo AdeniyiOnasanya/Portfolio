@@ -213,6 +213,18 @@
   --z-modal: 100;
   --z-toast: 200;
   --z-cursor: 9999;
+  --z-grain: 9000;
+
+  /* ----------------------------------------------------------------------
+     9. Texture
+        Film grain overlay opacity. Light surfaces tolerate less noise
+        before legibility suffers, so the dark theme below tunes higher.
+        Theme blocks below re-point the semantic alias at a primitive;
+        they never declare new raw values (rule 3 in the header).
+     ---------------------------------------------------------------------- */
+  --grain-opacity-low: 0.04;
+  --grain-opacity-high: 0.06;
+  --grain-opacity: var(--grain-opacity-low);
 }
 
 /* ==========================================================================
@@ -261,6 +273,8 @@
     --shadow-md: 0 4px 12px -2px oklch(0 0 0 / 0.5);
     --shadow-lg: 0 16px 32px -8px oklch(0 0 0 / 0.6);
     --shadow-focus: 0 0 0 3px var(--color-brand-800);
+
+    --grain-opacity: var(--grain-opacity-high);
   }
 }
 
@@ -304,6 +318,8 @@
   --shadow-md: 0 4px 6px -1px oklch(0 0 0 / 0.08), 0 2px 4px -2px oklch(0 0 0 / 0.06);
   --shadow-lg: 0 12px 20px -8px oklch(0 0 0 / 0.16), 0 4px 8px -4px oklch(0 0 0 / 0.08);
   --shadow-focus: 0 0 0 3px var(--color-brand-200);
+
+  --grain-opacity: var(--grain-opacity-low);
 }
 
 [data-theme="dark"] {
@@ -340,6 +356,8 @@
   --shadow-md: 0 4px 12px -2px oklch(0 0 0 / 0.5);
   --shadow-lg: 0 16px 32px -8px oklch(0 0 0 / 0.6);
   --shadow-focus: 0 0 0 3px var(--color-brand-800);
+
+  --grain-opacity: var(--grain-opacity-high);
 }
 
 /* ==========================================================================
