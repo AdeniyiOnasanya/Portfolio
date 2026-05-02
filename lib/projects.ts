@@ -34,3 +34,14 @@ export async function loadProjectFiles(): Promise<ProjectFile[]> {
   const site = await loadSite();
   return Promise.all(site.projects.map(loadProjectFile));
 }
+
+// Returns the case-study payload for a single slug, or null when the slug is
+// not declared in site.json's projects[]. The route handler maps null to
+// notFound() so unknown URLs render the 404 surface instead of a server error.
+export async function loadProjectBySlug(slug: string): Promise<ProjectFile | null> {
+  const site = await loadSite();
+  if (!site.projects.includes(slug)) {
+    return null;
+  }
+  return loadProjectFile(slug);
+}

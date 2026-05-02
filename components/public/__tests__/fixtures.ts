@@ -1,4 +1,13 @@
-import type { AiPractice, Experience, Footer, Person, Projects, Skills } from '../../../lib/schema';
+import type { ProjectFile } from '../../../lib/projects';
+import type {
+  AiPractice,
+  Experience,
+  Footer,
+  Person,
+  Project,
+  Projects,
+  Skills,
+} from '../../../lib/schema';
 
 export const samplePerson: Person = {
   name: 'Ada Lovelace',
@@ -47,4 +56,56 @@ export const sampleFooter: Footer = {
   copy: 'Open to roles.',
   availability: 'Available now',
   copyright: '(c) 2026 Ada Lovelace.',
+};
+
+export const sampleProject: Project = {
+  slug: 'sample-project',
+  n: '01',
+  title: 'Sample Project',
+  subtitle: 'A short subtitle for the case study.',
+  year: '2024',
+  role: 'Lead engineer',
+  kind: 'Web platform',
+  stack: ['TypeScript', 'React', 'Tailwind'],
+  tagline: 'A short tagline for the project.',
+  summary: 'A short summary of what this project does.',
+  visuals: [
+    { label: 'Hero shot', w: 'wide', span: 2 },
+    { label: 'Detail view', w: 'tall' },
+  ],
+  meta: {
+    Year: '2024',
+    Role: 'Lead Engineer',
+    Sector: 'SaaS',
+    Status: 'In production',
+  },
+  deepDive: {
+    metricsIntro: 'A short intro to the numbers below.',
+    metrics: [
+      {
+        value: '18',
+        suffix: '%',
+        label: 'reduction in cloud spend',
+        note: 'across pilot tenants',
+      },
+      { value: '60', suffix: '+', label: 'screens shipped to production' },
+      { value: '2', prefix: 'to', suffix: ' min', label: 'first sync time' },
+    ],
+    beforeAfter: {
+      intro: 'Before, ops leads kept context across two consoles.',
+      beforeLabel: 'Two consoles, billing CSV',
+      afterLabel: 'One pane, one source of truth',
+    },
+    process: [
+      { title: 'Discovery', desc: 'Two weeks shadowing pilot tenants.' },
+      { title: 'Figma system', desc: 'Built the design library before code.' },
+    ],
+    lessons: [{ title: 'Smaller scopes ship', body: 'Tight increments meant tight feedback.' }],
+  },
+};
+
+export const sampleProjectFile: ProjectFile = {
+  slug: sampleProject.slug,
+  frontmatter: sampleProject,
+  body: 'A short narrative about the case study.\n\nA second paragraph.',
 };
