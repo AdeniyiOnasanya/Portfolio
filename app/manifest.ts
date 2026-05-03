@@ -10,9 +10,14 @@ const THEME_COLOR = '#7cd87a';
 
 export default async function manifest(): Promise<MetadataRoute.Manifest> {
   const site = await loadSite();
+  // Web App Manifest spec recommends short_name <= 12 chars (it appears
+  // under the home-screen icon and is silently truncated otherwise).
+  // Deriving from the first space-separated token keeps full names like
+  // "David Onasanya" within budget without a separate schema field.
+  const shortName = site.person.name.split(' ')[0] ?? site.person.name;
   return {
     name: site.person.name,
-    short_name: site.person.name,
+    short_name: shortName,
     start_url: '/',
     display: 'standalone',
     background_color: BACKGROUND_COLOR,

@@ -42,6 +42,7 @@ const ORIGINAL_SITE_URL = process.env.NEXT_PUBLIC_SITE_URL;
 
 beforeEach(() => {
   loadSiteMock.mockReset();
+  vi.resetModules();
 });
 
 afterEach(() => {
@@ -138,10 +139,21 @@ describe('app/manifest.ts', () => {
         "background_color": "#0a0a0a",
         "display": "standalone",
         "name": "Ada Lovelace",
-        "short_name": "Ada Lovelace",
+        "short_name": "Ada",
         "start_url": "/",
         "theme_color": "#7cd87a",
       }
     `);
+  });
+
+  it('keeps short_name within the 12-character home-screen budget', async () => {
+    loadSiteMock.mockResolvedValueOnce({
+      ...baseSite,
+      person: { ...baseSite.person, name: 'David Onasanya' },
+    });
+    const manifest = (await import('../manifest')).default;
+    const result = await manifest();
+    expect(result.short_name).toBe('David');
+    expect((result.short_name as string).length).toBeLessThanOrEqual(12);
   });
 });
