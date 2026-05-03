@@ -41,8 +41,8 @@ export default async function RootNotFound() {
             </Link>
           </p>
         </section>
-        <Footer footer={footer} person={person} />
       </main>
+      <Footer footer={footer} person={person} />
     </div>
   );
 }
