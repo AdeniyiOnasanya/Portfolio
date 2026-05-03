@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { samplePerson, sampleProject } from '../../../components/public/__tests__/fixtures';
-import { creativeWorkJsonLd, personJsonLd } from '../jsonld';
+import { creativeWorkJsonLd, personJsonLd, serializeJsonLd } from '../jsonld';
 
 const ORIGIN = 'https://davidonasanya.com';
 
@@ -64,5 +64,29 @@ describe('creativeWorkJsonLd', () => {
   it('builds the project url from origin and slug', () => {
     const result = creativeWorkJsonLd(sampleProject, 'https://staging.example.com');
     expect(result.url).toBe('https://staging.example.com/projects/sample-project');
+  });
+});
+
+describe('serializeJsonLd', () => {
+  it('round-trips a Person record through JSON.parse', () => {
+    const value = personJsonLd(samplePerson, 'https://davidonasanya.com');
+    expect(JSON.parse(serializeJsonLd(value))).toEqual(value);
+  });
+
+  it('escapes < > & so a stray </script> substring cannot break the inline tag', () => {
+    const malicious = {
+      '@context': 'https://schema.org',
+      '@type': 'CreativeWork',
+      description: '</script><script>alert(1)</script>',
+      flag: 'a & b',
+    };
+    const serialised = serializeJsonLd(malicious);
+    expect(serialised).not.toContain('<');
+    expect(serialised).not.toContain('>');
+    expect(serialised).not.toContain('&');
+    expect(serialised).toContain('\\u003c');
+    expect(serialised).toContain('\\u003e');
+    expect(serialised).toContain('\\u0026');
+    expect(JSON.parse(serialised)).toEqual(malicious);
   });
 });
