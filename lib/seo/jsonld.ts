@@ -37,8 +37,10 @@ export type CreativeWorkJsonLd = {
   };
 };
 
-// personJsonLd builds the schema.org Person record that mounts in <head> on
-// the home page. Every field comes from the validated `person` block in
+// personJsonLd builds the schema.org Person record that mounts on the home
+// page as a `<script type="application/ld+json">` tag in the page body, per
+// Next.js 16 official guidance (/vercel/next.js/v16.2.2 docs/01-app/02-guides
+// /json-ld.mdx). Every field comes from the validated `person` block in
 // site.json so the search-engine view of the site cannot drift from the page
 // view; the URL is the canonical origin returned by `siteOrigin()` so preview
 // and production builds emit the right host.
@@ -55,11 +57,17 @@ export function personJsonLd(person: Person, origin: string): PersonJsonLd {
   };
 }
 
-// creativeWorkJsonLd builds the schema.org CreativeWork record that mounts in
-// <head> on /projects/<slug>. The creator is a stub Person reference: the
-// home page's full Person JSON-LD carries the named identity, so the project
-// page only needs `@type` + `name` to satisfy the schema.org graph.
-export function creativeWorkJsonLd(project: Project, origin: string): CreativeWorkJsonLd {
+// creativeWorkJsonLd builds the schema.org CreativeWork record that mounts on
+// /projects/<slug> as a `<script type="application/ld+json">` tag in the page
+// body, per the same Next.js 16 guidance cited on personJsonLd. The creator
+// resolves to the site owner: `project.role` is a free-text job-title string
+// like "Lead engineer" and would fail Google's Rich Results validation, so the
+// creator is sourced from the validated site.person record instead.
+export function creativeWorkJsonLd(
+  project: Project,
+  person: Person,
+  origin: string,
+): CreativeWorkJsonLd {
   return {
     '@context': 'https://schema.org',
     '@type': 'CreativeWork',
@@ -69,7 +77,7 @@ export function creativeWorkJsonLd(project: Project, origin: string): CreativeWo
     dateCreated: project.year,
     creator: {
       '@type': 'Person',
-      name: project.role,
+      name: person.name,
     },
   };
 }
@@ -79,7 +87,7 @@ export function creativeWorkJsonLd(project: Project, origin: string): CreativeWo
 // raw `<` characters in the output, so a description containing the literal
 // substring `</script>` (which SafeText does not block; only U+2014 and
 // emoji are refined) could close the inline script tag and inject HTML. The
-// standard mitigation is to escape `<`, `>`, and `&` as `\u00xx` sequences;
+// standard mitigation is to escape `<`, `>`, and `&` as `\uXXXX` sequences;
 // the result is still valid JSON and parsers reverse the escape transparently.
 export function serializeJsonLd(value: JsonLdValue): string {
   return JSON.stringify(value)

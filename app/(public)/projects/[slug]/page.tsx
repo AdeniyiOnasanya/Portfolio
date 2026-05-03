@@ -23,7 +23,8 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
   if (!file) {
     notFound();
   }
-  const projectLd = creativeWorkJsonLd(file.frontmatter, siteOrigin());
+  const site = await loadSite();
+  const projectLd = creativeWorkJsonLd(file.frontmatter, site.person, siteOrigin());
   return (
     <>
       <script

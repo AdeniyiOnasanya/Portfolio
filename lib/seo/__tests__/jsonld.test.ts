@@ -38,14 +38,14 @@ describe('personJsonLd', () => {
 
 describe('creativeWorkJsonLd', () => {
   it('returns a schema.org CreativeWork sourced from the validated project record', () => {
-    const result = creativeWorkJsonLd(sampleProject, ORIGIN);
+    const result = creativeWorkJsonLd(sampleProject, samplePerson, ORIGIN);
     expect(result).toMatchInlineSnapshot(`
       {
         "@context": "https://schema.org",
         "@type": "CreativeWork",
         "creator": {
           "@type": "Person",
-          "name": "Lead engineer",
+          "name": "Ada Lovelace",
         },
         "dateCreated": "2024",
         "description": "A short summary of what this project does.",
@@ -56,14 +56,20 @@ describe('creativeWorkJsonLd', () => {
   });
 
   it('round-trips cleanly through JSON.parse(JSON.stringify(...))', () => {
-    const result = creativeWorkJsonLd(sampleProject, ORIGIN);
+    const result = creativeWorkJsonLd(sampleProject, samplePerson, ORIGIN);
     const serialised = JSON.stringify(result);
     expect(JSON.parse(serialised)).toEqual(result);
   });
 
   it('builds the project url from origin and slug', () => {
-    const result = creativeWorkJsonLd(sampleProject, 'https://staging.example.com');
+    const result = creativeWorkJsonLd(sampleProject, samplePerson, 'https://staging.example.com');
     expect(result.url).toBe('https://staging.example.com/projects/sample-project');
+  });
+
+  it('sources creator.name from person.name, not project.role', () => {
+    const result = creativeWorkJsonLd(sampleProject, samplePerson, ORIGIN);
+    expect(result.creator.name).toBe(samplePerson.name);
+    expect(result.creator.name).not.toBe(sampleProject.role);
   });
 });
 
