@@ -39,4 +39,12 @@ describe('Hero', () => {
     expect(heading.querySelector('em')).toBeNull();
     expect(heading.textContent).toBe(samplePerson.name);
   });
+
+  it('renders a CV download link pointing at person.cvUrl with the download attribute', () => {
+    render(<Hero person={samplePerson} />);
+    const link = screen.getByRole('link', { name: /download cv/i });
+    expect(link).toHaveAttribute('href', samplePerson.cvUrl);
+    expect(link).toHaveAttribute('download');
+    expect(link.className).toMatch(/focus-visible:ring-accent/);
+  });
 });
