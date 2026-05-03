@@ -47,4 +47,10 @@ describe('Hero', () => {
     expect(link).toHaveAttribute('download');
     expect(link.className).toMatch(/focus-visible:ring-accent/);
   });
+
+  it('locks the download filename to the trailing segment of the cvUrl', () => {
+    render(<Hero person={{ ...samplePerson, cvUrl: '/cv/Versioned-CV-2026.pdf' }} />);
+    const link = screen.getByRole('link', { name: /download cv/i });
+    expect(link).toHaveAttribute('download', 'Versioned-CV-2026.pdf');
+  });
 });

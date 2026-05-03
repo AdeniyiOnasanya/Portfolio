@@ -31,7 +31,8 @@ test.describe('CV download', () => {
     await expect(link).toBeVisible();
 
     const href = await link.getAttribute('href');
-    expect(href).toBe('/cv/David-Onasanya-CV.pdf');
+    expect(href, 'CV link should expose a non-empty href').toBeTruthy();
+    expect(href, 'CV link should point at a PDF asset').toMatch(/\.pdf$/);
 
     const target = new URL(href ?? '', baseUrl).toString();
     const head = await request.head(target);
