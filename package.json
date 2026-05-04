@@ -21,6 +21,8 @@
     "prebuild": "tsx scripts/validate-content.ts"
   },
   "dependencies": {
+    "@radix-ui/react-dialog": "^1.1.15",
+    "cmdk": "^1.1.1",
     "gray-matter": "^4.0.3",
     "next": "^16.2.4",
     "react": "^19.2.5",
