@@ -68,6 +68,23 @@ function loadSiteContent(): SiteContent {
   return JSON.parse(readFileSync(filePath, 'utf8')) as SiteContent;
 }
 
+// Runtime guard for the unsafe `as SiteContent` cast above. content/site.json
+// is repo-controlled and Zod-validated by the production loader at boot, so
+// today the cast is sound; this guard exists so a future schema drift fails
+// the spec with a readable "field missing" error rather than a confusing
+// `toContain(undefined)` from Playwright.
+function assertCollectedStrings(strings: unknown[]): asserts strings is string[] {
+  for (let i = 0; i < strings.length; i += 1) {
+    const value = strings[i];
+    if (typeof value !== 'string' || value.length === 0) {
+      throw new Error(
+        `source-no-js spec: expected every collected body string to be a non-empty string; ` +
+          `index ${i} is ${typeof value} (${String(value)}). content/site.json shape may have drifted.`,
+      );
+    }
+  }
+}
+
 // Strip inline <em> wrappers so the visible text on either side of the tag
 // can be matched as a single substring. The Hero name accent and the AI
 // practice headline both inject <em> spans that fragment otherwise-contiguous
@@ -151,8 +168,10 @@ test.describe('Public home server-rendering', () => {
 
     const html = normaliseHtml(await response.text());
     const site = loadSiteContent();
+    const expectedStrings: unknown[] = collectBodyStrings(site);
+    assertCollectedStrings(expectedStrings);
 
-    for (const expected of collectBodyStrings(site)) {
+    for (const expected of expectedStrings) {
       expect(html, `expected to find body string in / HTML: ${expected}`).toContain(expected);
     }
   });
