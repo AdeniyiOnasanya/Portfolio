@@ -30,6 +30,23 @@ body {
 }
 
 /* ==========================================================================
+   Custom cursor (Phase 5)
+   --------------------------------------------------------------------------
+   When `<html data-custom-cursor>` is set, hide the system cursor so the
+   custom dot is the only pointer indicator. The flag is owned by
+   `components/shared/CustomCursor.tsx`, which only sets it on confirmed
+   `pointer: fine` desktops without `prefers-reduced-motion: reduce`. Touch
+   devices and reduced-motion users never get the attribute, so this rule
+   never reaches them. On unmount or when either preference flips, the
+   attribute is removed and the system cursor returns.
+   ========================================================================== */
+
+[data-custom-cursor],
+[data-custom-cursor] * {
+  cursor: none;
+}
+
+/* ==========================================================================
    Film grain overlay
    --------------------------------------------------------------------------
    Static SVG fractal-noise texture. Opacity tracks the active theme via
