@@ -1,6 +1,7 @@
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { ProjectFile } from '../../lib/projects';
+import { ProjectCaseStudyHeading } from './ProjectCaseStudyHeading';
 
 // react-markdown is safe by default: it strips raw HTML unless explicitly
 // re-enabled via rehype-raw, which we deliberately do not pass. The MDX body
@@ -15,12 +16,13 @@ export function ProjectCaseStudy({ file }: { file: ProjectFile }) {
       <p className="text-fg-muted tracking-eyebrow text-xs uppercase">
         {frontmatter.n} · {frontmatter.kind}
       </p>
-      <h1
+      <ProjectCaseStudyHeading
         id="case-study-heading"
+        slug={frontmatter.slug}
         className="font-serif tracking-display leading-tight mt-md text-5xl md:text-6xl"
       >
         {frontmatter.title}
-      </h1>
+      </ProjectCaseStudyHeading>
       <p className="text-fg-secondary text-lg leading-relaxed mt-md max-w-prose">
         {frontmatter.subtitle}
       </p>

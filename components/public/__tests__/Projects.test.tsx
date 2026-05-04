@@ -1,7 +1,14 @@
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { Projects } from '../Projects';
 import { sampleProjects } from './fixtures';
+
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: vi.fn(),
+    prefetch: vi.fn(),
+  }),
+}));
 
 describe('Projects', () => {
   it('renders an h2 titled Selected work inside a region with that label', () => {
