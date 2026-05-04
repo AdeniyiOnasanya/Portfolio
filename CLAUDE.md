@@ -35,6 +35,31 @@ The `.claude/agents/` directory holds six role-specific subagents. Each pins a m
 
 **Model overrides at dispatch time.** When a single dispatch genuinely needs a stronger model than the agent's pin, pass a `model` argument to the `Agent` tool. Two known cases: (1) the deep `security-reviewer` pass before promoting `staging` to `main`, escalated to `model: 'opus'`; (2) a `tdd-author` slice that turns out to be unusually hard, also escalated to `model: 'opus'`. The agent file's pinned default stays untouched.
 
+## Phase command protocol
+
+The user drives the AI agent with three commands. Recognise them verbatim and respond exactly as described.
+
+- **`Start Phase N`**: produce a full plan for every slice in Phase N (format below), then implement and open PRs in dependency order.
+- **`Plan Phase N`**: produce the plan only; do not write code, do not branch, do not push.
+- **`Work on Slice X of Phase N`**: isolate that single slice end to end. Skip the phase-wide plan; jump to dispatch.
+
+### Plan format per slice
+
+Emit the following five fields for every slice before any code is written. The output is read by the user to approve the plan, so be terse and consistent.
+
+1. **Slice ID + title** (e.g. `#25 sitemap.xml + robots.txt`).
+2. **Implements**: one sentence on the observable outcome.
+3. **Depends on**: comma-separated slice numbers, or `none`.
+4. **Branch base**: `develop` by default; `feature/<dep>_<slug>` when a dependency is unmerged but stable.
+5. **Parallel group**: `A`, `B`, `C`, ... slices in the same group run in parallel; later groups wait for earlier groups to merge.
+
+### Implementation order
+
+- Build a DAG from the `Depends on` fields. Slices with no dependencies form Group A and dispatch in parallel via separate `slice-runner` calls.
+- Slices that depend on Group A wait until those PRs merge, then re-base off refreshed `develop` and dispatch as Group B. Repeat per group.
+- If a dependency is stable but unmerged (e.g. parent PR is in review), a child slice may branch off the parent branch instead of `develop`. The child's PR body must list the parent as `Blocked by: #X`.
+- If during implementation a slice reveals a hidden dependency, stop, flag it to the user, and wait for the dependency to ship before resuming.
+
 ## How slices ship
 
 The main session stays focused on the **phase**, not the slice. Per-slice work routes through `slice-runner`:
@@ -48,6 +73,12 @@ The reviewer fan-out (`qa-runner`, `code-reviewer`, `security-reviewer`, plus `b
 ## PR body template
 
 PR descriptions open with a single `## Summary` section (a few sentences explaining the slice for a future reader). Then `## Verification` table, `## Target branch checklist`, `## Context7` if libraries were touched, `## Reviews` with three or four collapsible report blocks, then `Closes #N`. Do not split into separate `Why` and `What` headings; keep the rationale and the file-level summary in one block.
+
+The `## Summary` block also carries three required lines (additions to the existing summary prose, not replacements):
+
+- **Implements**: what the slice ships, one sentence.
+- **Cut from**: the branch this PR was branched off (e.g. `develop`, or `feature/25_sitemap-robots` when stacked on a parent).
+- **Blocked by**: comma-separated PR numbers that must merge before this one can merge. Omit the line entirely if the slice has no parent PR.
 
 ## Library setup discipline
 
