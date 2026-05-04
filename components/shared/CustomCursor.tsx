@@ -43,15 +43,18 @@ export function CustomCursor() {
       return;
     }
 
-    const root = document.documentElement;
-    root.setAttribute('data-custom-cursor', '');
-
+    // Set the attribute only after we have confirmed the cursor element is
+    // actually in the DOM. Setting it earlier would briefly hide the system
+    // cursor without providing a replacement on the rare path where the ref
+    // has not been attached yet (e.g. concurrent-mode scheduling, or tests
+    // that flush effects before refs).
     const node = cursorRef.current;
     if (node === null) {
-      return () => {
-        root.removeAttribute('data-custom-cursor');
-      };
+      return;
     }
+
+    const root = document.documentElement;
+    root.setAttribute('data-custom-cursor', '');
 
     let pointerX = 0;
     let pointerY = 0;
