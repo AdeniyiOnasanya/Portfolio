@@ -85,7 +85,17 @@ body {
   flex-wrap: nowrap;
   width: max-content;
   animation: marquee-scroll 30s linear infinite;
-  will-change: transform;
+}
+
+/* will-change is a compositor hint; only apply it while the animation is
+ * actually running. Outside the no-preference branch the @media (reduce) rule
+ * below freezes the animation, so the hint would be paying GPU cost for an
+ * unanimated element.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  .marquee-track {
+    will-change: transform;
+  }
 }
 
 .marquee-copy {

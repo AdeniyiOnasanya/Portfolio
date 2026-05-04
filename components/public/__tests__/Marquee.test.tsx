@@ -2,10 +2,27 @@ import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { Marquee } from '../Marquee';
 
+// Single typed bridge between the test fake and the full MediaQueryList
+// interface. Replaces the inline `as unknown as MediaQueryList` cast (F6).
+interface FakeMediaQueryList {
+  matches: boolean;
+  media: string;
+  onchange: ((ev: MediaQueryListEvent) => void) | null;
+  addListener: () => void;
+  removeListener: () => void;
+  addEventListener: () => void;
+  removeEventListener: () => void;
+  dispatchEvent: () => boolean;
+}
+
+function asMediaQueryList(fake: FakeMediaQueryList): MediaQueryList {
+  return fake as unknown as MediaQueryList;
+}
+
 function setReducedMotion(reduced: boolean): void {
   const matchMedia = (query: string): MediaQueryList => {
     const matches = query.includes('prefers-reduced-motion: reduce') ? reduced : false;
-    return {
+    return asMediaQueryList({
       matches,
       media: query,
       onchange: null,
@@ -14,7 +31,7 @@ function setReducedMotion(reduced: boolean): void {
       addEventListener: () => {},
       removeEventListener: () => {},
       dispatchEvent: () => false,
-    } as unknown as MediaQueryList;
+    });
   };
   Object.defineProperty(window, 'matchMedia', {
     configurable: true,
