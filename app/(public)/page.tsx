@@ -6,14 +6,22 @@ import { Hero } from '../../components/public/Hero';
 import { Projects } from '../../components/public/Projects';
 import { Skills } from '../../components/public/Skills';
 import { loadSite } from '../../lib/content';
+import { personJsonLd, serializeJsonLd } from '../../lib/seo/jsonld';
+import { siteOrigin } from '../../lib/seo/origin';
 
 export default async function HomePage() {
   const site = await loadSite();
   const { person, skills, experience, aiPractice, projects, footer, settings } = site;
   const { visibility } = settings;
+  const personLd = personJsonLd(person, siteOrigin());
 
   return (
     <>
+      <script
+        type="application/ld+json"
+        // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD must be inline-rendered as text. Source is the validated person record from content/site.json; serializeJsonLd escapes < > & so a stray substring cannot close the script tag.
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(personLd) }}
+      />
       <Hero person={person} />
       {visibility.about ? <About longBio={person.longBio} /> : null}
       {visibility.skills ? <Skills skills={skills} /> : null}
