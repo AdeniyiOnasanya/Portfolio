@@ -35,11 +35,21 @@ function makeMediaQueryList(initialMatches: boolean): FakeMediaQueryList {
     dispatchEvent: () => true,
     fire: (matches) => {
       mql.matches = matches;
-      const event = { matches, media: mql.media } as MediaQueryListEvent;
+      const event: MediaQueryListEvent = Object.assign(new Event('change'), {
+        matches,
+        media: mql.media,
+      });
       for (const listener of listeners) listener(event);
     },
   };
   return mql;
+}
+
+// Single typed bridge between FakeMediaQueryList and the full MediaQueryList
+// interface. Replaces five inline `as unknown as MediaQueryList` casts so the
+// cast surface is one explicit helper, not scattered double-casts (F6).
+function asMediaQueryList(fake: FakeMediaQueryList): MediaQueryList {
+  return fake as unknown as MediaQueryList;
 }
 
 describe('prefersReducedMotion (one-shot)', () => {
@@ -63,7 +73,7 @@ describe('prefersReducedMotion (one-shot)', () => {
     Object.defineProperty(window, 'matchMedia', {
       configurable: true,
       writable: true,
-      value: vi.fn(() => mql as unknown as MediaQueryList),
+      value: vi.fn(() => asMediaQueryList(mql)),
     });
     expect(prefersReducedMotion()).toBe(false);
   });
@@ -73,7 +83,7 @@ describe('prefersReducedMotion (one-shot)', () => {
     Object.defineProperty(window, 'matchMedia', {
       configurable: true,
       writable: true,
-      value: vi.fn(() => mql as unknown as MediaQueryList),
+      value: vi.fn(() => asMediaQueryList(mql)),
     });
     expect(prefersReducedMotion()).toBe(true);
   });
@@ -103,10 +113,12 @@ describe('usePrefersReducedMotion', () => {
     });
   });
 
-  it('SSR default is false: the initial state mirrors the no-window contract before effects fire', () => {
-    // In a server render there is no `window`. The hook returns its initial
-    // useState value, which by contract is `false`. We assert by simulating
-    // a no-window environment for the synchronous initial render path.
+  it('returns false when matchMedia is unavailable on mount (covers the SSR contract path)', () => {
+    // We cannot fully simulate SSR inside happy-dom; this test exercises the
+    // matchMedia-absent branch in the useEffect, which is the same code path
+    // a server render hits (window is undefined; matchMedia is unavailable).
+    // The hook's `useState(false)` initial value is what produces `false`
+    // here, mirroring the SSR contract documented in preferences.ts.
     const originalWindowMatchMedia = window.matchMedia;
     Object.defineProperty(window, 'matchMedia', {
       configurable: true,
@@ -127,7 +139,7 @@ describe('usePrefersReducedMotion', () => {
     Object.defineProperty(window, 'matchMedia', {
       configurable: true,
       writable: true,
-      value: vi.fn(() => mql as unknown as MediaQueryList),
+      value: vi.fn(() => asMediaQueryList(mql)),
     });
     const { result } = renderHook(() => usePrefersReducedMotion());
     expect(result.current).toBe(true);
@@ -138,7 +150,7 @@ describe('usePrefersReducedMotion', () => {
     Object.defineProperty(window, 'matchMedia', {
       configurable: true,
       writable: true,
-      value: vi.fn(() => mql as unknown as MediaQueryList),
+      value: vi.fn(() => asMediaQueryList(mql)),
     });
     const { result } = renderHook(() => usePrefersReducedMotion());
     expect(result.current).toBe(false);
@@ -160,7 +172,7 @@ describe('usePrefersReducedMotion', () => {
     Object.defineProperty(window, 'matchMedia', {
       configurable: true,
       writable: true,
-      value: vi.fn(() => mql as unknown as MediaQueryList),
+      value: vi.fn(() => asMediaQueryList(mql)),
     });
     const { unmount } = renderHook(() => usePrefersReducedMotion());
     unmount();
