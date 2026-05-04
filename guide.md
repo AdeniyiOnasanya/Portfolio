@@ -84,6 +84,8 @@ Branch types allowed off `develop`: `feature/`, `fix/`, `content/`, `chore/`, `d
 
 The default route is to dispatch the `slice-runner` subagent, which owns the full per-slice loop. The calling session keeps its context budget on the **phase**, not the slice.
 
+The user-facing command vocabulary (`Start Phase N`, `Plan Phase N`, `Work on Slice X of Phase N`) and the dependency-aware ordering rules are defined in `CLAUDE.md` under `## Phase command protocol`. Do not duplicate the protocol body here.
+
 1. Read `.github/phase-log.md` and pick the topmost `open` row in the current phase. P1 first, then P2, then P3. Respect `Depends on` from the issue body.
 2. Set the project Status to `In Progress` and the `status:in-progress` label on the issue (board hygiene; the runner does not touch project fields).
 3. Dispatch `slice-runner` with one input, e.g.:

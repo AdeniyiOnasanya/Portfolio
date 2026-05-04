@@ -109,6 +109,38 @@ Recommended fix: cast the mock as `unknown as () => never`, or use `vi.spyOn` ov
 
 Priority: P3.
 
+### F11: Tighten `cvUrl` and `cvDocxUrl` to a path-only schema
+
+Source: PR #144 (slice #29), security-reviewer informational 1.
+
+Problem: `lib/schema.ts` declares `cvUrl: NonEmptyString` and `cvDocxUrl: NonEmptyString`, both reused by `PersonSchema`. The fields are populated today from `content/site.json` (repo-controlled, behind PR review), so the runtime risk is essentially nil. Once Phase 7 onward lets the admin CMS write to `person`, an authenticated editor could submit `javascript:alert(1)` for either field and the value would land directly in the rendered `<a href={...}>` attribute, producing a stored XSS path.
+
+Recommended fix: replace `NonEmptyString` with a refined string that asserts the value starts with `/` and is at least two characters (the intended use is a relative path under `/public`). For example `z.string().min(2).startsWith('/')`. The existing forbidden-character superRefinement on `SafeText` is not enough here because the surface is the `href` attribute, not visible text. Land before the admin CMS ships.
+
+Priority: P2, must land before Phase 7 (admin CMS).
+
+### F12: Ship the CV `.docx` or relax `cvDocxUrl` to optional
+
+Source: PR #144 (slice #29), code-reviewer warning 3.
+
+Problem: `content/site.json` has `person.cvDocxUrl = "/cv/David-Onasanya-CV.docx"` but the file was not committed in slice #29 (only the PDF moved into `public/cv/`). The schema requires `cvDocxUrl` as `NonEmptyString` (not optional), so the value parses fine, but any future consumer that renders it as a link would emit a 404 in production. The home page does not currently render `cvDocxUrl`, so today there is no broken UI; the field is a latent foot-gun.
+
+Recommended fix, in order of preference:
+1. Locate the `.docx` source on the host machine and copy it into `public/cv/David-Onasanya-CV.docx`, then add a Playwright HEAD-200 assertion alongside the existing PDF spec.
+2. If no `.docx` is going to ship, relax `cvDocxUrl` to `optional()` in `lib/schema.ts` and remove the field from `content/site.json`.
+
+Priority: P3.
+
+### F13: Extract a shared `<Header>` component when a third surface needs it
+
+Source: PR #143 (slice #28), code-reviewer suggestion 3.
+
+Problem: the public-layout header (Portfolio eyebrow + ThemeToggle) is now inlined in two places: `app/(public)/layout.tsx` (lines 7-9) and `app/not-found.tsx` (lines 15-19). The markup is byte-for-byte identical. A future change to the eyebrow text, the layout, or the ThemeToggle wrapper must be applied in both, with no compiler enforcement that they stay in sync. Two call sites is the threshold below which extraction is premature; three is when it becomes a real refactor.
+
+Recommended fix: when a third surface introduces the same header (likely Phase 5 sub-page like `/uses` or `/notes`, or the project case-study chrome), extract a `components/public/Header.tsx` and have all three import it. Do not extract for two; that is premature abstraction.
+
+Priority: P3, deferred until a third use site appears.
+
 ## Closed
 
 (none yet)
