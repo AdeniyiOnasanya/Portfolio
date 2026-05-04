@@ -31,6 +31,13 @@ import { prefersReducedMotion } from '../../lib/motion/preferences';
  * tuned by eye against the design handoff.
  */
 
+// Tuning values for the cinematic feel itself; the implementation plan
+// excludes intro pacing from TDD. These literals are fine here because the
+// component returns null under prefers-reduced-motion, so the durations
+// never reach a user who has opted out. The visual sibling tokens
+// (--duration-base, --duration-slow) are 250 and 400 ms respectively; the
+// hold value extends past the slow token because the overlay needs a
+// readable beat before the fade.
 const FADE_OUT_MS = 400;
 const HOLD_MS = 700;
 
