@@ -34,13 +34,6 @@ import { prefersReducedMotion, usePrefersReducedMotion } from '../../lib/motion/
 
 const VIEW_TRANSITION_PREFIX = 'project-';
 
-function buildViewTransitionName(slug: string, motionAllowed: boolean): string | undefined {
-  if (!motionAllowed) {
-    return undefined;
-  }
-  return `${VIEW_TRANSITION_PREFIX}${slug}`;
-}
-
 export function ProjectRow({ slug, index }: { slug: string; index: number }) {
   const router = useRouter();
   const reduced = usePrefersReducedMotion();
@@ -48,7 +41,7 @@ export function ProjectRow({ slug, index }: { slug: string; index: number }) {
   const href = `/projects/${slug}`;
 
   const titleStyle: CSSProperties | undefined = motionAllowed
-    ? { viewTransitionName: buildViewTransitionName(slug, motionAllowed) }
+    ? { viewTransitionName: `${VIEW_TRANSITION_PREFIX}${slug}` }
     : undefined;
 
   function handleClick(event: MouseEvent<HTMLAnchorElement>) {
@@ -82,7 +75,7 @@ export function ProjectRow({ slug, index }: { slug: string; index: number }) {
     }
 
     event.preventDefault();
-    startViewTransition.call(document, () => {
+    startViewTransition(() => {
       router.push(href);
     });
   }

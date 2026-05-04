@@ -10,6 +10,15 @@ vi.mock('next/navigation', () => ({
   }),
 }));
 
+// Mock the motion hooks the same way ProjectRow.test.tsx does so the assertions
+// in this file do not depend on happy-dom's matchMedia behaviour. Default to
+// motion allowed (reduced returns false) since these tests do not exercise the
+// reduced-motion gate; the dedicated ProjectRow.test.tsx covers that path.
+vi.mock('../../../lib/motion/preferences', () => ({
+  usePrefersReducedMotion: () => false,
+  prefersReducedMotion: () => false,
+}));
+
 describe('Projects', () => {
   it('renders an h2 titled Selected work inside a region with that label', () => {
     render(<Projects projects={sampleProjects} />);
