@@ -77,6 +77,13 @@ export function MagneticButton({ children, className, strength = STRENGTH }: Mag
       node.style.transform = `translate3d(${x}px, ${y}px, 0)`;
     };
 
+    const onEnter = () => {
+      // Active transition is set once per hover session, not on every move.
+      // Writing child.style.transition on every mousemove forces a style
+      // recalculation per frame even though the value never changes.
+      child.style.transition = ACTIVE_TRANSITION;
+    };
+
     const onMove = (event: MouseEvent) => {
       const rect = wrapper.getBoundingClientRect();
       const cx = rect.left + rect.width / 2;
@@ -85,9 +92,6 @@ export function MagneticButton({ children, className, strength = STRENGTH }: Mag
         x: (event.clientX - cx) * strength,
         y: (event.clientY - cy) * strength,
       };
-      // Active phase uses a short linear transition so the pull tracks the
-      // cursor without waiting on the longer ease-out used for return.
-      child.style.transition = ACTIVE_TRANSITION;
       if (rafRef.current === null) {
         rafRef.current = window.requestAnimationFrame(apply);
       }
@@ -101,10 +105,12 @@ export function MagneticButton({ children, className, strength = STRENGTH }: Mag
       }
     };
 
+    wrapper.addEventListener('mouseenter', onEnter);
     wrapper.addEventListener('mousemove', onMove);
     wrapper.addEventListener('mouseleave', onLeave);
 
     return () => {
+      wrapper.removeEventListener('mouseenter', onEnter);
       wrapper.removeEventListener('mousemove', onMove);
       wrapper.removeEventListener('mouseleave', onLeave);
       if (rafRef.current !== null) {

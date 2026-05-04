@@ -7,6 +7,23 @@ interface MediaState {
   pointerFine: boolean;
 }
 
+// Single typed bridge between the test fake and the full MediaQueryList
+// interface (F6: avoid scattered `as unknown as` casts in tests).
+interface FakeMediaQueryList {
+  matches: boolean;
+  media: string;
+  onchange: ((ev: MediaQueryListEvent) => void) | null;
+  addListener: () => void;
+  removeListener: () => void;
+  addEventListener: () => void;
+  removeEventListener: () => void;
+  dispatchEvent: () => boolean;
+}
+
+function asMediaQueryList(fake: FakeMediaQueryList): MediaQueryList {
+  return fake as unknown as MediaQueryList;
+}
+
 function installMatchMedia(state: MediaState): void {
   const matchMedia = (query: string): MediaQueryList => {
     let matches = false;
@@ -15,7 +32,7 @@ function installMatchMedia(state: MediaState): void {
     } else if (query.includes('pointer: fine')) {
       matches = state.pointerFine;
     }
-    return {
+    return asMediaQueryList({
       matches,
       media: query,
       onchange: null,
@@ -24,7 +41,7 @@ function installMatchMedia(state: MediaState): void {
       addEventListener: () => {},
       removeEventListener: () => {},
       dispatchEvent: () => false,
-    } as unknown as MediaQueryList;
+    });
   };
   Object.defineProperty(window, 'matchMedia', {
     configurable: true,
