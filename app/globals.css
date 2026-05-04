@@ -61,6 +61,77 @@ body {
   }
 }
 
+/* ==========================================================================
+   Skill marquee
+   --------------------------------------------------------------------------
+   Used by `components/public/Marquee.tsx` for the Skills row. Duration is
+   tuned by eye: 30s linear infinite reads as a calm scroll without
+   distracting from the rest of the page. The track holds two copies of the
+   item list and translates from 0 to -50%, which leaves a seamless loop as
+   the second copy slides into the first copy's starting position. The
+   reduced-motion safety belt below stops the animation in CSS even if a
+   future change ever rendered the running fork against a user preference;
+   the component already gates the static fork via the JS hook, so this is
+   defence in depth.
+   ========================================================================== */
+
+.marquee {
+  overflow: hidden;
+  width: 100%;
+}
+
+.marquee-track {
+  display: flex;
+  flex-wrap: nowrap;
+  width: max-content;
+  animation: marquee-scroll 30s linear infinite;
+  will-change: transform;
+}
+
+.marquee-copy {
+  display: flex;
+  flex-wrap: nowrap;
+}
+
+.marquee-static {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
+.marquee-item {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-xs) var(--space-md);
+  margin-right: var(--space-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  color: var(--color-text-primary);
+  font-size: var(--text-sm);
+  white-space: nowrap;
+  background: var(--color-surface-raised);
+}
+
+.marquee-static .marquee-item {
+  margin-right: 0;
+}
+
+@keyframes marquee-scroll {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track {
+    animation: none;
+    transform: none;
+  }
+}
+
 @theme {
   --color-brand-50: var(--color-brand-50);
   --color-brand-100: var(--color-brand-100);
