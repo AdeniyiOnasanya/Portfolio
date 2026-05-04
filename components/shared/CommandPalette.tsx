@@ -13,6 +13,17 @@ import {
 import type { Site } from '../../lib/schema';
 import { useTheme } from './ThemeProvider';
 
+// Local one-shot reduced-motion read. The shared lib/motion/preferences.ts
+// helper from PR #151 (slice #30) is on a parallel branch; until both #34 and
+// #30 land on develop, this slice ships its own copy. Follow-up note: once
+// both merge, swap to `prefersReducedMotion` from lib/motion/preferences.
+function readPrefersReducedMotion(): boolean {
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+    return false;
+  }
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
 interface CommandPaletteProps {
   site: Site;
 }
@@ -86,22 +97,14 @@ export function CommandPalette({ site }: CommandPaletteProps) {
 
       if (isOpenShortcut || isSlashShortcut) {
         event.preventDefault();
-        setOpen((current) => {
-          if (current) {
-            return current;
-          }
-          const active = typeof document === 'undefined' ? null : document.activeElement;
-          previouslyFocused.current = active instanceof HTMLElement ? active : null;
-          setSearch('');
-          return true;
-        });
+        openPalette();
       }
     };
     window.addEventListener('keydown', handler);
     return () => {
       window.removeEventListener('keydown', handler);
     };
-  }, [enabled]);
+  }, [enabled, openPalette]);
 
   const runAction = useCallback(
     (action: PaletteAction) => {
@@ -117,15 +120,29 @@ export function CommandPalette({ site }: CommandPaletteProps) {
           const id = action.target.replace(/^#/, '');
           const node = document.getElementById(id);
           if (node) {
-            node.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            // Honour the reduced-motion contract: smooth scroll is an animation,
+            // so opt out when the OS preference is set to reduce.
+            const behavior: ScrollBehavior = readPrefersReducedMotion() ? 'instant' : 'smooth';
+            node.scrollIntoView({ behavior, block: 'start' });
           }
           if (typeof history !== 'undefined' && typeof history.replaceState === 'function') {
             history.replaceState(null, '', action.target);
           }
         } else if (action.kind === 'link') {
+          // Scheme allowlist defence-in-depth on top of schema validation. The
+          // schema only treats `email`, `github`, `linkedin` as `z.url()`;
+          // `cvUrl` is `NonEmptyString` (F11 will tighten it before Phase 7).
+          // Until then, reject anything that is not a relative path or a known
+          // safe scheme so a hypothetical `javascript:` value cannot reach
+          // window.location.href and execute.
           if (action.href.startsWith('/')) {
             router.push(action.href);
-          } else if (typeof window !== 'undefined') {
+          } else if (
+            typeof window !== 'undefined' &&
+            (action.href.startsWith('mailto:') ||
+              action.href.startsWith('https://') ||
+              action.href.startsWith('http://'))
+          ) {
             window.location.href = action.href;
           }
         } else if (action.kind === 'theme') {
@@ -168,7 +185,7 @@ export function CommandPalette({ site }: CommandPaletteProps) {
         value={search}
         onValueChange={setSearch}
         placeholder="Type a command or search..."
-        className="w-full bg-transparent border-b border-border px-md py-sm text-fg-primary outline-none focus-visible:outline-none"
+        className="w-full bg-transparent border-b border-border px-md py-sm text-fg-primary outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-inset rounded-sm"
       />
       <Command.List className="max-h-[60vh] overflow-y-auto p-xs">
         <Command.Empty className="px-md py-sm text-fg-muted text-sm">
