@@ -1,6 +1,11 @@
 import { act, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { prefersReducedMotion, usePrefersReducedMotion } from '../preferences';
+import {
+  pointerFine,
+  prefersReducedMotion,
+  usePointerFine,
+  usePrefersReducedMotion,
+} from '../preferences';
 
 interface FakeMediaQueryList {
   matches: boolean;
@@ -14,11 +19,14 @@ interface FakeMediaQueryList {
   removeListener: (listener: (ev: MediaQueryListEvent) => void) => void;
 }
 
-function makeMediaQueryList(initialMatches: boolean): FakeMediaQueryList {
+function makeMediaQueryList(
+  initialMatches: boolean,
+  media: string = '(prefers-reduced-motion: reduce)',
+): FakeMediaQueryList {
   const listeners = new Set<(ev: MediaQueryListEvent) => void>();
   const mql: FakeMediaQueryList = {
     matches: initialMatches,
-    media: '(prefers-reduced-motion: reduce)',
+    media,
     onchange: null,
     addEventListener: (_type, listener) => {
       listeners.add(listener);
@@ -163,6 +171,123 @@ describe('usePrefersReducedMotion', () => {
       value: vi.fn(() => mql as unknown as MediaQueryList),
     });
     const { unmount } = renderHook(() => usePrefersReducedMotion());
+    unmount();
+    expect(removeSpy).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('pointerFine (one-shot)', () => {
+  let originalMatchMedia: typeof window.matchMedia;
+
+  beforeEach(() => {
+    originalMatchMedia = window.matchMedia;
+  });
+
+  afterEach(() => {
+    Object.defineProperty(window, 'matchMedia', {
+      configurable: true,
+      writable: true,
+      value: originalMatchMedia,
+    });
+    vi.restoreAllMocks();
+  });
+
+  it('returns true when the primary pointer is fine', () => {
+    const mql = makeMediaQueryList(true, '(pointer: fine)');
+    Object.defineProperty(window, 'matchMedia', {
+      configurable: true,
+      writable: true,
+      value: vi.fn(() => mql as unknown as MediaQueryList),
+    });
+    expect(pointerFine()).toBe(true);
+  });
+
+  it('returns false on coarse pointers (touch)', () => {
+    const mql = makeMediaQueryList(false, '(pointer: fine)');
+    Object.defineProperty(window, 'matchMedia', {
+      configurable: true,
+      writable: true,
+      value: vi.fn(() => mql as unknown as MediaQueryList),
+    });
+    expect(pointerFine()).toBe(false);
+  });
+
+  it('returns false when matchMedia is unavailable', () => {
+    Object.defineProperty(window, 'matchMedia', {
+      configurable: true,
+      writable: true,
+      value: undefined,
+    });
+    expect(pointerFine()).toBe(false);
+  });
+});
+
+describe('usePointerFine', () => {
+  let originalMatchMedia: typeof window.matchMedia;
+
+  beforeEach(() => {
+    originalMatchMedia = window.matchMedia;
+  });
+
+  afterEach(() => {
+    Object.defineProperty(window, 'matchMedia', {
+      configurable: true,
+      writable: true,
+      value: originalMatchMedia,
+    });
+  });
+
+  it('SSR default is false: the initial state mirrors the no-window contract before effects fire', () => {
+    Object.defineProperty(window, 'matchMedia', {
+      configurable: true,
+      writable: true,
+      value: undefined,
+    });
+    const { result } = renderHook(() => usePointerFine());
+    expect(result.current).toBe(false);
+  });
+
+  it('reads the live media query value on mount', () => {
+    const mql = makeMediaQueryList(true, '(pointer: fine)');
+    Object.defineProperty(window, 'matchMedia', {
+      configurable: true,
+      writable: true,
+      value: vi.fn(() => mql as unknown as MediaQueryList),
+    });
+    const { result } = renderHook(() => usePointerFine());
+    expect(result.current).toBe(true);
+  });
+
+  it('flips when the pointer kind changes (mouse attached/detached)', () => {
+    const mql = makeMediaQueryList(false, '(pointer: fine)');
+    Object.defineProperty(window, 'matchMedia', {
+      configurable: true,
+      writable: true,
+      value: vi.fn(() => mql as unknown as MediaQueryList),
+    });
+    const { result } = renderHook(() => usePointerFine());
+    expect(result.current).toBe(false);
+
+    act(() => {
+      mql.fire(true);
+    });
+    expect(result.current).toBe(true);
+
+    act(() => {
+      mql.fire(false);
+    });
+    expect(result.current).toBe(false);
+  });
+
+  it('unsubscribes the listener on unmount', () => {
+    const mql = makeMediaQueryList(false, '(pointer: fine)');
+    const removeSpy = vi.spyOn(mql, 'removeEventListener');
+    Object.defineProperty(window, 'matchMedia', {
+      configurable: true,
+      writable: true,
+      value: vi.fn(() => mql as unknown as MediaQueryList),
+    });
+    const { unmount } = renderHook(() => usePointerFine());
     unmount();
     expect(removeSpy).toHaveBeenCalledTimes(1);
   });
