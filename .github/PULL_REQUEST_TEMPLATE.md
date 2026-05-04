@@ -10,6 +10,10 @@
 
 <!-- One or two sentences. What changed and why. -->
 
+<!-- Implements: one sentence on what this slice ships. -->
+<!-- Cut from: branch this PR was cut from, e.g. `develop` or `feature/25_sitemap-robots`. -->
+<!-- Blocked by: comma-separated PR numbers that must merge first. Delete this line if there are none. -->
+
 ## Linked issues
 
 Closes #
