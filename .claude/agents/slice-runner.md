@@ -37,6 +37,14 @@ A single issue number from the calling session, e.g. "Ship issue #21. Target dev
 8. **Compose PR body.** Use the template in `CLAUDE.md`: `## Summary` (a few sentences for a future reader), `## Verification` table built from the qa-runner report, `## Target branch checklist`, `## Context7` if a library was touched, `## Reviews` with collapsible `<details>` blocks for each reviewer report, then `Closes #<N>`. No em-dash, no emoji, no AI-attribution.
 9. **Open PR** with `gh pr create --base <target> --head feature/<N>_<short-slug>` using a heredoc body.
 
+## Closing-keyword discipline
+
+The `auto-close-on-develop.yml` workflow scans commit messages on `develop` for closing keywords (`Closes #N`, `Fixes #N`, `Resolves #N`); a defence-in-depth pass also scans the bodies of the PRs associated with each commit, so closing keywords in the PR body are honoured too. Belt-and-braces: when the slice is closing an issue, you MUST include `Closes #<N>` (the literal keyword and number) in the body of at least one commit that lands on `develop`, AND in the PR body. Specifically:
+
+- For non-`tdd:strict` slices: append a `Closes #<N>.` line at the bottom of the green commit's message body (after the explanatory paragraph). `Refs #<N>` does not count as a closing keyword.
+- For `tdd:strict` slices: brief the `tdd-author` to put `Closes #<N>.` in the green commit's body. The red commit can use `Refs #<N>`; only the green commit closes the issue.
+- For follow-up fix commits triggered by reviewer warnings: the existing `Closes #<N>` on the green commit is enough; do not duplicate.
+
 ## Refusals
 
 - Refuse to run if dependencies are open.
