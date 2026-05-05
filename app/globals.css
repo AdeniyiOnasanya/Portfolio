@@ -65,11 +65,11 @@ body {
    Skill marquee
    --------------------------------------------------------------------------
    Used by `components/public/Marquee.tsx` for the Skills row. Duration is
-   tuned by eye: 30s linear infinite reads as a calm scroll without
-   distracting from the rest of the page. The track holds two copies of the
-   item list and translates from 0 to -50%, which leaves a seamless loop as
-   the second copy slides into the first copy's starting position. The
-   reduced-motion safety belt below stops the animation in CSS even if a
+   60s linear infinite, mirroring the design handoff
+   (`design_handoff_portfolio/design/styles.css`). The track holds two copies
+   of the item list and translates from 0 to -50%, which leaves a seamless
+   loop as the second copy slides into the first copy's starting position.
+   The reduced-motion safety belt below stops the animation in CSS even if a
    future change ever rendered the running fork against a user preference;
    the component already gates the static fork via the JS hook, so this is
    defence in depth.
@@ -84,7 +84,7 @@ body {
   display: flex;
   flex-wrap: nowrap;
   width: max-content;
-  animation: marquee-scroll 30s linear infinite;
+  animation: marquee-scroll 60s linear infinite;
 }
 
 /* will-change is a compositor hint; only apply it while the animation is
@@ -120,6 +120,12 @@ body {
   font-size: var(--text-sm);
   white-space: nowrap;
   background: var(--color-surface-raised);
+}
+
+.marquee-item:not(:last-child)::after {
+  content: "·";
+  color: var(--color-accent);
+  margin-left: var(--space-sm);
 }
 
 .marquee-static .marquee-item {
