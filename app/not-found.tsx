@@ -16,7 +16,7 @@ export default async function RootNotFound() {
   return (
     <div className="min-h-screen px-md mx-auto" style={{ maxWidth: 'var(--max-width-content)' }}>
       <header className="flex items-center justify-between pt-lg">
-        <p className="text-fg-muted tracking-eyebrow text-xs uppercase">Portfolio</p>
+        <p className="text-fg-muted tracking-eyebrow text-xs uppercase">DO / 2026</p>
         <ThemeToggle />
       </header>
       <main>

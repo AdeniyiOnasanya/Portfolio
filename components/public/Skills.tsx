@@ -6,7 +6,8 @@ export function Skills({ skills }: { skills: SkillsType }) {
 
   return (
     <section id="skills" aria-labelledby="skills-heading" className="py-2xl">
-      <h2 id="skills-heading" className="font-serif tracking-display text-3xl md:text-4xl">
+      <p className="text-fg-muted tracking-eyebrow text-xs uppercase font-mono">02 / Stack</p>
+      <h2 id="skills-heading" className="font-serif tracking-display text-3xl md:text-4xl mt-xs">
         Skills
       </h2>
       <dl className="mt-lg grid gap-lg md:grid-cols-2">
