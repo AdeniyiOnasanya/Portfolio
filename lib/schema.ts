@@ -21,6 +21,22 @@ const SlugString = z.string().regex(SLUG_PATTERN, {
   message: 'slug must be kebab-case lowercase, digits and dashes only.',
 });
 
+// HeroSchema drives the meta-row pills and the 3-stat grid in the rebuilt
+// Hero. Keeping these out of PersonSchema lets the personal record stay a
+// stable JSON-LD source while the hero copy iterates independently. Both
+// arrays are tightly bounded (meta: 1..8, stats: exactly 3) so the schema
+// catches accidental drift before runtime.
+const HeroStatSchema = z.object({
+  value: NonEmptyString,
+  label: NonEmptyString,
+});
+
+export const HeroSchema = z.object({
+  meta: z.array(NonEmptyString).min(1).max(8),
+  stats: z.array(HeroStatSchema).length(3),
+});
+export type Hero = z.infer<typeof HeroSchema>;
+
 export const PersonSchema = z
   .object({
     name: NonEmptyString,
@@ -222,6 +238,7 @@ export type Settings = z.infer<typeof SettingsSchema>;
 
 export const SiteSchema = z.object({
   person: PersonSchema,
+  hero: HeroSchema,
   skills: SkillsSchema,
   experience: ExperienceSchema,
   projects: ProjectsSchema,

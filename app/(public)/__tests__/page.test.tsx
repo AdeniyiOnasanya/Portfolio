@@ -4,6 +4,7 @@ import {
   sampleAiPractice,
   sampleExperience,
   sampleFooter,
+  sampleHero,
   samplePerson,
   sampleProjects,
   sampleSkills,
@@ -26,6 +27,7 @@ const loadSiteMock = loadSite as unknown as ReturnType<typeof vi.fn>;
 
 const baseSite = {
   person: samplePerson,
+  hero: sampleHero,
   skills: sampleSkills,
   experience: sampleExperience,
   projects: sampleProjects,

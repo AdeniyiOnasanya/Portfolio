@@ -514,6 +514,55 @@ body {
 }
 
 /* ==========================================================================
+   Hero meta-row pulsing dots
+   --------------------------------------------------------------------------
+   Each pill in the hero meta-row prefixes its label with an accent dot via
+   the ::before pseudo-element. The dot pulses on a 2.4s loop. Reduced-motion
+   freezes the pulse via the cascade since `--duration-*` tokens are zeroed
+   under prefers-reduced-motion. Mirrors `design_handoff_portfolio/design/styles.css`.
+   ========================================================================== */
+
+.hero-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-eyebrow);
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.hero-meta-pill::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  margin-right: var(--space-sm);
+  vertical-align: middle;
+  animation: hero-pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes hero-pulse {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-meta-pill::before {
+    animation: none;
+    opacity: 1;
+  }
+}
+
+/* ==========================================================================
    Top nav strip (Phase 5.5)
    --------------------------------------------------------------------------
    Used by `components/public/Nav.tsx`. Mirrors the design handoff
