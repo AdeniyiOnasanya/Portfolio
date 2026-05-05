@@ -11,7 +11,7 @@ export default async function PublicLayout({ children }: { children: ReactNode }
   return (
     <div className="min-h-screen px-md mx-auto" style={{ maxWidth: 'var(--max-width-content)' }}>
       <Grain />
-      <CinematicIntro />
+      <CinematicIntro person={site.person} />
       <CustomCursor />
       <header className="flex items-center justify-between pt-lg">
         <p className="text-fg-muted tracking-eyebrow text-xs uppercase">DO / 2026</p>

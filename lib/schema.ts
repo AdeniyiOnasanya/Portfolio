@@ -37,6 +37,11 @@ export const PersonSchema = z
     github: z.url(),
     linkedin: z.url(),
     yearsExp: z.number().int().nonnegative(),
+    // Year the engineer started shipping professionally. Surfaces in the
+    // cinematic intro footer metadata row ("Est. 2019"). Stored as a string
+    // because the value reads as a label, not a quantity, and matches the
+    // string-typed years already used on Project.year and Project.meta.Year.
+    estYear: NonEmptyString,
     statement: SafeText,
     longBio: z.array(SafeText).min(1),
   })
