@@ -2,7 +2,7 @@ import type { Person } from '../../lib/schema';
 
 export function About({ longBio }: { longBio: Person['longBio'] }) {
   return (
-    <section aria-labelledby="about-heading" className="py-2xl">
+    <section id="about" aria-labelledby="about-heading" className="py-2xl">
       <h2 id="about-heading" className="font-serif tracking-display text-3xl md:text-4xl">
         About
       </h2>

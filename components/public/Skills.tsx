@@ -2,7 +2,7 @@ import type { Skills as SkillsType } from '../../lib/schema';
 
 export function Skills({ skills }: { skills: SkillsType }) {
   return (
-    <section aria-labelledby="skills-heading" className="py-2xl">
+    <section id="skills" aria-labelledby="skills-heading" className="py-2xl">
       <h2 id="skills-heading" className="font-serif tracking-display text-3xl md:text-4xl">
         Skills
       </h2>
