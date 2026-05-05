@@ -74,9 +74,11 @@ export function usePrefersReducedMotion(): boolean {
 
 /**
  * Subscribe a component to the `(pointer: fine)` media query. Returns
- * `false` during SSR and on the first client render so the markup is stable;
- * flips after mount and re-flips if the user attaches or detaches a mouse
- * (e.g. on a 2-in-1 device) while the page is open.
+ * `false` during SSR and on the first client render so cinema-layer
+ * components (custom cursor, magnetic pull) only attach on confirmed
+ * desktop pointers after mount. The hook re-flips if the user changes
+ * input device class while the page is open (e.g. plugs in a mouse on a
+ * convertible laptop).
  */
 export function usePointerFine(): boolean {
   const [fine, setFine] = useState<boolean>(false);

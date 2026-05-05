@@ -11,7 +11,7 @@ export function Hero({ person }: { person: Person }) {
   // odd URL that has no trailing segment.
   const cvFilename = person.cvUrl.split('/').pop() || undefined;
   return (
-    <section aria-labelledby="hero-heading" className="pt-3xl pb-2xl">
+    <section id="home" aria-labelledby="hero-heading" className="pt-3xl pb-2xl">
       <p className="text-fg-muted tracking-eyebrow text-xs uppercase">{person.role}</p>
       <h1
         id="hero-heading"
