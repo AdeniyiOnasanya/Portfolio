@@ -33,6 +33,19 @@ export function prefersReducedMotion(): boolean {
 }
 
 /**
+ * One-shot read of whether the primary input is a fine pointer (mouse,
+ * trackpad, stylus). Returns `false` on the server and on coarse-pointer
+ * devices (touch). Cinema-layer effects that only make sense with a cursor
+ * (custom cursor, magnetic pull) gate on this in addition to reduced-motion.
+ */
+export function pointerFine(): boolean {
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+    return false;
+  }
+  return window.matchMedia(POINTER_FINE_QUERY).matches;
+}
+
+/**
  * Subscribe a component to the reduced-motion media query. Returns `false`
  * during SSR and on the first client render so the markup is stable; the
  * hook flips to the live value after mount and re-flips if the user toggles

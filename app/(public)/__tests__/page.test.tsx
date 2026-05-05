@@ -14,6 +14,13 @@ vi.mock('../../../lib/content', () => ({
   loadSite: vi.fn(),
 }));
 
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: vi.fn(),
+    prefetch: vi.fn(),
+  }),
+}));
+
 const { loadSite } = await import('../../../lib/content');
 const loadSiteMock = loadSite as unknown as ReturnType<typeof vi.fn>;
 
