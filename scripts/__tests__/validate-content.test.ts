@@ -64,6 +64,14 @@ describe('validateSiteJsonFile', () => {
           statement: 'one',
           longBio: ['one'],
         },
+        hero: {
+          meta: ['Available'],
+          stats: [
+            { value: '06', label: 'Years shipping' },
+            { value: '07', label: 'Production projects' },
+            { value: '∞', label: 'CSS rewrites' },
+          ],
+        },
         skills: [{ label: 'Languages', items: ['TS'] }],
         experience: [
           {

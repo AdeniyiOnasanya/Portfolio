@@ -18,6 +18,21 @@
       "I care equally about the API contract and the spacing between two buttons. I think a good interface is honest about what it's doing, and a good system is boring on purpose."
     ]
   },
+  "hero": {
+    "meta": [
+      "Available",
+      "Q2 2026",
+      "Stafford",
+      "UK",
+      "GMT",
+      "v6.0, six years shipping"
+    ],
+    "stats": [
+      { "value": "06", "label": "Years shipping" },
+      { "value": "07", "label": "Production projects" },
+      { "value": "∞", "label": "CSS rewrites" }
+    ]
+  },
   "skills": [
     { "label": "Languages", "items": ["JavaScript", "TypeScript", "PHP", "HTML5", "CSS3"] },
     {

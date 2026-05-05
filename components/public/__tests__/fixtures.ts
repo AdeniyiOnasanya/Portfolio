@@ -3,6 +3,7 @@ import type {
   AiPractice,
   Experience,
   Footer,
+  Hero,
   Person,
   Project,
   Projects,
@@ -29,6 +30,15 @@ export const sampleSkills: Skills = [
   { label: 'Languages', items: ['TypeScript', 'PHP'] },
   { label: 'Frameworks', items: ['React', 'Laravel'] },
 ];
+
+export const sampleHero: Hero = {
+  meta: ['Available', 'Q2 2026', 'London', 'UK'],
+  stats: [
+    { value: '06', label: 'Years shipping' },
+    { value: '07', label: 'Production projects' },
+    { value: '∞', label: 'CSS rewrites' },
+  ],
+};
 
 export const sampleExperience: Experience = [
   {

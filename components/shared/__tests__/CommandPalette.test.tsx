@@ -31,6 +31,14 @@ const sampleSite: Site = {
     statement: 'A short statement.',
     longBio: ['Paragraph one.', 'Paragraph two.'],
   },
+  hero: {
+    meta: ['Available', 'Q2 2026'],
+    stats: [
+      { value: '06', label: 'Years shipping' },
+      { value: '07', label: 'Production projects' },
+      { value: '∞', label: 'CSS rewrites' },
+    ],
+  },
   skills: [{ label: 'Languages', items: ['TypeScript'] }],
   experience: [
     {

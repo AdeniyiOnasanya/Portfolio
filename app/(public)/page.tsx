@@ -11,7 +11,7 @@ import { siteOrigin } from '../../lib/seo/origin';
 
 export default async function HomePage() {
   const site = await loadSite();
-  const { person, skills, experience, aiPractice, projects, footer, settings } = site;
+  const { person, hero, skills, experience, aiPractice, projects, footer, settings } = site;
   const { visibility } = settings;
   const personLd = personJsonLd(person, siteOrigin());
 
@@ -22,7 +22,7 @@ export default async function HomePage() {
         // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD must be inline-rendered as text. Source is the validated person record from content/site.json; serializeJsonLd escapes < > & so a stray substring cannot close the script tag.
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(personLd) }}
       />
-      <Hero person={person} />
+      <Hero person={person} hero={hero} skills={skills} />
       {visibility.about ? <About longBio={person.longBio} /> : null}
       {visibility.skills ? <Skills skills={skills} /> : null}
       {visibility.experience ? <Experience experience={experience} /> : null}

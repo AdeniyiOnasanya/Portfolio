@@ -3,6 +3,7 @@ import {
   sampleAiPractice,
   sampleExperience,
   sampleFooter,
+  sampleHero,
   samplePerson,
   sampleProjects,
   sampleSkills,
@@ -17,6 +18,7 @@ const loadSiteMock = vi.mocked(loadSite);
 
 const baseSite = {
   person: samplePerson,
+  hero: sampleHero,
   skills: sampleSkills,
   experience: sampleExperience,
   projects: sampleProjects,

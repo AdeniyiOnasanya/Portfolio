@@ -7,6 +7,7 @@ import {
   EducationSchema,
   ExperienceSchema,
   FooterSchema,
+  HeroSchema,
   PersonSchema,
   ProjectSchema,
   ProjectsSchema,
@@ -352,6 +353,36 @@ describe('ProjectsSchema', () => {
       const paths = result.error.issues.map((i) => i.path.join('.'));
       expect(paths).toContain('2');
     }
+  });
+});
+
+describe('HeroSchema', () => {
+  const validHero = {
+    meta: ['Available', 'Q2 2026', 'Stafford', 'UK'],
+    stats: [
+      { value: '06', label: 'Years shipping' },
+      { value: '07', label: 'Production projects' },
+      { value: '∞', label: 'CSS rewrites' },
+    ],
+  };
+
+  it('accepts a valid hero block', () => {
+    expect(HeroSchema.safeParse(validHero).success).toBe(true);
+  });
+
+  it('rejects when meta is empty', () => {
+    expect(HeroSchema.safeParse({ ...validHero, meta: [] }).success).toBe(false);
+  });
+
+  it('rejects when stats has fewer than 3 entries', () => {
+    expect(HeroSchema.safeParse({ ...validHero, stats: validHero.stats.slice(0, 2) }).success).toBe(
+      false,
+    );
+  });
+
+  it('rejects when a stat is missing the value field', () => {
+    const broken = { ...validHero, stats: [{ label: 'Years' }, ...validHero.stats.slice(1)] };
+    expect(HeroSchema.safeParse(broken).success).toBe(false);
   });
 });
 
