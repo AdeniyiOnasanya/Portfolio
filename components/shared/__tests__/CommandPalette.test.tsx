@@ -28,6 +28,7 @@ const sampleSite: Site = {
     github: 'https://github.com/example',
     linkedin: 'https://www.linkedin.com/in/example',
     yearsExp: 6,
+    estYear: '2019',
     statement: 'A short statement.',
     longBio: ['Paragraph one.', 'Paragraph two.'],
   },

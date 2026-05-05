@@ -210,6 +210,7 @@
   --z-base: 0;
   --z-raised: 10;
   --z-overlay: 50;
+  --z-nav: 100;
   --z-modal: 100;
   --z-toast: 200;
   --z-cursor: 9999;

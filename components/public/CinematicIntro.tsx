@@ -1,112 +1,220 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { hasSeenIntro, markIntroSeen } from '../../lib/intro/seenStorage';
 import { prefersReducedMotion } from '../../lib/motion/preferences';
+import type { Person } from '../../lib/schema';
 
 /*
  * CinematicIntro
  *
- * First-visit overlay that animates the brand wordmark over the home page,
- * then dismisses itself and marks the visit so the same browser skips the
- * intro on every subsequent navigation.
+ * Five-phase rAF-driven boot sequence that mirrors
+ * design_handoff_portfolio/design/shared.jsx#Intro (lines 178-338) and the
+ * intro CSS block in design_handoff_portfolio/design/styles.css. Phases are
+ * sampled off a single rAF clock so the progress bar, top stamp percentage,
+ * boot lines, and name reveal are always coherent: a Skip click jumps the
+ * clock past every threshold rather than driving a parallel timer per element.
  *
- * Skip conditions, both checked synchronously on mount before paint:
- *   1. The user has set `prefers-reduced-motion: reduce` at the OS level.
- *      No flash, no transition, the component returns null.
- *   2. The user has already seen the intro in this browser
- *      (`localStorage['intro:seen'] === '1'`). Same null return.
+ *   bootlines  : 0,    1400 ms : staggered console lines top-left fade in
+ *   name       : 1400, 3000 ms : oversized name slides up from the bracket
+ *   hold       : 3000, 4800 ms : footer metadata row fades in, name holds
+ *   out        : 4800, 5400 ms : intro-out animation (fade + scale)
+ *   done       : >= 5400 ms    : component returns null
  *
- * The visual layer is a fixed-position overlay that fades out on completion.
- * The inner wordmark carries a stable `data-view-transition` hook so a
- * future slice (project-row to case-study morph, Phase 5 slice 6) can
- * target it from CSS via `view-transition-name` once the morph wires up.
- * The `react-view-transitions` library is installed in this slice so later
- * slices can adopt its hook without re-querying the registry.
+ * Skip paths (button click, Escape key, prefers-reduced-motion) all converge
+ * on the same finish() routine so the SeenStorage gate fires exactly once
+ * per visit and the visual exit always uses the same fade.
  *
- * Reduced-motion is verified by manual sweep: with DevTools Rendering set
- * to `prefers-reduced-motion: reduce`, no overlay element renders on first
- * visit. The unit-tested contract (the `prefersReducedMotion()` and
- * `hasSeenIntro()` gates) covers the logic; the visual feel itself is
- * tuned by eye against the design handoff.
+ * SSR safety: the component renders a `gate` placeholder (returns null) on
+ * first render so server markup is stable. The effect runs on mount and
+ * either jumps straight to `done` (reduced motion or already-seen) or kicks
+ * off the rAF loop. The intro-out class drives the dissolve via the
+ * keyframes declared in app/globals.css.
  */
 
-// Tuning values for the cinematic feel itself; the implementation plan
-// excludes intro pacing from TDD. These literals are fine here because the
-// component returns null under prefers-reduced-motion, so the durations
-// never reach a user who has opted out. The visual sibling tokens
-// (--duration-base, --duration-slow) are 250 and 400 ms respectively; the
-// hold value extends past the slow token because the overlay needs a
-// readable beat before the fade.
-const FADE_OUT_MS = 400;
-const HOLD_MS = 700;
+const PHASE_BOOTLINES_MS = 1400;
+const PHASE_NAME_MS = 3000;
+const PHASE_HOLD_MS = 4800;
+const TOTAL_DUR_MS = 5400;
+const OUT_FADE_MS = 600;
 
-export function CinematicIntro() {
-  const [phase, setPhase] = useState<'gate' | 'enter' | 'exit' | 'done'>('gate');
+type Phase = 'gate' | 'bootlines' | 'name' | 'hold' | 'out' | 'done';
 
+function phaseFromElapsed(elapsedMs: number): Exclude<Phase, 'gate' | 'done'> {
+  if (elapsedMs < PHASE_BOOTLINES_MS) return 'bootlines';
+  if (elapsedMs < PHASE_NAME_MS) return 'name';
+  if (elapsedMs < PHASE_HOLD_MS) return 'hold';
+  return 'out';
+}
+
+interface CinematicIntroProps {
+  person: Pick<Person, 'role' | 'location' | 'estYear'>;
+}
+
+export function CinematicIntro({ person }: CinematicIntroProps) {
+  const [phase, setPhase] = useState<Phase>('gate');
+  const [progress, setProgress] = useState(0);
+
+  // Refs survive across renders without forcing re-mounts. The rAF id ref
+  // lets cleanup cancel the pending frame; the start ref pins t=0; the
+  // finish ref exposes the stop routine to the Skip button click handler
+  // and the Escape keydown listener so all three skip paths share one
+  // implementation.
+  const rafIdRef = useRef<number | null>(null);
+  const startRef = useRef<number | null>(null);
+  const finishedRef = useRef(false);
+  const finishRef = useRef<() => void>(() => undefined);
+
+  // Run the boot sequence exactly once. The gates (reduced motion, seen
+  // before) either short-circuit to done or start the rAF loop.
   useEffect(() => {
     if (prefersReducedMotion() || hasSeenIntro()) {
       setPhase('done');
+      markIntroSeen();
       return;
     }
 
-    setPhase('enter');
+    const finish = () => {
+      if (finishedRef.current) return;
+      finishedRef.current = true;
+      if (rafIdRef.current !== null) {
+        cancelAnimationFrame(rafIdRef.current);
+        rafIdRef.current = null;
+      }
+      // The intro-out class fades the overlay over OUT_FADE_MS; the unmount
+      // waits for the fade to land so the visual exit is not clipped.
+      setPhase('out');
+      window.setTimeout(() => {
+        setPhase('done');
+        markIntroSeen();
+      }, OUT_FADE_MS);
+    };
+    finishRef.current = finish;
 
-    const enterTimer = window.setTimeout(() => {
-      setPhase('exit');
-    }, HOLD_MS);
+    const tick = (now: number) => {
+      if (startRef.current === null) {
+        startRef.current = now;
+      }
+      const elapsed = now - startRef.current;
+      const next = Math.min(1, elapsed / TOTAL_DUR_MS);
+      setProgress(next);
 
-    const exitTimer = window.setTimeout(() => {
-      setPhase('done');
-      markIntroSeen();
-    }, HOLD_MS + FADE_OUT_MS);
+      if (elapsed >= PHASE_HOLD_MS) {
+        finish();
+        return;
+      }
+
+      setPhase(phaseFromElapsed(elapsed));
+      rafIdRef.current = requestAnimationFrame(tick);
+    };
+
+    setPhase('bootlines');
+    rafIdRef.current = requestAnimationFrame(tick);
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        finish();
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
 
     return () => {
-      window.clearTimeout(enterTimer);
-      window.clearTimeout(exitTimer);
+      window.removeEventListener('keydown', onKeyDown);
+      if (rafIdRef.current !== null) {
+        cancelAnimationFrame(rafIdRef.current);
+        rafIdRef.current = null;
+      }
     };
+  }, []);
+
+  const handleSkip = useCallback(() => {
+    finishRef.current();
   }, []);
 
   if (phase === 'gate' || phase === 'done') {
     return null;
   }
 
-  const isExiting = phase === 'exit';
+  const isOut = phase === 'out';
+  const showName = phase === 'name' || phase === 'hold' || phase === 'out';
+  const showFooter = phase === 'hold' || phase === 'out';
+  const percent = Math.floor(progress * 100)
+    .toString()
+    .padStart(2, '0');
 
   return (
-    <div
-      aria-hidden="true"
-      data-intro-phase={phase}
-      style={{
-        position: 'fixed',
-        inset: 0,
-        // Mirrors --z-modal in tokens.css (100). Inlined as a number because
-        // React's CSSProperties does not accept var() expressions for zIndex
-        // in our typings configuration; the token is stable and changes here
-        // would propagate via a single tokens.css edit.
-        zIndex: 100,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: 'var(--color-surface-canvas)',
-        opacity: isExiting ? 0 : 1,
-        transition: `opacity ${FADE_OUT_MS}ms var(--ease-out)`,
-        pointerEvents: isExiting ? 'none' : 'auto',
-      }}
-    >
-      <span
-        data-view-transition="cinematic-intro-wordmark"
-        style={{
-          fontFamily: 'var(--font-serif)',
-          fontSize: 'var(--text-display-hero)',
-          letterSpacing: 'var(--tracking-display)',
-          color: 'var(--color-text-primary)',
-          transform: isExiting ? 'translate3d(0, -8px, 0)' : 'translate3d(0, 0, 0)',
-          transition: `transform ${FADE_OUT_MS}ms var(--ease-out)`,
-        }}
-      >
-        David Onasanya
-      </span>
+    <div className={`intro${isOut ? ' intro-out' : ''}`} data-intro-phase={phase}>
+      <button type="button" className="intro-skip" aria-label="Skip intro" onClick={handleSkip}>
+        Skip
+      </button>
+
+      <div className="intro-stamp intro-stamp-l">REC, 16:9, 24fps</div>
+      <div className="intro-stamp intro-stamp-r">{percent}%</div>
+
+      <div className="intro-stage">
+        <div className="intro-bootlines" aria-hidden="true">
+          <BootLine show={progress > 0.02}>&gt; initialising portfolio.sys</BootLine>
+          <BootLine show={progress > 0.08}>&gt; loading typeface, Fraunces v9</BootLine>
+          <BootLine show={progress > 0.14}>&gt; resolving identity ....</BootLine>
+          <BootLine show={progress > 0.22}>
+            &gt; <span className="intro-bootline-ok">OK</span>&nbsp;&nbsp;David Onasanya
+          </BootLine>
+        </div>
+
+        <div className={`intro-frame${showName ? ' is-on' : ''}`} aria-hidden="true">
+          <Corner pos="tl" />
+          <Corner pos="tr" />
+          <Corner pos="bl" />
+          <Corner pos="br" />
+        </div>
+
+        <div className="intro-name" data-view-transition="cinematic-intro-wordmark">
+          <span className="intro-name-mask">
+            <span className={`intro-name-row${showName ? ' is-on' : ''}`}>David</span>
+          </span>
+          <span className="intro-name-mask">
+            <span className={`intro-name-row intro-name-row-accent${showName ? ' is-on' : ''}`}>
+              Onasanya
+            </span>
+          </span>
+        </div>
+
+        <div className={`intro-meta${showFooter ? ' is-on' : ''}`}>
+          <span>{person.role}</span>
+          <span>{person.location}</span>
+          <span>Est. {person.estYear}</span>
+        </div>
+      </div>
+
+      <div className="intro-progress" aria-hidden="true">
+        <div className="intro-progress-bar" style={{ width: `${progress * 100}%` }} />
+      </div>
     </div>
   );
+}
+
+interface BootLineProps {
+  show: boolean;
+  children: React.ReactNode;
+}
+
+// BootLine: a single line in the top-left console reveal block. Visibility
+// is driven by the rAF progress rather than a per-line setTimeout so the
+// stagger is frame-accurate and Skip presses cut every line at once.
+function BootLine({ show, children }: BootLineProps) {
+  return <div className={`intro-line${show ? ' is-on' : ''}`}>{children}</div>;
+}
+
+type CornerPos = 'tl' | 'tr' | 'bl' | 'br';
+
+interface CornerProps {
+  pos: CornerPos;
+}
+
+// Corner: a 24px crosshair bracket pinned to one corner of the inner frame.
+// Border edges are picked per position so the four corners together form
+// an open square that draws focus to the centred name without enclosing it.
+function Corner({ pos }: CornerProps) {
+  return <span className={`intro-corner intro-corner-${pos}`} aria-hidden="true" />;
 }

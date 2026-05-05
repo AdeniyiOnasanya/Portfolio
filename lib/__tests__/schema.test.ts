@@ -31,6 +31,7 @@ const validPerson = {
   github: 'https://github.com/example',
   linkedin: 'https://www.linkedin.com/in/example',
   yearsExp: 6,
+  estYear: '2019',
   statement: 'A short statement that fits in one paragraph.',
   longBio: ['Paragraph one.', 'Paragraph two.', 'Paragraph three.'],
 };
@@ -127,6 +128,20 @@ describe('PersonSchema', () => {
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(result.error.issues.map((i) => i.path.join('.'))).toContain('nameAccent');
+    }
+  });
+
+  it('accepts a valid estYear', () => {
+    const result = PersonSchema.safeParse({ ...validPerson, estYear: '2019' });
+    expect(result.success).toBe(true);
+  });
+
+  it('rejects when estYear is missing', () => {
+    const { estYear: _omit, ...withoutEstYear } = validPerson;
+    const result = PersonSchema.safeParse(withoutEstYear);
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues.map((i) => i.path.join('.'))).toContain('estYear');
     }
   });
 });
