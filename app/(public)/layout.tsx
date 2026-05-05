@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { CinematicIntro } from '../../components/public/CinematicIntro';
 import { Nav } from '../../components/public/Nav';
+import { RevealMount } from '../../components/public/RevealMount';
 import { CommandPalette } from '../../components/shared/CommandPalette';
 import { CustomCursor } from '../../components/shared/CustomCursor';
 import { Grain } from '../../components/shared/Grain';
@@ -13,6 +14,7 @@ export default async function PublicLayout({ children }: { children: ReactNode }
       <Grain />
       <CinematicIntro />
       <CustomCursor />
+      <RevealMount />
       <Nav person={site.person} />
       <main>{children}</main>
       <CommandPalette site={site} />
