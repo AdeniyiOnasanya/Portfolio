@@ -230,6 +230,47 @@ body {
   }
 }
 
+/* ==========================================================================
+   Reveal-on-scroll classes
+   --------------------------------------------------------------------------
+   Driven by the global `useReveal()` hook in `lib/motion/useReveal.ts`,
+   mounted via `<RevealMount />` in `app/(public)/layout.tsx`. Mirrors the
+   design handoff (`design_handoff_portfolio/design/styles.css` lines
+   187-203). The hook adds the `.in` class on intersection (or up-front
+   under prefers-reduced-motion). The CSS below freezes both transitions
+   under reduced-motion through the standard duration tokens, which the
+   :root @media block in `tokens.css` already zeros, so reduced-motion
+   users see content visible without animation.
+   ========================================================================== */
+
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity var(--duration-slow) cubic-bezier(0.2, 0.7, 0.3, 1),
+    transform var(--duration-slow) cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+
+.reveal.in {
+  opacity: 1;
+  transform: none;
+}
+
+.line-mask {
+  overflow: hidden;
+  display: block;
+}
+
+.line-mask > span {
+  display: block;
+  transform: translateY(110%);
+  transition: transform var(--duration-slow) cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+
+.line-mask.in > span {
+  transform: none;
+}
+
 @theme {
   --color-brand-50: var(--color-brand-50);
   --color-brand-100: var(--color-brand-100);
