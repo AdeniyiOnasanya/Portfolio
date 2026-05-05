@@ -2,7 +2,7 @@ import type { AiPractice as AiPracticeType } from '../../lib/schema';
 
 export function AiPractice({ ai }: { ai: AiPracticeType }) {
   return (
-    <section aria-labelledby="ai-practice-heading" className="py-2xl">
+    <section id="ai-practice" aria-labelledby="ai-practice-heading" className="py-2xl">
       <p className="text-fg-muted tracking-eyebrow text-xs uppercase">{ai.eyebrow}</p>
       <h2
         id="ai-practice-heading"

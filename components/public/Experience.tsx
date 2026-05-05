@@ -2,7 +2,7 @@ import type { Experience as ExperienceType } from '../../lib/schema';
 
 export function Experience({ experience }: { experience: ExperienceType }) {
   return (
-    <section aria-labelledby="experience-heading" className="py-2xl">
+    <section id="experience" aria-labelledby="experience-heading" className="py-2xl">
       <h2 id="experience-heading" className="font-serif tracking-display text-3xl md:text-4xl">
         Experience
       </h2>

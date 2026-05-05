@@ -17,6 +17,7 @@ import { useEffect, useState } from 'react';
  */
 
 const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
+const POINTER_FINE_QUERY = '(pointer: fine)';
 
 /**
  * One-shot read of the user's reduced-motion preference. Returns `false`
@@ -29,6 +30,19 @@ export function prefersReducedMotion(): boolean {
     return false;
   }
   return window.matchMedia(REDUCED_MOTION_QUERY).matches;
+}
+
+/**
+ * One-shot read of whether the primary input is a fine pointer (mouse,
+ * trackpad, stylus). Returns `false` on the server and on coarse-pointer
+ * devices (touch). Cinema-layer effects that only make sense with a cursor
+ * (custom cursor, magnetic pull) gate on this in addition to reduced-motion.
+ */
+export function pointerFine(): boolean {
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+    return false;
+  }
+  return window.matchMedia(POINTER_FINE_QUERY).matches;
 }
 
 /**
@@ -56,4 +70,33 @@ export function usePrefersReducedMotion(): boolean {
   }, []);
 
   return reduced;
+}
+
+/**
+ * Subscribe a component to the `(pointer: fine)` media query. Returns
+ * `false` during SSR and on the first client render so cinema-layer
+ * components (custom cursor, magnetic pull) only attach on confirmed
+ * desktop pointers after mount. The hook re-flips if the user changes
+ * input device class while the page is open (e.g. plugs in a mouse on a
+ * convertible laptop).
+ */
+export function usePointerFine(): boolean {
+  const [fine, setFine] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+      return;
+    }
+    const mq = window.matchMedia(POINTER_FINE_QUERY);
+    const apply = () => {
+      setFine(mq.matches);
+    };
+    apply();
+    mq.addEventListener('change', apply);
+    return () => {
+      mq.removeEventListener('change', apply);
+    };
+  }, []);
+
+  return fine;
 }
