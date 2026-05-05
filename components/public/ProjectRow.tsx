@@ -63,19 +63,17 @@ export function ProjectRow({ slug, index }: { slug: string; index: number }) {
       return;
     }
 
-    const startViewTransition = (
-      document as Document & {
-        startViewTransition?: (callback: () => void | Promise<void>) => unknown;
-      }
-    ).startViewTransition;
+    const doc = document as Document & {
+      startViewTransition?: (callback: () => void | Promise<void>) => unknown;
+    };
 
-    if (typeof startViewTransition !== 'function') {
+    if (typeof doc.startViewTransition !== 'function') {
       // Older browsers without View Transitions API: also instant nav.
       return;
     }
 
     event.preventDefault();
-    startViewTransition(() => {
+    doc.startViewTransition(() => {
       router.push(href);
     });
   }
