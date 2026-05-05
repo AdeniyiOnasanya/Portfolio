@@ -10,13 +10,13 @@ import { loadSite } from '../../lib/content';
 export default async function PublicLayout({ children }: { children: ReactNode }) {
   const site = await loadSite();
   return (
-    <div className="min-h-screen px-md mx-auto" style={{ maxWidth: 'var(--max-width-content)' }}>
+    <div className="min-h-screen">
       <Grain />
       <CinematicIntro person={site.person} />
       <CustomCursor />
       <RevealMount />
       <Nav person={site.person} />
-      <main>{children}</main>
+      <main className="container">{children}</main>
       <CommandPalette site={site} />
     </div>
   );

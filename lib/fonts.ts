@@ -3,7 +3,7 @@ import { Fraunces, Geist, JetBrains_Mono } from 'next/font/google';
 export const fraunces = Fraunces({
   subsets: ['latin'],
   variable: '--font-fraunces',
-  axes: ['opsz'],
+  axes: ['opsz', 'SOFT', 'WONK'],
   style: ['normal', 'italic'],
   display: 'swap',
 });

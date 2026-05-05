@@ -226,6 +226,28 @@
   --grain-opacity-low: 0.04;
   --grain-opacity-high: 0.06;
   --grain-opacity: var(--grain-opacity-low);
+
+  /* ----------------------------------------------------------------------
+     10. Design-handoff aliases
+        Short-name aliases (--bg, --fg, --accent etc.) used by the public
+        surfaces. They mirror the names from
+        `design_handoff_portfolio/design/styles.css` so the CSS in
+        globals.css can read directly from the handoff. Theme blocks below
+        re-point them; they never declare new raw values.
+     ---------------------------------------------------------------------- */
+  --bg: var(--color-surface-canvas);
+  --bg-elev: var(--color-surface-raised);
+  --fg: var(--color-text-primary);
+  --fg-dim: var(--color-text-secondary);
+  --fg-mute: var(--color-text-muted);
+  --line: var(--color-border-subtle);
+  --line-strong: var(--color-border);
+  --accent: var(--color-accent);
+  --accent-soft: var(--color-accent-subtle);
+  --accent-strong: var(--color-accent-active);
+  --serif: var(--font-serif);
+  --sans: var(--font-sans);
+  --mono: var(--font-mono);
 }
 
 /* ==========================================================================
@@ -276,6 +298,17 @@
     --shadow-focus: 0 0 0 3px var(--color-brand-800);
 
     --grain-opacity: var(--grain-opacity-high);
+
+    --bg: var(--color-surface-canvas);
+    --bg-elev: var(--color-surface-raised);
+    --fg: var(--color-text-primary);
+    --fg-dim: var(--color-text-secondary);
+    --fg-mute: var(--color-text-muted);
+    --line: var(--color-border-subtle);
+    --line-strong: var(--color-border);
+    --accent: var(--color-accent);
+    --accent-soft: var(--color-accent-subtle);
+    --accent-strong: var(--color-accent-active);
   }
 }
 
@@ -321,6 +354,17 @@
   --shadow-focus: 0 0 0 3px var(--color-brand-200);
 
   --grain-opacity: var(--grain-opacity-low);
+
+  --bg: var(--color-surface-canvas);
+  --bg-elev: var(--color-surface-raised);
+  --fg: var(--color-text-primary);
+  --fg-dim: var(--color-text-secondary);
+  --fg-mute: var(--color-text-muted);
+  --line: var(--color-border-subtle);
+  --line-strong: var(--color-border);
+  --accent: var(--color-accent);
+  --accent-soft: var(--color-accent-subtle);
+  --accent-strong: var(--color-accent-active);
 }
 
 [data-theme="dark"] {
@@ -359,6 +403,17 @@
   --shadow-focus: 0 0 0 3px var(--color-brand-800);
 
   --grain-opacity: var(--grain-opacity-high);
+
+  --bg: var(--color-surface-canvas);
+  --bg-elev: var(--color-surface-raised);
+  --fg: var(--color-text-primary);
+  --fg-dim: var(--color-text-secondary);
+  --fg-mute: var(--color-text-muted);
+  --line: var(--color-border-subtle);
+  --line-strong: var(--color-border);
+  --accent: var(--color-accent);
+  --accent-soft: var(--color-accent-subtle);
+  --accent-strong: var(--color-accent-active);
 }
 
 /* ==========================================================================

@@ -231,6 +231,90 @@ body {
 }
 
 /* ==========================================================================
+   Layout primitives + editorial type
+   --------------------------------------------------------------------------
+   `.container` mirrors the design handoff (max-width: 1440px, padding: 0
+   48px, 24px on small screens). `.section-head` is the rigid 200px-rail
+   eyebrow grid used by every public section. `.display` and `.eyebrow`
+   are the editorial type shorthands that drive Fraunces (with SOFT/WONK
+   variation axes loaded by `lib/fonts.ts`) and the JetBrains Mono caps
+   eyebrow respectively.
+   ========================================================================== */
+
+.container {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 48px;
+}
+@media (max-width: 720px) {
+  .container {
+    padding: 0 24px;
+  }
+}
+
+.display {
+  font-family: var(--font-serif);
+  font-weight: var(--font-light);
+  font-style: normal;
+  letter-spacing: -0.03em;
+  line-height: 0.92;
+  font-variation-settings:
+    "SOFT" 50,
+    "WONK" 1,
+    "opsz" 144;
+}
+.display em {
+  font-style: italic;
+  font-weight: var(--font-light);
+  color: var(--color-accent);
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--color-text-muted);
+}
+
+.section-head {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 64px;
+  padding: 120px 0 64px;
+  border-top: 1px solid var(--color-border-subtle);
+  align-items: start;
+}
+.section-head .num {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  color: var(--color-text-muted);
+  padding-top: 12px;
+}
+.section-head h2 {
+  font-family: var(--font-serif);
+  font-weight: var(--font-light);
+  font-size: clamp(40px, 6vw, 88px);
+  line-height: 0.95;
+  letter-spacing: -0.025em;
+  font-variation-settings:
+    "SOFT" 50,
+    "opsz" 144;
+}
+.section-head h2 em {
+  font-style: italic;
+  color: var(--color-accent);
+}
+@media (max-width: 720px) {
+  .section-head {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding: 80px 0 40px;
+  }
+}
+
+/* ==========================================================================
    Cinematic intro overlay (Phase 5.5, slice F22)
    --------------------------------------------------------------------------
    Visual treatment mirrors design_handoff_portfolio/design/styles.css under
