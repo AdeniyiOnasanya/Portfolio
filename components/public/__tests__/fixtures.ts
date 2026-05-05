@@ -21,6 +21,7 @@ export const samplePerson: Person = {
   github: 'https://github.com/example',
   linkedin: 'https://www.linkedin.com/in/example',
   yearsExp: 6,
+  estYear: '2019',
   statement: 'A short statement that fits in one paragraph.',
   longBio: ['Paragraph one.', 'Paragraph two.'],
 };
