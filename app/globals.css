@@ -1283,6 +1283,161 @@ body {
   }
 }
 
+/* ==========================================================================
+   Projects index
+   --------------------------------------------------------------------------
+   Mirrors `design_handoff_portfolio/design/styles.css` `.projects-index`,
+   `.project-row`, `.preview-thumb`. Each row is a 5-column grid; the
+   middle title cell holds the project title and a faint subtitle. On
+   hover the title slides 24px right and tints accent, the arrow advances
+   8px, and a cursor-following preview thumbnail (rendered by
+   ProjectsIndex.tsx) fades in. Reduced-motion bypass is handled by the
+   client wrapper, not CSS.
+   ========================================================================== */
+
+.projects-index {
+  padding-bottom: 80px;
+  position: relative;
+}
+.project-row {
+  display: grid;
+  grid-template-columns: 200px 60px 1fr 200px 60px;
+  align-items: center;
+  gap: 32px;
+  padding: 36px 0;
+  border-top: 1px solid var(--color-border-subtle);
+  position: relative;
+  text-decoration: none;
+  color: inherit;
+  transition: padding 0.5s var(--ease-out);
+}
+.project-row:last-child {
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+.project-row .num {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  color: var(--color-text-muted);
+}
+.project-row .year {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  color: var(--color-text-muted);
+}
+.project-row .title {
+  font-family: var(--font-serif);
+  font-weight: var(--font-light);
+  font-size: clamp(32px, 4vw, 56px);
+  line-height: 1;
+  letter-spacing: -0.025em;
+  font-variation-settings:
+    "SOFT" 50,
+    "opsz" 144;
+  transition:
+    transform 0.5s var(--ease-out),
+    color 0.3s;
+}
+.project-row .title-subtitle {
+  color: var(--color-text-muted);
+  font-size: 0.5em;
+  font-style: normal;
+  margin-left: 16px;
+  letter-spacing: 0.02em;
+}
+.project-row .meta {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--color-text-muted);
+}
+.project-row .arrow {
+  font-family: var(--font-serif);
+  font-size: 28px;
+  text-align: right;
+  transition:
+    transform 0.5s var(--ease-out),
+    color 0.3s;
+  color: var(--color-text-muted);
+}
+.project-row:hover .title {
+  transform: translateX(24px);
+  font-style: italic;
+  color: var(--color-accent);
+}
+.project-row:hover .arrow {
+  transform: translateX(8px);
+  color: var(--color-accent);
+}
+.project-row:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 4px;
+  border-radius: 2px;
+}
+
+.preview-thumb {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 320px;
+  height: 220px;
+  pointer-events: none;
+  z-index: var(--z-overlay);
+  opacity: 0;
+  transition: opacity 0.3s var(--ease-out);
+  transform: translate(-50%, -50%);
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-raised);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+}
+.preview-thumb.show {
+  opacity: 1;
+}
+.preview-thumb .thumb-inner {
+  position: absolute;
+  inset: 0;
+}
+.preview-thumb .thumb-meta {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.5);
+}
+.preview-thumb .thumb-body {
+  position: relative;
+}
+.preview-thumb .thumb-kind {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: 8px;
+}
+
+@media (max-width: 900px) {
+  .project-row {
+    grid-template-columns: 40px 1fr 30px;
+    gap: 16px;
+    padding: 24px 0;
+  }
+  .project-row .year,
+  .project-row .meta {
+    display: none;
+  }
+  .preview-thumb {
+    display: none;
+  }
+}
+
 @theme {
   --color-brand-50: var(--color-brand-50);
   --color-brand-100: var(--color-brand-100);

@@ -6,23 +6,14 @@ import { Hero } from '../../components/public/Hero';
 import { Projects } from '../../components/public/Projects';
 import { Skills } from '../../components/public/Skills';
 import { loadSite } from '../../lib/content';
+import { loadProjectFiles } from '../../lib/projects';
 import { personJsonLd, serializeJsonLd } from '../../lib/seo/jsonld';
 import { siteOrigin } from '../../lib/seo/origin';
 
 export default async function HomePage() {
-  const site = await loadSite();
-  const {
-    person,
-    hero,
-    skills,
-    experience,
-    education,
-    certs,
-    aiPractice,
-    projects,
-    footer,
-    settings,
-  } = site;
+  const [site, projectFiles] = await Promise.all([loadSite(), loadProjectFiles()]);
+  const projectList = projectFiles.map((f) => f.frontmatter);
+  const { person, hero, skills, experience, education, certs, aiPractice, footer, settings } = site;
   const { visibility } = settings;
   const personLd = personJsonLd(person, siteOrigin());
 
@@ -40,7 +31,7 @@ export default async function HomePage() {
         <Experience experience={experience} education={education} certs={certs} />
       ) : null}
       {visibility.ai ? <AiPractice ai={aiPractice} /> : null}
-      {visibility.work ? <Projects projects={projects} /> : null}
+      {visibility.work ? <Projects projects={projectList} /> : null}
       <Footer footer={footer} person={person} />
     </>
   );
