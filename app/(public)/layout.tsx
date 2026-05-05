@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { CinematicIntro } from '../../components/public/CinematicIntro';
+import { RevealMount } from '../../components/public/RevealMount';
 import { CommandPalette } from '../../components/shared/CommandPalette';
 import { CustomCursor } from '../../components/shared/CustomCursor';
 import { Grain } from '../../components/shared/Grain';
@@ -13,6 +14,7 @@ export default async function PublicLayout({ children }: { children: ReactNode }
       <Grain />
       <CinematicIntro />
       <CustomCursor />
+      <RevealMount />
       <header className="flex items-center justify-between pt-lg">
         <p className="text-fg-muted tracking-eyebrow text-xs uppercase">DO / 2026</p>
         <ThemeToggle />
