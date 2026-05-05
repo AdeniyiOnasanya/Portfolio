@@ -80,12 +80,15 @@ describe('<CustomCursor />', () => {
     expect(document.documentElement.hasAttribute('data-custom-cursor')).toBe(false);
   });
 
-  it('renders the cursor element when fine pointer and no reduced-motion', () => {
+  it('renders the dot and ring when fine pointer and no reduced-motion', () => {
     installMatchMedia(false, true);
     const { container } = render(<CustomCursor />);
-    const dot = container.querySelector('[data-custom-cursor-dot]');
+    const dot = container.querySelector('.cursor-dot');
+    const ring = container.querySelector('.cursor-ring');
     expect(dot).not.toBeNull();
+    expect(ring).not.toBeNull();
     expect(dot?.getAttribute('aria-hidden')).toBe('true');
+    expect(ring?.getAttribute('aria-hidden')).toBe('true');
     expect(document.documentElement.hasAttribute('data-custom-cursor')).toBe(true);
   });
 

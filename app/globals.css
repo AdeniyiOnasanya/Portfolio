@@ -46,6 +46,71 @@ body {
   cursor: none;
 }
 
+/* Dot + ring follower per design_handoff_portfolio/design/styles.css. The dot
+ * (`.cursor-dot`) tracks the pointer 1:1 via `mousemove`. The ring
+ * (`.cursor-ring`) lags behind via a constant rAF interpolation (0.18 / frame).
+ * When the body has `cursor-hover`, the dot collapses to 0px and the ring
+ * inflates to 56px with the brand accent fill, signalling the pointer is over
+ * an interactive target. Hidden on viewports < 900px; the keystone hooks
+ * already gate on `pointer: fine` and `prefers-reduced-motion`, the media
+ * query is the visual safety net.
+ */
+.cursor-dot,
+.cursor-ring {
+  position: fixed;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%, -50%);
+  will-change: transform;
+}
+
+.cursor-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--color-accent);
+  border-radius: 50%;
+  transition:
+    width 0.2s,
+    height 0.2s,
+    background 0.2s;
+}
+
+.cursor-ring {
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--color-text-primary);
+  border-radius: 50%;
+  opacity: 0.5;
+  transition:
+    width 0.25s ease,
+    height 0.25s ease,
+    border-color 0.25s,
+    opacity 0.25s,
+    background 0.25s;
+}
+
+.cursor-hover .cursor-dot {
+  width: 0;
+  height: 0;
+}
+
+.cursor-hover .cursor-ring {
+  width: 56px;
+  height: 56px;
+  border-color: var(--color-accent);
+  background: var(--color-accent-subtle);
+  opacity: 1;
+}
+
+@media (max-width: 900px) {
+  .cursor-dot,
+  .cursor-ring {
+    display: none;
+  }
+}
+
 /* ==========================================================================
    Film grain overlay
    --------------------------------------------------------------------------

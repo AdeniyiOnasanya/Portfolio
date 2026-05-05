@@ -4,37 +4,42 @@ import { useEffect, useRef } from 'react';
 import { usePointerFine, usePrefersReducedMotion } from '../../lib/motion/preferences';
 
 /*
- * CustomCursor
+ * CustomCursor: dot + ring follower, mirrors the design handoff
+ * (design_handoff_portfolio/design/shared.jsx#CustomCursor and styles.css
+ * .cursor-dot/.cursor-ring/.cursor-hover).
  *
- * A small fixed-position element that follows the pointer on confirmed
- * desktop pointers. The cinema layer's cursor flourish; the rest of the
- * page reverts to the system cursor when this component is absent.
+ * Two elements:
+ *   - `.cursor-dot` tracks the pointer 1:1 via `mousemove`.
+ *   - `.cursor-ring` lags behind via a continuous `requestAnimationFrame`
+ *     loop with a constant 0.18 interpolation factor per frame. The lag is
+ *     the visual signature of the cursor.
+ *
+ * Hover interaction: when the pointer is over `a`, `button`, `.project-row`,
+ * or any element marked `[data-cursor-hover]`, the body gets a `cursor-hover`
+ * class. CSS in app/globals.css inflates the ring and collapses the dot.
  *
  * Skip conditions, both gated through the keystone Phase 5 helpers:
- *   1. `prefers-reduced-motion: reduce` is set at the OS level. The
- *      component returns null; no cursor element, no follow logic.
- *   2. The active pointer is not `(pointer: fine)`. Touchscreens, styluses,
- *      and other coarse pointers see the system cursor and nothing else.
+ *   1. `prefers-reduced-motion: reduce` is set at the OS level.
+ *   2. The active pointer is not `(pointer: fine)` (touch, stylus, etc.).
  *
- * Render-loop discipline: the position is written directly to the ref's
- * `.style.transform` inside a single `requestAnimationFrame` per pointer
- * move. We never call `setState` per frame; React only re-renders when
- * the gating hooks flip (reduced-motion toggled, pointer class changed).
+ * In either case the component returns null and removes any state it set
+ * on `<html>` or `<body>`. The CSS also hides both elements on viewports
+ * below 900px as a visual safety net.
  *
- * System-cursor hiding is opt-in via a `data-custom-cursor` attribute on
- * `<html>`; pair this attribute with a global CSS rule
- * (`[data-custom-cursor] *, [data-custom-cursor] { cursor: none; }`) so
- * the system cursor disappears only while the custom cursor is mounted.
- * The attribute is removed on unmount and on either skip-condition
- * flipping live, so the system cursor returns cleanly.
+ * Render-loop discipline: the rAF tick runs continuously while the cursor
+ * is active (the ring's lag depends on per-frame interpolation, not on
+ * pointer events). Both DOM updates write directly to `style.transform` on
+ * refs; React only re-renders when the gating hooks flip.
  */
 
-const CURSOR_DIAMETER_PX = 16;
+const HOVER_SELECTOR = 'a, button, .project-row, [data-cursor-hover]';
+const RING_INTERPOLATION = 0.18;
 
 export function CustomCursor() {
   const reduced = usePrefersReducedMotion();
   const fine = usePointerFine();
-  const cursorRef = useRef<HTMLDivElement | null>(null);
+  const dotRef = useRef<HTMLDivElement | null>(null);
+  const ringRef = useRef<HTMLDivElement | null>(null);
 
   const active = !reduced && fine;
 
@@ -43,49 +48,54 @@ export function CustomCursor() {
       return;
     }
 
-    // Set the attribute only after we have confirmed the cursor element is
-    // actually in the DOM. Setting it earlier would briefly hide the system
-    // cursor without providing a replacement on the rare path where the ref
-    // has not been attached yet (e.g. concurrent-mode scheduling, or tests
-    // that flush effects before refs).
-    const node = cursorRef.current;
-    if (node === null) {
+    const dot = dotRef.current;
+    const ring = ringRef.current;
+    if (dot === null || ring === null) {
       return;
     }
 
     const root = document.documentElement;
     root.setAttribute('data-custom-cursor', '');
 
-    let pointerX = 0;
-    let pointerY = 0;
-    let frame = 0;
-    let pending = false;
+    let mouseX = window.innerWidth / 2;
+    let mouseY = window.innerHeight / 2;
+    let ringX = mouseX;
+    let ringY = mouseY;
 
-    const apply = () => {
-      pending = false;
-      node.style.transform = `translate3d(${pointerX - CURSOR_DIAMETER_PX / 2}px, ${
-        pointerY - CURSOR_DIAMETER_PX / 2
-      }px, 0)`;
+    const onMove = (event: MouseEvent) => {
+      mouseX = event.clientX;
+      mouseY = event.clientY;
+      dot.style.transform = `translate(${mouseX}px, ${mouseY}px) translate(-50%, -50%)`;
     };
 
-    const onMove = (event: PointerEvent) => {
-      pointerX = event.clientX;
-      pointerY = event.clientY;
-      if (pending) {
+    const onOver = (event: MouseEvent) => {
+      const target = event.target;
+      if (!(target instanceof Element)) {
         return;
       }
-      pending = true;
-      frame = window.requestAnimationFrame(apply);
+      if (target.closest(HOVER_SELECTOR) !== null) {
+        document.body.classList.add('cursor-hover');
+      } else {
+        document.body.classList.remove('cursor-hover');
+      }
     };
 
-    window.addEventListener('pointermove', onMove, { passive: true });
+    let frame = window.requestAnimationFrame(function tick() {
+      ringX += (mouseX - ringX) * RING_INTERPOLATION;
+      ringY += (mouseY - ringY) * RING_INTERPOLATION;
+      ring.style.transform = `translate(${ringX}px, ${ringY}px) translate(-50%, -50%)`;
+      frame = window.requestAnimationFrame(tick);
+    });
+
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseover', onOver);
 
     return () => {
-      window.removeEventListener('pointermove', onMove);
-      if (frame !== 0) {
-        window.cancelAnimationFrame(frame);
-      }
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseover', onOver);
+      window.cancelAnimationFrame(frame);
       root.removeAttribute('data-custom-cursor');
+      document.body.classList.remove('cursor-hover');
     };
   }, [active]);
 
@@ -94,29 +104,9 @@ export function CustomCursor() {
   }
 
   return (
-    <div
-      ref={cursorRef}
-      aria-hidden="true"
-      data-custom-cursor-dot
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        width: CURSOR_DIAMETER_PX,
-        height: CURSOR_DIAMETER_PX,
-        borderRadius: 'var(--radius-full)',
-        background: 'var(--color-text-primary)',
-        // Mirrors --z-modal in tokens.css (100). The cursor must float above
-        // every other surface, including the cinematic intro overlay during
-        // its fade-out tail.
-        zIndex: 200,
-        pointerEvents: 'none',
-        // Initial off-screen position; the first pointermove writes the
-        // real coordinates via translate3d before paint.
-        transform: 'translate3d(-9999px, -9999px, 0)',
-        willChange: 'transform',
-        mixBlendMode: 'difference',
-      }}
-    />
+    <>
+      <div ref={ringRef} className="cursor-ring" aria-hidden="true" />
+      <div ref={dotRef} className="cursor-dot" aria-hidden="true" />
+    </>
   );
 }
