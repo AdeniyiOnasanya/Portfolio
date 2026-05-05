@@ -141,6 +141,96 @@ Recommended fix: when a third surface introduces the same header (likely Phase 5
 
 Priority: P3, deferred until a third use site appears.
 
+### F17: Build the Hero meta-row, line-mask name, sub-row stats, and embedded skill marquee
+
+Source: design-handoff audit (`design_handoff_portfolio/design/app.jsx#Hero` lines 4-50, `design/styles.css` `.meta-row` / `.row.line-mask` / `.sub-row` / `.stats`).
+
+Problem: the current `components/public/Hero.tsx` ships role / name / statement / location / single CV link only. The design specifies a top meta-row (`Available · Q2 2026 · Stafford · UK · GMT · v6.0, six years shipping` with pulsing accent dots), a `<h1>` rendered in two `.row.line-mask` spans for the scroll-triggered line-mask reveal, a two-column sub-row (statement + a 3-stat block: `06 Years shipping`, `07 Production projects`, `infinity CSS rewrites`), four primary action buttons (Download CV, GitHub, LinkedIn, Email) each with `[data-magnetic]` plus inline SVG icons, and an embedded `<Marquee />` of stack labels at the foot of the hero section.
+
+Recommended fix: split into a multi-commit slice. (1) Add the meta-row + stats grid + 4-button action row, preserving the existing `renderAccentedName` h1 logic. (2) Wire the line-mask classes + global `useReveal` hook (see F22). (3) Embed `<Marquee items={...} />` inside Hero (the slice #33 `Marquee` component already exists and can be reused once `useReveal` lands).
+
+Priority: P2, must land before staging promotion.
+
+### F18: Build the Nav strip (DO / 2026, anchor links, ThemeToggle pill)
+
+Source: design-handoff audit (`design_handoff_portfolio/design/shared.jsx#Nav` lines 154-176, `design/styles.css` `.nav` / `.nav-mark` / `.nav-links`).
+
+Problem: the design specifies a fixed-position top Nav with a monospace mark (`DO / 2026`), anchor links (`Work`, `About`, `CV`, `GitHub`, `LinkedIn`), and a segmented ThemeToggle pill. The current public layout ships only a single eyebrow + ThemeToggle row. The temporary `DO / 2026` text in the layout (added by the corrections branch) is a placeholder marker until this slice ships.
+
+Recommended fix: add `components/public/Nav.tsx` with `mix-blend-mode: difference` per the handoff CSS, anchor links to `#work`, `#about`, `#cv`, plus external `GitHub` and `LinkedIn` from the schema. Mount above `<header>` in the public layout; remove the placeholder header at the same time.
+
+Priority: P2, must land before staging promotion.
+
+### F19: ProjectIndex hover preview thumbnail follows the cursor
+
+Source: design-handoff audit (`design_handoff_portfolio/design/app.jsx#ProjectIndex` lines 219-264, `#ProjectThumb` lines 266-295, `design/styles.css` `.preview-thumb` / `.thumb-inner`).
+
+Problem: the design renders each project row as a flex line with `num` / `year` / `title` (with subtitle) / `kind` / `arrow`, and on hover surfaces a colored gradient thumbnail card that follows the pointer (a per-project `oklch` hue mapped from the project number). The current `Projects.tsx` renders a slug-only link list with no preview surface and no metadata columns.
+
+Recommended fix: extend the `ProjectsSchema` to expose `n` / `year` / `title` / `subtitle` / `kind` so the row can render the full layout (these fields already exist on `Project` via the case-study frontmatter; the home-page list currently only carries the slug). Add the `<PreviewThumb>` follower keyed by `mousemove` + active row index, with `prefers-reduced-motion` opt-out (no follower; rows render the metadata only).
+
+Priority: P3.
+
+### F20: Project case study cover + prev/next nav cards + Education/Certs as separate Experience groups
+
+Source: design-handoff audit (`design_handoff_portfolio/design/project.jsx`, `design/projects/multi-cloud-platform.html`).
+
+Problem: the design's case-study page has a back link (`Back to index`), a full-width gradient cover with project number and oversized title, and a `.proj-nav` block of two `.nav-card` links (prev / next) at the bottom. The current `ProjectCaseStudy.tsx` renders only the `<dl>` meta + stack + summary + body with no cover and no prev/next surface. Additionally, the design's Experience renders Education and Certifications as separate `exp-item` blocks (hardcoded in JSX at `app.jsx` lines 140-170), while the current `Experience.tsx` flattens everything into `experience[]` from the schema.
+
+Recommended fix: (a) Extend `ProjectCaseStudyHeading` with the gradient cover. (b) Add a `<ProjectNav>` component that takes `prev` / `next` slugs and renders the two cards. (c) Extend `SiteSchema` with `education[]` and `certs[]` arrays (already present in the seed `content/site.json`?), and update `Experience.tsx` to render them as separate groups under the same section with the design's three-column `.exp-item` layout.
+
+Priority: P3.
+
+### F21: BeforeAfter interactive slider in DeepDive
+
+Source: design-handoff audit (`design_handoff_portfolio/design/project.jsx#BeforeAfter` lines 84-138, `#BAPlaceholder` lines 140-201, `design/styles.css` `.dd-ba` / `.dd-ba-hint`).
+
+Problem: the design renders a draggable before / after slider with mouse + touch handles, hint text, and per-project SVG placeholder visuals (mock AWS console "before" vs dashboard cards "after"). The current `DeepDive.tsx` renders text labels only ("Two consoles, billing CSV" / "One pane, one source of truth") with no slider and no visual placeholders.
+
+Recommended fix: add a `<BeforeAfter>` component with a `<div role="slider" aria-valuemin=0 aria-valuemax=100 aria-valuenow={percent}>` handle, mouse + touch + keyboard support (arrow keys to nudge), and `prefers-reduced-motion` fallback that splits the visual into two stacked panels (no transition). Visuals can stay placeholder SVG until real screenshots arrive.
+
+Priority: P3, can defer until Phase 7+ when real case-study visuals land.
+
+### F22: Cinematic Intro full visual treatment (bootlines, crosshair, stamps, progress, skip)
+
+Source: design-handoff audit (`design_handoff_portfolio/design/shared.jsx#Intro` lines 178-338, plus `IntroContent` / `BootLine` / `Corner` helpers).
+
+Problem: the design's Intro is a five-phase boot sequence (`bootlines`, `name reveal`, `hold`, `out`, `done`) with `> initialising portfolio.sys` style staggered console lines top-left, four corner crosshair brackets, top stamps (`REC · 16:9 · 24fps`, progress %), a footer metadata row (`Full-stack engineer · Stafford / UK · Est. 2019`), a skip button top-right, and a bottom progress bar. The current `CinematicIntro.tsx` is a simpler wordmark fade with two phases (`enter` / `exit`).
+
+Recommended fix: rebuild as the five-phase rAF-driven sequence per the handoff. Persist the SSR-safe `seenStorage` gate and the `prefers-reduced-motion` skip path. Add a `<Skip>` button with a focus ring so keyboard users can bypass.
+
+Priority: P2, the intro is the user's first impression of the site; aligns the cinema layer with the brand.
+
+### F23: Global `useReveal` IntersectionObserver hook + `.reveal` / `.line-mask` classes
+
+Source: design-handoff audit (`design_handoff_portfolio/design/shared.jsx#useReveal` lines 99-152).
+
+Problem: the design exposes a global `useReveal()` hook (mounted once at the App level) that auto-observes every `.reveal` and `.line-mask` node on the page, applies an `.in` class on intersection, and re-scans on DOM mutation / resize. The current repo ships a `<Reveal>` wrapper component (`components/shared/Reveal.tsx`) that must be used per-element. The design's class-driven approach is required by F17 (Hero line-mask), F19 (Projects row reveal), and several other surfaces.
+
+Recommended fix: add `lib/motion/useReveal.ts` with the global IntersectionObserver + MutationObserver pattern from the handoff. Mount in `app/(public)/layout.tsx`. Add `.reveal` / `.line-mask` / `.reveal.in` / `.line-mask.in` rules to `app/globals.css` mirroring `design/styles.css`. Keep the existing `<Reveal>` wrapper for surfaces that prefer the component API (no breaking change).
+
+Priority: P2, blocks F17 and F19.
+
+### F24: Magnetic-button hook auto-applies to `[data-magnetic]` elements
+
+Source: design-handoff audit (`design_handoff_portfolio/design/enhancements.jsx#useMagneticButtons` lines 21-73).
+
+Problem: the design ships a `useMagneticButtons()` hook mounted once at the App level that auto-finds every `[data-magnetic]` element and attaches the magnetic-pull listeners. Buttons opt in by adding the attribute. The current `MagneticButton.tsx` requires authors to wrap each button in a React component, which is more verbose and only covers the wrapped child via `firstElementChild`. Hero's four action buttons and Footer's three buttons all need the magnetic pull (F17, Footer corrections), so the hook approach is the right fit.
+
+Recommended fix: add `lib/motion/useMagneticButtons.ts` mirroring the handoff hook (rAF loop, 0.32 strength, 80px range, 0.18s cubic-bezier transition). Mount once in `app/(public)/layout.tsx`. Buttons opt in by adding `data-magnetic`. Keep `MagneticButton.tsx` as a typed convenience wrapper around the `data-magnetic` attribute so existing call sites do not break.
+
+Priority: P3, can land alongside F17 / F18.
+
+### F25: PortfolioEnhancements wrapper, app-enter fade, and toast notifications
+
+Source: design-handoff audit (`design_handoff_portfolio/design/enhancements.jsx#PortfolioEnhancements`, `toast()` lines 346-362, `app.jsx` line 351 `<div className="app-enter in">`).
+
+Problem: the design wraps the app in a `<PortfolioEnhancements>` component that mounts the global magnetic-buttons hook, the command-palette mount helper, and a reduced-motion class toggle on the body. After the intro completes, the main content fades in via an `app-enter / in` class transition. The design's command palette also surfaces toast notifications ("Email copied", etc.) for actions. The current repo lacks all three.
+
+Recommended fix: add `components/shared/PortfolioEnhancements.tsx` that mounts F23 + F24 hooks + the body class toggle. Add the `app-enter` / `app-enter.in` CSS rules. Add a `<Toast>` component + `useToast()` hook for the palette to dispatch.
+
+Priority: P3.
+
 ## Closed
 
 (none yet)

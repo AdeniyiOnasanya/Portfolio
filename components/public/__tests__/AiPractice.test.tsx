@@ -22,7 +22,9 @@ describe('AiPractice', () => {
 
   it('renders the eyebrow, intro, pillars, and workflow', () => {
     render(<AiPractice ai={sampleAiPractice} />);
-    expect(screen.getByText(sampleAiPractice.eyebrow)).toBeInTheDocument();
+    // Eyebrow is now prefixed with `04 / ` to match the design handoff's
+    // section-numbering scheme; assert the eyebrow text appears as a substring.
+    expect(screen.getByText(new RegExp(sampleAiPractice.eyebrow))).toBeInTheDocument();
     expect(screen.getByText(sampleAiPractice.intro)).toBeInTheDocument();
     for (const pillar of sampleAiPractice.pillars) {
       expect(screen.getByText(pillar.title)).toBeInTheDocument();

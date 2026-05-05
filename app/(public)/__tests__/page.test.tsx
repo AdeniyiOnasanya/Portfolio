@@ -59,9 +59,10 @@ describe('HomePage at /', () => {
     expect(screen.getByRole('heading', { level: 2, name: 'Skills' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 2, name: 'Experience' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 2, name: 'Selected work' })).toBeInTheDocument();
-    expect(
-      screen.getByRole('heading', { level: 2, name: sampleFooter.heading }),
-    ).toBeInTheDocument();
+    // The Footer no longer carries an explicit h2 heading; the design handoff
+    // uses a styled big-block "Let's talk." span instead. The `<footer>`
+    // element still exposes the contentinfo landmark for screen readers.
+    expect(screen.getByRole('contentinfo')).toBeInTheDocument();
   });
 
   it('hides About when settings.visibility.about is false', async () => {
