@@ -1438,6 +1438,83 @@ body {
   }
 }
 
+/* ==========================================================================
+   Footer (Let's talk block)
+   --------------------------------------------------------------------------
+   Mirrors `design_handoff_portfolio/design/styles.css` `.footer`,
+   `.footer .big`, `.foot-row`, plus the action button row reusing the
+   .btn-primary / .btn-ghost pills from the hero.
+   ========================================================================== */
+
+.footer {
+  padding: 120px 0 48px;
+  border-top: 1px solid var(--color-border-subtle);
+  margin-top: 80px;
+}
+.footer-eyebrow {
+  margin-bottom: 32px;
+}
+.footer .big {
+  font-family: var(--font-serif);
+  font-weight: var(--font-light);
+  font-size: clamp(48px, 9vw, 140px);
+  line-height: 0.9;
+  letter-spacing: -0.04em;
+  font-variation-settings:
+    "SOFT" 50,
+    "WONK" 1,
+    "opsz" 144;
+}
+.footer .big em {
+  font-style: italic;
+  color: var(--color-accent);
+}
+.footer .big a {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.4s var(--ease-out);
+}
+.footer .big a:hover {
+  transform: translateX(24px);
+}
+.footer-copy {
+  margin-top: 24px;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+  max-width: 60ch;
+}
+.footer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 56px 0 32px;
+}
+.footer-actions .btn-ghost span:last-child {
+  opacity: 0.6;
+}
+.footer .foot-row {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 80px;
+  padding-top: 24px;
+  border-top: 1px solid var(--color-border-subtle);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+.footer .foot-row a {
+  color: inherit;
+  text-decoration: none;
+}
+.footer .foot-row a:hover {
+  color: var(--color-accent);
+}
+
 @theme {
   --color-brand-50: var(--color-brand-50);
   --color-brand-100: var(--color-brand-100);
