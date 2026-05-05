@@ -11,7 +11,18 @@ import { siteOrigin } from '../../lib/seo/origin';
 
 export default async function HomePage() {
   const site = await loadSite();
-  const { person, hero, skills, experience, aiPractice, projects, footer, settings } = site;
+  const {
+    person,
+    hero,
+    skills,
+    experience,
+    education,
+    certs,
+    aiPractice,
+    projects,
+    footer,
+    settings,
+  } = site;
   const { visibility } = settings;
   const personLd = personJsonLd(person, siteOrigin());
 
@@ -23,9 +34,11 @@ export default async function HomePage() {
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(personLd) }}
       />
       <Hero person={person} hero={hero} skills={skills} />
-      {visibility.about ? <About longBio={person.longBio} /> : null}
+      {visibility.about ? <About person={person} /> : null}
       {visibility.skills ? <Skills skills={skills} /> : null}
-      {visibility.experience ? <Experience experience={experience} /> : null}
+      {visibility.experience ? (
+        <Experience experience={experience} education={education} certs={certs} />
+      ) : null}
       {visibility.ai ? <AiPractice ai={aiPractice} /> : null}
       {visibility.work ? <Projects projects={projects} /> : null}
       <Footer footer={footer} person={person} />

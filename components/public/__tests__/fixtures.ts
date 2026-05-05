@@ -1,6 +1,8 @@
 import type { ProjectFile } from '../../../lib/projects';
 import type {
   AiPractice,
+  Certs,
+  Education,
   Experience,
   Footer,
   Hero,
@@ -51,6 +53,21 @@ export const sampleExperience: Experience = [
     tags: ['TypeScript', 'React'],
   },
 ];
+
+export const sampleEducation: Education = [
+  {
+    degree: 'BSc Computer Science',
+    school: 'Sample University',
+    result: 'First-class honours.',
+  },
+  {
+    degree: 'A-levels',
+    school: 'Sample College',
+    result: 'AAA.',
+  },
+];
+
+export const sampleCerts: Certs = ['AWS Solutions Architect', 'Cisco CCNA'];
 
 export const sampleAiPractice: AiPractice = {
   eyebrow: 'AI-Assisted Development',

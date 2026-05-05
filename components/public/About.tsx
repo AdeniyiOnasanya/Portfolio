@@ -1,18 +1,23 @@
 import type { Person } from '../../lib/schema';
 
-export function About({ longBio }: { longBio: Person['longBio'] }) {
+export function About({ person }: { person: Person }) {
   return (
-    <section id="about" aria-labelledby="about-heading" className="py-2xl">
-      <p className="text-fg-muted tracking-eyebrow text-xs uppercase font-mono">01 / About</p>
-      <h2 id="about-heading" className="font-serif tracking-display text-3xl md:text-4xl mt-xs">
-        About
-      </h2>
-      <div className="mt-lg space-y-md max-w-prose">
-        {longBio.map((paragraph) => (
-          <p key={paragraph} className="text-fg-secondary leading-relaxed">
-            {paragraph}
-          </p>
-        ))}
+    <section id="about" aria-label="About">
+      <div className="section-head reveal">
+        <div className="num">01 / About</div>
+        <h2>
+          I build the <em>thing</em>,<br />
+          and the thing <em>around</em> it.
+        </h2>
+      </div>
+      <div className="about-grid reveal">
+        <div className="label">- Statement</div>
+        <p>{person.statement}</p>
+        <div className="narrow">
+          {person.longBio.map((paragraph) => (
+            <p key={paragraph}>{paragraph}</p>
+          ))}
+        </div>
       </div>
     </section>
   );

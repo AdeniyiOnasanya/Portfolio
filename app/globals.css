@@ -891,6 +891,235 @@ body {
   }
 }
 
+/* ==========================================================================
+   About / Skills / Experience grids
+   --------------------------------------------------------------------------
+   Mirrors `design_handoff_portfolio/design/styles.css` `.about-grid`,
+   `.skills-grid`, `.skills-list`, `.skill-cat`, `.exp-list`, `.exp-item`.
+   All three sections share the rigid 200px rail set by `.section-head`,
+   which keeps the eyebrow column aligned across the page.
+   ========================================================================== */
+
+.about-grid {
+  display: grid;
+  grid-template-columns: 200px 1fr 1fr;
+  gap: 64px;
+  padding-bottom: 120px;
+}
+.about-grid .label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--color-text-muted);
+}
+.about-grid p {
+  font-family: var(--font-serif);
+  font-weight: var(--font-light);
+  font-size: 24px;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+  color: var(--color-text-primary);
+}
+.about-grid p em {
+  font-style: italic;
+  color: var(--color-accent);
+}
+.about-grid .narrow p {
+  font-size: 16px;
+  font-family: var(--font-sans);
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+.about-grid .narrow p + p {
+  margin-top: 16px;
+}
+@media (max-width: 900px) {
+  .about-grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+    padding-bottom: 60px;
+  }
+}
+
+.skills-block {
+  padding-bottom: 120px;
+}
+.skills-grid {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 64px;
+}
+.skills-grid .label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--color-text-muted);
+}
+.skills-list {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+}
+.skill-cat {
+  border-top: 1px solid var(--color-border-subtle);
+  padding: 28px 0;
+}
+.skill-cat .cat-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--color-text-muted);
+  margin-bottom: 14px;
+}
+.skill-cat ul {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+}
+.skill-cat li {
+  font-family: var(--font-serif);
+  font-size: 22px;
+  font-weight: var(--font-light);
+  letter-spacing: -0.01em;
+  font-variation-settings:
+    "SOFT" 50,
+    "opsz" 144;
+  position: relative;
+  padding-right: 14px;
+  transition: color 0.3s;
+}
+.skill-cat li:not(:last-child)::after {
+  content: "·";
+  position: absolute;
+  right: 0;
+  color: var(--color-text-muted);
+}
+.skill-cat li:hover {
+  color: var(--color-accent);
+  font-style: italic;
+}
+@media (max-width: 900px) {
+  .skills-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  .skills-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+.exp-list {
+  padding-bottom: 120px;
+}
+.exp-list-tail {
+  padding-bottom: 0;
+}
+.exp-item {
+  display: grid;
+  grid-template-columns: 200px 1fr 1fr;
+  gap: 64px;
+  padding: 40px 0;
+  border-top: 1px solid var(--color-border-subtle);
+  align-items: start;
+  transition: background 0.4s;
+}
+.exp-item:last-child {
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+.exp-item .when {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--color-text-muted);
+}
+.exp-where {
+  color: var(--color-text-muted);
+}
+.exp-item .role {
+  font-family: var(--font-serif);
+  font-weight: var(--font-light);
+  font-size: 32px;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  font-variation-settings:
+    "SOFT" 50,
+    "opsz" 144;
+}
+.exp-item .role .co {
+  font-style: italic;
+  color: var(--color-accent);
+  display: block;
+}
+.exp-item .desc {
+  color: var(--color-text-secondary);
+  font-size: 15px;
+  line-height: 1.6;
+}
+.exp-item .desc .tags {
+  margin-top: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.exp-item .desc .tags span {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-text-muted);
+  padding: 4px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+}
+.exp-edu-secondary {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid var(--color-border-subtle);
+}
+.exp-edu-secondary-degree {
+  font-family: var(--font-serif);
+  font-weight: var(--font-light);
+  font-size: 22px;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  font-variation-settings:
+    "SOFT" 50,
+    "opsz" 144;
+}
+.exp-edu-secondary-school {
+  display: block;
+  font-style: italic;
+  color: var(--color-accent);
+  font-size: 18px;
+}
+.exp-edu-secondary-result {
+  margin-top: 8px;
+  color: var(--color-text-muted);
+  font-size: 14px;
+}
+.exp-cert-list {
+  list-style: none;
+  padding-left: 0;
+}
+.exp-cert-list li {
+  padding: 8px 0;
+  border-top: 1px solid var(--color-border-subtle);
+}
+.exp-cert-list li:first-child {
+  border-top: none;
+}
+@media (max-width: 900px) {
+  .exp-item {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding: 32px 0;
+  }
+}
+
 @theme {
   --color-brand-50: var(--color-brand-50);
   --color-brand-100: var(--color-brand-100);

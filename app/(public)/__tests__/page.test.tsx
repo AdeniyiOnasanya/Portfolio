@@ -61,13 +61,13 @@ describe('HomePage at /', () => {
     expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
   });
 
-  it('renders all section headings when every visibility flag is true', async () => {
+  it('renders all section regions when every visibility flag is true', async () => {
     await renderHome();
     expect(screen.getByRole('heading', { level: 1, name: samplePerson.name })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { level: 2, name: 'About' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { level: 2, name: 'Skills' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { level: 2, name: 'Experience' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { level: 2, name: 'Selected work' })).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'About' })).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Skills' })).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Experience' })).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Selected work' })).toBeInTheDocument();
     // The Footer no longer carries an explicit h2 heading; the design handoff
     // uses a styled big-block "Let's talk." span instead. The `<footer>`
     // element still exposes the contentinfo landmark for screen readers.
@@ -84,7 +84,7 @@ describe('HomePage at /', () => {
     });
     const ui = await HomePage();
     render(ui);
-    expect(screen.queryByRole('heading', { level: 2, name: 'About' })).toBeNull();
+    expect(screen.queryByRole('region', { name: 'About' })).toBeNull();
   });
 
   it('hides Skills, Experience, AI Practice, and Projects when their visibility flags are false', async () => {
@@ -104,10 +104,10 @@ describe('HomePage at /', () => {
     });
     const ui = await HomePage();
     render(ui);
-    expect(screen.queryByRole('heading', { level: 2, name: 'Skills' })).toBeNull();
-    expect(screen.queryByRole('heading', { level: 2, name: 'Experience' })).toBeNull();
-    expect(screen.queryByRole('heading', { level: 2, name: /AI/i })).toBeNull();
-    expect(screen.queryByRole('heading', { level: 2, name: 'Selected work' })).toBeNull();
+    expect(screen.queryByRole('region', { name: 'Skills' })).toBeNull();
+    expect(screen.queryByRole('region', { name: 'Experience' })).toBeNull();
+    expect(screen.queryByRole('region', { name: /AI/i })).toBeNull();
+    expect(screen.queryByRole('region', { name: 'Selected work' })).toBeNull();
   });
 
   it('always renders the Footer regardless of visibility flags', async () => {

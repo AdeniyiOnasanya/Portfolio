@@ -4,18 +4,20 @@ import { Skills } from '../Skills';
 import { sampleSkills } from './fixtures';
 
 describe('Skills', () => {
-  it('renders an h2 titled Skills inside a Skills region', () => {
+  it('renders a Skills region with an h2 inside', () => {
     render(<Skills skills={sampleSkills} />);
     const region = screen.getByRole('region', { name: 'Skills' });
-    const heading = screen.getByRole('heading', { level: 2, name: 'Skills' });
+    const heading = screen.getByRole('heading', { level: 2 });
     expect(region).toContainElement(heading);
   });
 
-  it('renders each skill group label and its items joined', () => {
+  it('renders each skill group label and item as list entries', () => {
     render(<Skills skills={sampleSkills} />);
     for (const group of sampleSkills) {
       expect(screen.getByText(group.label)).toBeInTheDocument();
-      expect(screen.getByText(group.items.join(', '))).toBeInTheDocument();
+      for (const item of group.items) {
+        expect(screen.getByText(item)).toBeInTheDocument();
+      }
     }
   });
 });

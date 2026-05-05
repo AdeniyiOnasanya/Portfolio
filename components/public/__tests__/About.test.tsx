@@ -4,15 +4,16 @@ import { About } from '../About';
 import { samplePerson } from './fixtures';
 
 describe('About', () => {
-  it('renders an h2 titled About inside an About region', () => {
-    render(<About longBio={samplePerson.longBio} />);
+  it('renders an About region with an h2 inside', () => {
+    render(<About person={samplePerson} />);
     const region = screen.getByRole('region', { name: 'About' });
-    const heading = screen.getByRole('heading', { level: 2, name: 'About' });
+    const heading = screen.getByRole('heading', { level: 2 });
     expect(region).toContainElement(heading);
   });
 
-  it('renders one paragraph per longBio entry', () => {
-    render(<About longBio={samplePerson.longBio} />);
+  it('renders the person statement and one paragraph per longBio entry', () => {
+    render(<About person={samplePerson} />);
+    expect(screen.getByText(samplePerson.statement)).toBeInTheDocument();
     for (const paragraph of samplePerson.longBio) {
       expect(screen.getByText(paragraph)).toBeInTheDocument();
     }
