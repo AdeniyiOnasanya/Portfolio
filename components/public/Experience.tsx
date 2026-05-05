@@ -9,7 +9,9 @@ export function Experience({
   education: Education;
   certs: Certs;
 }) {
-  const [primaryEducation, secondaryEducation] = education;
+  const primaryEducation = education[0];
+  const secondaryEducation = education[1];
+  if (!primaryEducation) return null;
   return (
     <section id="cv" aria-label="Experience">
       <div className="section-head reveal">
