@@ -30,8 +30,9 @@ import { usePointerFine, usePrefersReducedMotion } from '../../lib/motion/prefer
  */
 
 const STRENGTH = 0.3;
-const RETURN_TRANSITION = 'transform var(--duration-base, 240ms) var(--ease-out, ease-out)';
-const ACTIVE_TRANSITION = 'transform 80ms linear';
+const RANGE = 80;
+const ACTIVE_TRANSITION = 'transform 0.18s cubic-bezier(0.2, 0.8, 0.2, 1)';
+const RETURN_TRANSITION = ACTIVE_TRANSITION;
 
 export interface MagneticButtonProps {
   children: ReactNode;
@@ -88,10 +89,17 @@ export function MagneticButton({ children, className, strength = STRENGTH }: Mag
       const rect = wrapper.getBoundingClientRect();
       const cx = rect.left + rect.width / 2;
       const cy = rect.top + rect.height / 2;
-      targetRef.current = {
-        x: (event.clientX - cx) * strength,
-        y: (event.clientY - cy) * strength,
-      };
+      const dx = event.clientX - cx;
+      const dy = event.clientY - cy;
+      // Clamp the magnetic effect to within RANGE pixels of the wrapper
+      // centre. Beyond that, the pull resets to zero so the child snaps back
+      // when the cursor leaves the proximity zone (matches the design
+      // handoff useMagneticButtons reference, RANGE = 80).
+      if (Math.hypot(dx, dy) > RANGE) {
+        targetRef.current = { x: 0, y: 0 };
+      } else {
+        targetRef.current = { x: dx * strength, y: dy * strength };
+      }
       if (rafRef.current === null) {
         rafRef.current = window.requestAnimationFrame(apply);
       }
