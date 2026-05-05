@@ -1120,6 +1120,169 @@ body {
   }
 }
 
+/* ==========================================================================
+   AI Practice block
+   --------------------------------------------------------------------------
+   Mirrors `design_handoff_portfolio/design/styles.css` `.ai-block`,
+   `.ai-pillars`, `.ai-workflow`. The pillars sit in a two-column grid
+   with a vertical divider between odd/even cells. The workflow nests a
+   second 200px-rail grid, with a 4-column step row driven by serif
+   numerals and accent arrows.
+   ========================================================================== */
+
+.ai-block {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 64px;
+  padding-bottom: 120px;
+}
+.ai-intro {
+  grid-column: 2;
+  font-family: var(--font-serif);
+  font-weight: var(--font-light);
+  font-size: 26px;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+  color: var(--color-text-primary);
+  font-variation-settings:
+    "SOFT" 50,
+    "opsz" 144;
+  max-width: 56ch;
+  margin-bottom: 56px;
+}
+.ai-pillars {
+  grid-column: 2;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  margin-bottom: 80px;
+}
+.ai-pillar {
+  border-top: 1px solid var(--color-border-subtle);
+  padding: 32px 32px 32px 0;
+  position: relative;
+}
+.ai-pillar:nth-child(odd) {
+  padding-right: 40px;
+  border-right: 1px solid var(--color-border-subtle);
+}
+.ai-pillar:nth-child(even) {
+  padding-left: 40px;
+}
+.ai-pillar-n {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  display: block;
+  margin-bottom: 16px;
+}
+.ai-pillar h4 {
+  font-family: var(--font-serif);
+  font-weight: var(--font-light);
+  font-style: italic;
+  font-size: 28px;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin-bottom: 12px;
+  font-variation-settings:
+    "SOFT" 100,
+    "opsz" 144;
+}
+.ai-pillar p {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+}
+.ai-workflow {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 64px;
+  border-top: 1px solid var(--color-border-subtle);
+  padding-top: 48px;
+}
+.ai-workflow-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+.ai-workflow-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+}
+.ai-flow-step {
+  position: relative;
+  padding-right: 24px;
+}
+.ai-flow-num {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  color: var(--color-text-muted);
+  margin-bottom: 12px;
+}
+.ai-flow-k {
+  font-family: var(--font-serif);
+  font-weight: var(--font-light);
+  font-size: 24px;
+  letter-spacing: -0.01em;
+  margin-bottom: 8px;
+  font-variation-settings:
+    "SOFT" 50,
+    "opsz" 144;
+}
+.ai-flow-k::first-letter {
+  color: var(--color-accent);
+}
+.ai-flow-v {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+}
+.ai-flow-arrow {
+  position: absolute;
+  right: 0;
+  top: 0;
+  color: var(--color-accent);
+  font-family: var(--font-serif);
+  font-size: 18px;
+}
+@media (max-width: 900px) {
+  .ai-block {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+  .ai-intro,
+  .ai-pillars {
+    grid-column: 1;
+  }
+  .ai-pillars {
+    grid-template-columns: 1fr;
+  }
+  .ai-pillar:nth-child(odd) {
+    padding: 32px 0;
+    border-right: none;
+  }
+  .ai-pillar:nth-child(even) {
+    padding: 32px 0;
+    border-top: 1px solid var(--color-border-subtle);
+  }
+  .ai-workflow {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  .ai-workflow-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .ai-flow-arrow {
+    display: none;
+  }
+}
+
 @theme {
   --color-brand-50: var(--color-brand-50);
   --color-brand-100: var(--color-brand-100);
