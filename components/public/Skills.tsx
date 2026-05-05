@@ -1,6 +1,9 @@
 import type { Skills as SkillsType } from '../../lib/schema';
+import { Marquee } from './Marquee';
 
 export function Skills({ skills }: { skills: SkillsType }) {
+  const allItems = skills.flatMap((group) => group.items);
+
   return (
     <section id="skills" aria-labelledby="skills-heading" className="py-2xl">
       <h2 id="skills-heading" className="font-serif tracking-display text-3xl md:text-4xl">
@@ -14,6 +17,9 @@ export function Skills({ skills }: { skills: SkillsType }) {
           </div>
         ))}
       </dl>
+      <div className="mt-xl">
+        <Marquee items={allItems} />
+      </div>
     </section>
   );
 }
