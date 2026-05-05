@@ -230,6 +230,78 @@ body {
   }
 }
 
+/* ==========================================================================
+   Top nav strip (Phase 5.5)
+   --------------------------------------------------------------------------
+   Used by `components/public/Nav.tsx`. Mirrors the design handoff
+   (`design_handoff_portfolio/design/styles.css` `.nav` / `.nav-mark` /
+   `.nav-links`). The bar is fixed to the top of the viewport, uses
+   `mix-blend-mode: difference` to invert against whatever section sits
+   underneath, and falls back to a single mark + ThemeToggle pill on
+   viewports under 720px (the link list hides). Color is hardcoded #fff
+   because the difference blend operates on the literal channel values:
+   any softer alias breaks the deterministic invert.
+   ========================================================================== */
+
+.nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: var(--z-nav);
+  padding: 24px 48px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  mix-blend-mode: difference;
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-eyebrow);
+}
+
+.nav .nav-mark {
+  font-weight: 600;
+  color: inherit;
+  text-decoration: none;
+}
+
+.nav .nav-links {
+  display: flex;
+  gap: 32px;
+  align-items: center;
+}
+
+.nav .nav-links a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.nav .nav-links a:hover {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.nav a:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 4px;
+  border-radius: 2px;
+}
+
+@media (max-width: 720px) {
+  .nav {
+    padding: 20px 24px;
+  }
+  .nav .nav-links {
+    gap: 16px;
+  }
+  /* Mobile: hide the link list, keep the mark + ThemeToggle pill. */
+  .nav .nav-links a {
+    display: none;
+  }
+}
+
 @theme {
   --color-brand-50: var(--color-brand-50);
   --color-brand-100: var(--color-brand-100);
