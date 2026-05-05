@@ -1,6 +1,11 @@
 import { act, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { prefersReducedMotion, usePointerFine, usePrefersReducedMotion } from '../preferences';
+import {
+  pointerFine,
+  prefersReducedMotion,
+  usePointerFine,
+  usePrefersReducedMotion,
+} from '../preferences';
 
 interface FakeMediaQueryList {
   matches: boolean;
@@ -183,6 +188,52 @@ describe('usePrefersReducedMotion', () => {
   });
 });
 
+describe('pointerFine (one-shot)', () => {
+  let originalMatchMedia: typeof window.matchMedia;
+
+  beforeEach(() => {
+    originalMatchMedia = window.matchMedia;
+  });
+
+  afterEach(() => {
+    Object.defineProperty(window, 'matchMedia', {
+      configurable: true,
+      writable: true,
+      value: originalMatchMedia,
+    });
+    vi.restoreAllMocks();
+  });
+
+  it('returns true when the primary pointer is fine', () => {
+    const mql = makeMediaQueryList(true, '(pointer: fine)');
+    Object.defineProperty(window, 'matchMedia', {
+      configurable: true,
+      writable: true,
+      value: vi.fn(() => mql as unknown as MediaQueryList),
+    });
+    expect(pointerFine()).toBe(true);
+  });
+
+  it('returns false on coarse pointers (touch)', () => {
+    const mql = makeMediaQueryList(false, '(pointer: fine)');
+    Object.defineProperty(window, 'matchMedia', {
+      configurable: true,
+      writable: true,
+      value: vi.fn(() => mql as unknown as MediaQueryList),
+    });
+    expect(pointerFine()).toBe(false);
+  });
+
+  it('returns false when matchMedia is unavailable', () => {
+    Object.defineProperty(window, 'matchMedia', {
+      configurable: true,
+      writable: true,
+      value: undefined,
+    });
+    expect(pointerFine()).toBe(false);
+  });
+});
+
 describe('usePointerFine', () => {
   let originalMatchMedia: typeof window.matchMedia;
 
@@ -244,6 +295,11 @@ describe('usePointerFine', () => {
       mql.fire(true);
     });
     expect(result.current).toBe(true);
+
+    act(() => {
+      mql.fire(false);
+    });
+    expect(result.current).toBe(false);
   });
 
   it('unsubscribes the listener on unmount', () => {
