@@ -13,6 +13,7 @@ interface ThemeContextValue {
   mode: ThemeMode;
   effective: EffectiveTheme;
   cycle: () => void;
+  setMode: (mode: ThemeMode) => void;
 }
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
@@ -70,7 +71,26 @@ export function ThemeProvider({ initialMode, initialEffective, children }: Theme
     });
   }, []);
 
-  const value = useMemo(() => ({ mode, effective, cycle }), [mode, effective, cycle]);
+  // setModeDirect lets callers (the command palette) jump to a chosen mode
+  // instead of cycling through the three states. Persists the cookie with the
+  // same shape and lifetime as cycle() so the SSR resolver picks it up on the
+  // next request.
+  const setModeDirect = useCallback((next: ThemeMode) => {
+    setMode((current) => {
+      if (current === next) {
+        return current;
+      }
+      const oneYear = 60 * 60 * 24 * 365;
+      // biome-ignore lint/suspicious/noDocumentCookie: see cycle() above. Same constraint, same API choice.
+      document.cookie = `${THEME_COOKIE_NAME}=${next}; path=/; max-age=${oneYear}; SameSite=Lax`;
+      return next;
+    });
+  }, []);
+
+  const value = useMemo(
+    () => ({ mode, effective, cycle, setMode: setModeDirect }),
+    [mode, effective, cycle, setModeDirect],
+  );
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }

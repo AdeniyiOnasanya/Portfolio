@@ -5,7 +5,7 @@ export function Skills({ skills }: { skills: SkillsType }) {
   const allItems = skills.flatMap((group) => group.items);
 
   return (
-    <section aria-labelledby="skills-heading" className="py-2xl">
+    <section id="skills" aria-labelledby="skills-heading" className="py-2xl">
       <h2 id="skills-heading" className="font-serif tracking-display text-3xl md:text-4xl">
         Skills
       </h2>
