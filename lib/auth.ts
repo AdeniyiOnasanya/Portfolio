@@ -2,6 +2,7 @@ import { DrizzleAdapter } from '@auth/drizzle-adapter';
 import NextAuth, { type NextAuthConfig } from 'next-auth';
 import Resend from 'next-auth/providers/resend';
 import { buildSignInCallback } from './auth/config';
+import { sendVerificationRequest } from './auth/email';
 import { db } from './db';
 import { accounts, sessions, users, verificationTokens } from './db/schema';
 
@@ -17,7 +18,11 @@ import { accounts, sessions, users, verificationTokens } from './db/schema';
  *  - Wires the Resend email provider to send the magic link. The provider
  *    pulls `RESEND_API_KEY` and `RESEND_FROM` from the environment; if
  *    `RESEND_FROM` is unset we fall back to the verified domain documented
- *    in `tech-stack.md`.
+ *    in `tech-stack.md`. The default `sendVerificationRequest` shipped by
+ *    `@auth/core/providers/resend` is overridden by the implementation in
+ *    `lib/auth/email.ts`; that layer composes the payload, parses it through
+ *    a Zod schema that rejects U+2014 and `\p{Extended_Pictographic}`, and
+ *    only then delegates to the Resend SDK.
  *  - Pins the sign-in page to `/login` so unauthenticated traffic redirects
  *    there instead of to the default Auth.js page.
  *  - Drops the sign-in attempt unless the email matches `ADMIN_EMAIL`. The
@@ -44,6 +49,7 @@ export const authConfig = {
     Resend({
       apiKey: process.env.RESEND_API_KEY ?? '',
       from: process.env.RESEND_FROM ?? 'auth@davidonasanya.com',
+      sendVerificationRequest,
     }),
   ],
   pages: {
