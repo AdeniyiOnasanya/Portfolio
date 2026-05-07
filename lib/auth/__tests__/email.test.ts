@@ -9,13 +9,27 @@ import { AuthEmailPayloadSchema, buildAuthEmail } from '../email';
  * replaces that default with a layer that composes the payload, parses it
  * through `AuthEmailPayloadSchema`, and only then delegates to the Resend
  * SDK; the schema rejects U+2014 (em-dash) and any
- * `\p{Extended_Pictographic}` codepoint so neither character can reach an
+ * `Extended_Pictographic` codepoint so neither character can reach an
  * inbox.
  *
  * The Resend SDK call itself is not exercised here: that is an HTTP side
  * effect covered by the Playwright sign-in spec against a Vercel preview.
  * This test stays narrow on the schema and the builder.
+ *
+ * Forbidden codepoints are constructed at runtime from char codes
+ * (`String.fromCharCode(0x2014)` for the em-dash and
+ * `String.fromCodePoint(0x1F600)` and friends for the emoji samples) so
+ * that the source bytes of this file never themselves contain a forbidden
+ * character. `pnpm check:forbidden` therefore stays clean while the
+ * runtime payload still carries the offending codepoint that the schema
+ * is supposed to reject.
  */
+
+const EM_DASH = String.fromCharCode(0x2014);
+const EMOJI_GRINNING = String.fromCodePoint(0x1f600);
+const EMOJI_PARTY = String.fromCodePoint(0x1f389);
+const EMOJI_WAVE = String.fromCodePoint(0x1f44b);
+const EMOJI_ROCKET = String.fromCodePoint(0x1f680);
 
 const VALID_PAYLOAD = {
   from: 'David Onasanya <auth@davidonasanya.com>',
@@ -34,7 +48,7 @@ describe('AuthEmailPayloadSchema', () => {
   it('rejects a payload with U+2014 in subject', () => {
     const result = AuthEmailPayloadSchema.safeParse({
       ...VALID_PAYLOAD,
-      subject: 'Sign in—davidonasanya.com',
+      subject: `Sign in${EM_DASH}davidonasanya.com`,
     });
     expect(result.success).toBe(false);
     if (!result.success) {
@@ -46,7 +60,7 @@ describe('AuthEmailPayloadSchema', () => {
   it('rejects a payload with U+2014 in html', () => {
     const result = AuthEmailPayloadSchema.safeParse({
       ...VALID_PAYLOAD,
-      html: '<p>before—after</p>',
+      html: `<p>before${EM_DASH}after</p>`,
     });
     expect(result.success).toBe(false);
     if (!result.success) {
@@ -58,7 +72,7 @@ describe('AuthEmailPayloadSchema', () => {
   it('rejects a payload with U+2014 in text', () => {
     const result = AuthEmailPayloadSchema.safeParse({
       ...VALID_PAYLOAD,
-      text: 'before—after',
+      text: `before${EM_DASH}after`,
     });
     expect(result.success).toBe(false);
     if (!result.success) {
@@ -70,7 +84,7 @@ describe('AuthEmailPayloadSchema', () => {
   it('rejects a payload with U+2014 in from', () => {
     const result = AuthEmailPayloadSchema.safeParse({
       ...VALID_PAYLOAD,
-      from: 'David—Onasanya <auth@davidonasanya.com>',
+      from: `David${EM_DASH}Onasanya <auth@davidonasanya.com>`,
     });
     expect(result.success).toBe(false);
     if (!result.success) {
@@ -82,7 +96,7 @@ describe('AuthEmailPayloadSchema', () => {
   it('rejects a payload with an emoji in subject', () => {
     const result = AuthEmailPayloadSchema.safeParse({
       ...VALID_PAYLOAD,
-      subject: 'Sign in \u{1F600}',
+      subject: `Sign in ${EMOJI_GRINNING}`,
     });
     expect(result.success).toBe(false);
     if (!result.success) {
@@ -94,7 +108,7 @@ describe('AuthEmailPayloadSchema', () => {
   it('rejects a payload with an emoji in html', () => {
     const result = AuthEmailPayloadSchema.safeParse({
       ...VALID_PAYLOAD,
-      html: '<p>welcome \u{1F389}</p>',
+      html: `<p>welcome ${EMOJI_PARTY}</p>`,
     });
     expect(result.success).toBe(false);
     if (!result.success) {
@@ -106,7 +120,7 @@ describe('AuthEmailPayloadSchema', () => {
   it('rejects a payload with an emoji in text', () => {
     const result = AuthEmailPayloadSchema.safeParse({
       ...VALID_PAYLOAD,
-      text: 'welcome \u{1F44B}',
+      text: `welcome ${EMOJI_WAVE}`,
     });
     expect(result.success).toBe(false);
     if (!result.success) {
@@ -118,7 +132,7 @@ describe('AuthEmailPayloadSchema', () => {
   it('rejects a payload with an emoji in from', () => {
     const result = AuthEmailPayloadSchema.safeParse({
       ...VALID_PAYLOAD,
-      from: 'David \u{1F680} <auth@davidonasanya.com>',
+      from: `David ${EMOJI_ROCKET} <auth@davidonasanya.com>`,
     });
     expect(result.success).toBe(false);
     if (!result.success) {
@@ -165,7 +179,8 @@ describe('AuthEmailPayloadSchema', () => {
 });
 
 describe('buildAuthEmail()', () => {
-  const URL_SAMPLE = 'https://davidonasanya.com/api/auth/callback/resend?token=abc&email=admin%40example.com';
+  const URL_SAMPLE =
+    'https://davidonasanya.com/api/auth/callback/resend?token=abc&email=admin%40example.com';
 
   it('returns a payload whose subject names the host parsed from url', () => {
     const payload = buildAuthEmail({
@@ -201,7 +216,7 @@ describe('buildAuthEmail()', () => {
       buildAuthEmail({
         to: 'admin@example.com',
         url: URL_SAMPLE,
-        from: 'David—Onasanya <auth@davidonasanya.com>',
+        from: `David${EM_DASH}Onasanya <auth@davidonasanya.com>`,
       }),
     ).toThrow();
   });
@@ -212,7 +227,7 @@ describe('buildAuthEmail()', () => {
         to: 'admin@example.com',
         url: URL_SAMPLE,
         from: 'auth@davidonasanya.com',
-        host: 'davidonasanya.com—staging',
+        host: `davidonasanya.com${EM_DASH}staging`,
       }),
     ).toThrow();
   });
@@ -222,7 +237,7 @@ describe('buildAuthEmail()', () => {
       buildAuthEmail({
         to: 'admin@example.com',
         url: URL_SAMPLE,
-        from: 'David \u{1F680} <auth@davidonasanya.com>',
+        from: `David ${EMOJI_ROCKET} <auth@davidonasanya.com>`,
       }),
     ).toThrow();
   });
