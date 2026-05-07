@@ -142,7 +142,9 @@ Skip Speed Insights for now (paid on Hobby in some regions); we can rely on Ligh
 
 ### Markdown / MDX
 
-**`@next/mdx` + `remark-gfm`.** For long-form fields. Custom MDX components for callouts, image grids, before/after sliders.
+**`react-markdown` + `remark-gfm`.** For long-form prose in `content/projects/<slug>.mdx` bodies. The MDX file format is used for the file extension and YAML frontmatter convention only; the body is parsed as plain markdown and rendered via `react-markdown` (server-component-compatible, safe-by-default HTML stripping, no `rehype-raw`). `remark-gfm` adds tables, strikethrough, task lists, and direct URLs.
+
+Out of scope for now: `@next/mdx` and the JSX-in-markdown pipeline (custom callout components, image grids, before/after sliders embedded inline). Those land when the case-study layout calls for them. Until then, the structured `deepDive` payload in `ProjectSchema` carries the metric tiles, before/after labels, process steps, and lessons; the markdown body holds linear prose only.
 
 ### Drag-reorder
 
@@ -174,11 +176,15 @@ None. Server components, server actions, URL state. The CMS has light client sta
     /cms/save/route.ts          opens PR
     /cms/upload/route.ts        signs blob upload URL
 /content
-  site.json
+  site.json                       site-wide content + ordered slug list
   /projects
-    stratus.mdx
-    hearth.mdx
-    ...
+    multi-cloud-platform.mdx      (Stratus)
+    foster-care-platform.mdx      (Hearth)
+    compliance-electron.mdx       (Vessel)
+    calendar-tool.mdx             (Quorum)
+    microplastics-mobile.mdx      (Plumb)
+    endoscope-tracking.mdx        (Trace)
+    elearning-platform.mdx        (Atrium)
 /lib
   schema.ts                     Zod
   content.ts                    typed loader

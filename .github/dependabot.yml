@@ -1,0 +1,61 @@
+version: 2
+
+# Weekly Dependabot updates for npm packages and GitHub Actions used in this repo.
+# Both ecosystems target develop, not main, because every change ships through
+# the feature/<n>_<slug> -> develop -> staging -> main chain. PRs land on develop
+# and ride the normal promotion flow.
+#
+# Grouping keeps PR noise low: production deps and dev deps each batch into one
+# weekly PR per ecosystem rather than one PR per package. Major version bumps
+# are excluded from the groups so they get their own PRs for review.
+
+updates:
+  - package-ecosystem: 'npm'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+      time: '08:00'
+      timezone: 'Europe/London'
+    target-branch: 'develop'
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: 'chore(deps)'
+      include: 'scope'
+    labels:
+      - 'type:task'
+      - 'area:ci'
+      - 'priority:P3'
+    groups:
+      production-dependencies:
+        dependency-type: 'production'
+        update-types:
+          - 'minor'
+          - 'patch'
+      dev-dependencies:
+        dependency-type: 'development'
+        update-types:
+          - 'minor'
+          - 'patch'
+
+  - package-ecosystem: 'github-actions'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+      time: '08:00'
+      timezone: 'Europe/London'
+    target-branch: 'develop'
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: 'chore(actions)'
+      include: 'scope'
+    labels:
+      - 'type:task'
+      - 'area:ci'
+      - 'priority:P3'
+    groups:
+      github-actions:
+        update-types:
+          - 'minor'
+          - 'patch'

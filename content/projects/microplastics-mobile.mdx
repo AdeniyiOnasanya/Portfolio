@@ -1,0 +1,39 @@
+---
+slug: microplastics-mobile
+n: "05"
+title: Plumb
+subtitle: Microplastics detection mobile app
+year: "2023"
+role: Mobile + backend
+kind: Field research app
+stack:
+  - React Native (Expo)
+  - Laravel
+  - ML model integration
+  - Figma
+tagline: AI in the field, not in the cloud demo.
+summary: A field app for environmental researchers, capture water and air samples, run them against a cloud-hosted ML model that identifies microplastics, log observations and authenticate users.
+visuals:
+  - { label: Camera with detection overlay, w: tall }
+  - { label: Sample log, w: tall }
+  - { label: Project dashboard, w: wide, span: 2 }
+meta:
+  Year: "2023"
+  Role: Mobile + Backend
+  Sector: Environmental
+  Status: Shipped
+---
+
+## Problem
+
+Microplastics fieldwork meant capturing photos on a phone, emailing them to a workstation, running the model, then merging results back with manual observation notes. Slow, lossy, and brittle.
+
+## Approach
+
+- Mobile capture pipeline that posts directly to the model and renders detection overlays inline.
+- Sample observation log tied to user accounts and project tags for downstream analysis.
+- Designed for one-handed outdoor use, high-contrast UI, generous tap targets, offline-tolerant queue.
+
+## Outcome
+
+Shortened the loop from sample to insight from days to minutes; researchers see detections in the field and re-shoot if the frame is bad.

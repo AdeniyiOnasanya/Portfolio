@@ -1,0 +1,63 @@
+name: CodeQL
+
+# Static security analysis. CodeQL parses the JS/TS source for known vulnerable
+# patterns. Three triggers:
+#   - pull_request: every PR to develop, staging, main gets analysed before merge.
+#   - push: every merge into those branches re-runs against the post-merge state.
+#   - schedule: weekly Monday cron catches new CVE rules added to the CodeQL
+#     query packs against unchanged code.
+#
+# Single language: javascript-typescript (the unified pack covers both .js and
+# .ts files). No autobuild step needed; the action's "build-mode: none" path
+# scans source directly without compiling.
+#
+# SARIF upload is disabled (`upload: never`). The Security tab requires GitHub
+# code scanning, which on private repos needs GitHub Advanced Security. This
+# repo is private and is not on GHAS, so an upload attempt fails the job with
+# "Code scanning is not enabled for this repository". With upload off, the
+# analysis still runs and surfaces parse errors in the run log; findings are
+# logged there until the repo goes public or onto GHAS, at which point this
+# line can be removed.
+#
+# Required permissions:
+#   - contents: read           to check out the code.
+#   - actions: read            to call the CodeQL action's helpers.
+
+on:
+  pull_request:
+    branches: [develop, staging, main]
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [develop, staging, main]
+  schedule:
+    - cron: '0 7 * * 1'  # Monday 07:00 UTC (07:00 Europe/London winter / 08:00 BST)
+
+permissions:
+  contents: read
+
+concurrency:
+  group: codeql-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze:
+    name: analyze
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [javascript-typescript]
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+      - uses: github/codeql-action/init@e46ed2cbd01164d986452f91f178727624ae40d7  # v4.35.3
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: none
+          queries: security-and-quality
+      - uses: github/codeql-action/analyze@e46ed2cbd01164d986452f91f178727624ae40d7  # v4.35.3
+        with:
+          category: '/language:${{ matrix.language }}'
+          upload: never
