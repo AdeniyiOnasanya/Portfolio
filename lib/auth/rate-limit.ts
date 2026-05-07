@@ -1,3 +1,6 @@
+import { Ratelimit } from '@upstash/ratelimit';
+import { Redis } from '@upstash/redis';
+
 /**
  * Sign-in rate limit, Phase 6 (#38).
  *
@@ -99,7 +102,7 @@ export async function checkSignInRateLimit(
   let verdict: RateLimitVerdict;
   try {
     verdict = await client.limit(ip);
-  } catch (err) {
+  } catch {
     onBreadcrumb?.({
       category: 'auth.rate-limit',
       level: 'error',
@@ -127,4 +130,55 @@ export async function checkSignInRateLimit(
     remaining: verdict.remaining,
     reset: verdict.reset,
   };
+}
+
+/**
+ * Lazy factory for the Upstash-backed rate-limit client. The Vercel KV
+ * marketplace integration with Upstash injects `KV_REST_API_URL` and
+ * `KV_REST_API_TOKEN` (not `UPSTASH_REDIS_REST_*`), so we read those names
+ * directly. The Redis client is constructed on first call and reused.
+ *
+ * Build-time invariants: this function must not be called at module load.
+ * Next.js page-data collection runs without env vars in CI, and reading them
+ * eagerly would crash `pnpm build`. Callers should defer the call until they
+ * actually need to throttle a request.
+ */
+let cachedClient: RateLimitClient | null = null;
+
+export function getSignInRateLimitClient(): RateLimitClient {
+  if (cachedClient) {
+    return cachedClient;
+  }
+  const url = process.env.KV_REST_API_URL;
+  const token = process.env.KV_REST_API_TOKEN;
+  if (!url || !token) {
+    throw new Error('KV_REST_API_URL and KV_REST_API_TOKEN are not configured');
+  }
+  const redis = new Redis({ url, token });
+  const limiter = new Ratelimit({
+    redis,
+    limiter: Ratelimit.slidingWindow(5, '15 m'),
+    prefix: 'auth:signin',
+    analytics: false,
+  });
+  cachedClient = {
+    async limit(key: string) {
+      const verdict = await limiter.limit(key);
+      return {
+        success: verdict.success,
+        remaining: verdict.remaining,
+        limit: verdict.limit,
+        reset: verdict.reset,
+      };
+    },
+  };
+  return cachedClient;
+}
+
+/**
+ * Test-only helper. Reset the cached client so a unit test that exercises
+ * the factory does not bleed state into the next test.
+ */
+export function _resetSignInRateLimitClientForTests(): void {
+  cachedClient = null;
 }

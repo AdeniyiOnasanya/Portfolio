@@ -1,9 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import {
-  checkSignInRateLimit,
-  extractClientIp,
-  type RateLimitClient,
-} from '../rate-limit';
+import { checkSignInRateLimit, extractClientIp, type RateLimitClient } from '../rate-limit';
 
 /*
  * Sign-in rate-limit tests, Phase 6 (#38).
