@@ -48,6 +48,6 @@
     "tinyglobby": "^0.2.16",
     "tsx": "^4.21.0",
     "typescript": "^6.0.3",
-    "vitest": "^3"
+    "vitest": "^4"
   }
 }
