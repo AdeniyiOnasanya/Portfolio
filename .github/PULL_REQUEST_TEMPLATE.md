@@ -30,6 +30,7 @@ Closes #
 
 <!-- Pull the relevant Verify row from implementation-plan.md for this PR's phase. -->
 
+- [ ] If the diff touches a UI surface, validated parity against `design_handoff_portfolio/design/` and cited the file paths plus line ranges this PR mirrors in the Summary block (e.g. `styles.css#L68-L101 (.cursor-dot/.cursor-ring), shared.jsx#L5-L49 (CustomCursor)`). Drift discovered after merge is a regression, not a follow-up.
 - [ ] If the diff touches a UI surface, enabled DevTools, Rendering pane, "Emulate CSS prefers-reduced-motion: reduce" and confirmed every animation, transition, and view transition is stilled. The contract is in `app/globals.css`: timing comes from `var(--duration-*)` tokens; never hardcode durations.
 - [ ]
 

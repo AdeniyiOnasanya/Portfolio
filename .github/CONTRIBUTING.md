@@ -43,6 +43,7 @@ The first two should print the values you set; the third confirms the most recen
 - Every change ships through the chain: `feature/<n>_<slug> -> develop -> staging -> main`. No direct push to any of the three protected branches. No auto-merge. No force-push. No hotfixes.
 - Every animation honours `prefers-reduced-motion`.
 - No AI-attribution trailers anywhere: never write `Co-Authored-By: Claude`, `Generated with Claude Code`, or any equivalent line in commit messages, PR or issue bodies, or code comments. Work is attributed to the human author.
+- **`design_handoff_portfolio/` is the source of truth for every UI surface.** Before planning, implementing, or reviewing a UI-touching slice, read the relevant files in `design_handoff_portfolio/design/{index.html, app.jsx, project.jsx, shared.jsx, styles.css, enhancements.jsx, data.js}`. Mirror named CSS classes, font-variation axes, hover states, animation timings, alpha values, and DOM structure exactly. The PR body must cite the design file paths plus line ranges the change mirrors (the PR template's manual checklist enforces this). The live app catches up to the design files; the design files never catch up to the live app.
 
 ## Branch model
 
