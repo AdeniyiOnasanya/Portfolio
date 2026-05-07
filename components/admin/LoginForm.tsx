@@ -63,8 +63,8 @@ export function LoginForm() {
           Check your <em>inbox</em>.
         </h1>
         <p className="lede">
-          If <strong style={{ color: 'var(--fg)' }}>{trimmedEmail}</strong> is registered, we
-          sent a one-time link. It expires in 10 minutes.
+          If <strong style={{ color: 'var(--fg)' }}>{trimmedEmail}</strong> is registered, we sent a
+          one-time link. It expires in 10 minutes.
         </p>
       </div>
     );
