@@ -100,7 +100,11 @@ body {
   width: 56px;
   height: 56px;
   border-color: var(--color-accent);
-  background: var(--color-accent-subtle);
+  /* Translucent accent so the surface underneath bleeds through. The
+   * design (`design_handoff_portfolio/design/styles.css#L96`) uses
+   * `--accent-soft` (oklch(0.78 0.13 145 / 0.14)); reusing the same
+   * token here keeps theme switching honest. */
+  background: var(--color-accent-soft);
   opacity: 1;
 }
 
@@ -1883,7 +1887,7 @@ body {
 }
 .proj-nav .nav-card:hover {
   border-color: var(--color-accent);
-  background: var(--color-accent-subtle);
+  background: var(--color-accent-soft);
 }
 .proj-nav .nav-card .l {
   font-family: var(--font-mono);
