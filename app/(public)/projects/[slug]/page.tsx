@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation';
 import { DeepDive } from '../../../../components/public/DeepDive';
 import { ProjectCaseStudy } from '../../../../components/public/ProjectCaseStudy';
 import { loadSite } from '../../../../lib/content';
-import { loadProjectBySlug } from '../../../../lib/projects';
+import { loadProjectBySlug, loadProjectFiles } from '../../../../lib/projects';
 import { creativeWorkJsonLd, serializeJsonLd } from '../../../../lib/seo/jsonld';
 import { siteOrigin } from '../../../../lib/seo/origin';
 
@@ -19,12 +19,23 @@ export async function generateStaticParams() {
 
 export default async function ProjectPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const file = await loadProjectBySlug(slug);
+  const [file, site, allFiles] = await Promise.all([
+    loadProjectBySlug(slug),
+    loadSite(),
+    loadProjectFiles(),
+  ]);
   if (!file) {
     notFound();
   }
-  const site = await loadSite();
   const projectLd = creativeWorkJsonLd(file.frontmatter, site.person, siteOrigin());
+  const all = allFiles.map((f) => f.frontmatter);
+  const idx = all.findIndex((p) => p.slug === slug);
+  // SiteSchema enforces projects.min(1), so all[] is non-empty.
+  const prev = all[(idx - 1 + all.length) % all.length];
+  const next = all[(idx + 1) % all.length];
+  if (!prev || !next) {
+    notFound();
+  }
   return (
     <>
       <script
@@ -32,7 +43,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
         // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD must be inline-rendered as text. Source is the validated project frontmatter from content/projects/<slug>.mdx; serializeJsonLd escapes < > & so a stray substring cannot close the script tag.
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(projectLd) }}
       />
-      <ProjectCaseStudy file={file} />
+      <ProjectCaseStudy file={file} prev={prev} next={next} total={all.length} />
       {file.frontmatter.deepDive ? <DeepDive data={file.frontmatter.deepDive} /> : null}
     </>
   );
