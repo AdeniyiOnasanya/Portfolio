@@ -1,32 +1,45 @@
-import { neon } from '@neondatabase/serverless';
+import { type NeonQueryFunction, neon } from '@neondatabase/serverless';
 import { drizzle, type NeonHttpDatabase } from 'drizzle-orm/neon-http';
 import * as schema from './schema';
 
-/**
- * Lazy Drizzle / Neon HTTP client.
- *
- * Why lazy: importing this module from a unit test (or from Next during
- * static prerender) must not trigger a database connection or even a
- * `DATABASE_URL` env-var assertion. The Auth.js Drizzle adapter is wired in
- * `lib/auth.ts` which itself is referenced from middleware, route handlers,
- * and admin pages. Eager construction would mean every test that even
- * transitively imports `lib/auth.ts` would crash without `DATABASE_URL`.
- *
- * The first call site that actually needs the database (a route handler at
- * request time, or `pnpm drizzle-kit migrate`) gets the connection; before
- * then, the module is inert.
- */
-
-let _db: NeonHttpDatabase<typeof schema> | null = null;
-
-export function getDb(): NeonHttpDatabase<typeof schema> {
-  if (_db) return _db;
-  const url = process.env.DATABASE_URL;
-  if (!url) {
-    throw new Error('DATABASE_URL is not configured');
+// The Drizzle client is constructed eagerly so `is(db, PgDatabase)` succeeds
+// in `@auth/drizzle-adapter`'s dialect detection (it uses an instanceof-style
+// brand check that doesn't traverse Proxies). The underlying neon HTTP client
+// is the lazy boundary: it resolves `DATABASE_URL` only when a query actually
+// runs, so build-time page-data collection in Next can load route modules
+// without the env var present in CI.
+function makeLazyNeon(): NeonQueryFunction<false, false> {
+  let real: NeonQueryFunction<false, false> | null = null;
+  function resolve(): NeonQueryFunction<false, false> {
+    if (real) return real;
+    const url = process.env.DATABASE_URL;
+    if (!url) {
+      throw new Error('DATABASE_URL is not configured');
+    }
+    real = neon(url);
+    return real;
   }
-  _db = drizzle(neon(url), { schema });
+  const fn = ((strings: TemplateStringsArray, ...params: unknown[]) =>
+    // biome-ignore lint/suspicious/noExplicitAny: forwarding tagged-template args
+    resolve()(strings, ...(params as any[]))) as NeonQueryFunction<false, false>;
+  fn.query = ((sql: string, params?: unknown[], opts?: unknown) =>
+    // biome-ignore lint/suspicious/noExplicitAny: forwarding driver method shapes
+    (resolve().query as any)(sql, params, opts)) as NeonQueryFunction<false, false>['query'];
+  fn.unsafe = ((raw: string) => resolve().unsafe(raw)) as NeonQueryFunction<false, false>['unsafe'];
+  fn.transaction = ((queries: unknown, opts?: unknown) =>
+    // biome-ignore lint/suspicious/noExplicitAny: forwarding driver method shapes
+    (resolve().transaction as any)(queries, opts)) as NeonQueryFunction<
+    false,
+    false
+  >['transaction'];
+  return fn;
+}
+
+const _db: NeonHttpDatabase<typeof schema> = drizzle(makeLazyNeon(), { schema });
+
+export const db = _db;
+export function getDb(): NeonHttpDatabase<typeof schema> {
   return _db;
 }
 
-export type Db = ReturnType<typeof getDb>;
+export type Db = NeonHttpDatabase<typeof schema>;
