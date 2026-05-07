@@ -159,13 +159,29 @@ body {
 
 .marquee {
   overflow: hidden;
-  width: 100%;
+  white-space: nowrap;
+  border-top: 1px solid var(--color-border-subtle);
+  border-bottom: 1px solid var(--color-border-subtle);
+  padding: 24px 0;
+  margin-top: 80px;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: var(--font-light);
+  font-size: clamp(28px, 4vw, 56px);
+  /* Full-bleed: break out of the surrounding .container's 48px gutters
+   * so the hairline borders meet the viewport edges per the design.
+   * `calc(50% - 50vw)` resolves to whatever negative offset is needed
+   * regardless of the container's current width, so the trick keeps
+   * working across all breakpoints. */
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
 }
 
 .marquee-track {
-  display: flex;
+  display: inline-flex;
   flex-wrap: nowrap;
   width: max-content;
+  align-items: center;
   animation: marquee-scroll 60s linear infinite;
 }
 
@@ -181,37 +197,38 @@ body {
 }
 
 .marquee-copy {
-  display: flex;
+  display: inline-flex;
   flex-wrap: nowrap;
+  align-items: center;
 }
 
 .marquee-static {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-sm);
+  align-items: center;
+  padding: 0 48px;
 }
 
 .marquee-item {
   display: inline-flex;
   align-items: center;
-  padding: var(--space-xs) var(--space-md);
-  margin-right: var(--space-sm);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-full);
-  color: var(--color-text-primary);
-  font-size: var(--text-sm);
+  padding: 0 40px;
   white-space: nowrap;
-  background: var(--color-surface-raised);
+  position: relative;
+  color: var(--color-text-primary);
 }
 
-.marquee-item:not(:last-child)::after {
-  content: "·";
-  color: var(--color-accent);
-  margin-left: var(--space-sm);
-}
-
-.marquee-static .marquee-item {
-  margin-right: 0;
+.marquee-item + .marquee-item::before {
+  content: "";
+  position: absolute;
+  left: -3px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  opacity: 0.7;
 }
 
 @keyframes marquee-scroll {
@@ -892,6 +909,66 @@ body {
 }
 
 /* ==========================================================================
+   Theme toggle pill
+   --------------------------------------------------------------------------
+   Mirrors `design_handoff_portfolio/design/styles.css` `.theme-pill`. Two
+   icon buttons (moon = dark, sun = light) and a sliding `.glide` indicator
+   that uses `mix-blend-mode: difference` to invert against the live theme
+   background. The pill lives inside the .nav strip, which already has
+   `mix-blend-mode: difference` on its container, so the indicator inverts
+   correctly against whichever section sits underneath.
+   ========================================================================== */
+
+.theme-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  padding: 3px;
+  position: relative;
+}
+.theme-pill button {
+  width: 26px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: transparent;
+  border: none;
+  color: inherit;
+  opacity: 0.5;
+  cursor: pointer;
+  transition:
+    opacity var(--duration-base) var(--ease-out),
+    background var(--duration-base) var(--ease-out);
+  position: relative;
+  z-index: 1;
+}
+.theme-pill button.active {
+  opacity: 1;
+}
+.theme-pill button:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 4px;
+}
+.theme-pill .glide {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 26px;
+  height: 22px;
+  border-radius: 999px;
+  background: currentColor;
+  mix-blend-mode: difference;
+  transition: transform 0.4s var(--ease-out);
+  z-index: 0;
+}
+.theme-pill[data-theme="light"] .glide {
+  transform: translateX(26px);
+}
+
+/* ==========================================================================
    About / Skills / Experience grids
    --------------------------------------------------------------------------
    Mirrors `design_handoff_portfolio/design/styles.css` `.about-grid`,
@@ -1513,6 +1590,11 @@ body {
 }
 .footer .foot-row a:hover {
   color: var(--color-accent);
+}
+.footer .foot-row a:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 4px;
+  border-radius: 2px;
 }
 
 /* ==========================================================================

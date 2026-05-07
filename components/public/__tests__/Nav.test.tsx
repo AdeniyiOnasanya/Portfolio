@@ -54,11 +54,12 @@ describe('<Nav />', () => {
     expect(rel).toMatch(/noopener/);
   });
 
-  it('renders the ThemeToggle pill inside the nav-links container', () => {
+  it('renders the ThemeToggle segmented pill inside the nav-links container', () => {
     renderNav();
     const nav = screen.getByRole('navigation', { name: /primary/i });
-    const button = within(nav).getByRole('button');
-    expect(button.getAttribute('aria-label')).toMatch(/theme/i);
+    const pill = within(nav).getByRole('group', { name: /theme/i });
+    expect(within(pill).getByRole('button', { name: 'Dark' })).toBeInTheDocument();
+    expect(within(pill).getByRole('button', { name: 'Light' })).toBeInTheDocument();
   });
 
   it('renders five anchor links plus the mark for the desktop layout', () => {

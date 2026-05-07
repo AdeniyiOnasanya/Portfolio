@@ -112,9 +112,7 @@ export function Hero({
         </MagneticButton>
       </div>
 
-      <div className="mt-2xl">
-        <Marquee items={stackLabels} ariaLabel="Stack" />
-      </div>
+      <Marquee items={stackLabels} ariaLabel="Stack" />
     </section>
   );
 }
