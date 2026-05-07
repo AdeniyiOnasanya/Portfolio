@@ -10,6 +10,7 @@ This repo is a Next.js 16 / TypeScript / pnpm portfolio for David Onasanya. The 
 - No auto-merge. No force-push. No direct push to `develop`, `staging`, or `main`. There is no plan to upgrade to GitHub Pro (issues #3 and #76 closed), so server-side branch protection cannot be enforced. The rule lives in the developer's hand and is reinforced by the `branch-flow-guard` workflow as a soft visible check.
 - Every animation honours `prefers-reduced-motion`.
 - No AI-attribution trailers anywhere: never write `Co-Authored-By: Claude`, `Generated with Claude Code`, or any equivalent line in commit messages, PR or issue bodies, or code comments. Work is attributed to the human author.
+- **`design_handoff_portfolio/` is the source of truth for every UI surface.** Before planning, implementing, or reviewing a UI-touching slice, read the relevant files in `design_handoff_portfolio/design/{index.html, app.jsx, project.jsx, shared.jsx, styles.css, enhancements.jsx, data.js}`. Mirror named CSS classes, font-variation axes, hover states, animation timings, alpha values, and DOM structure exactly. The live app catches up to the design files; the design files never catch up to the live app. Drift discovered after the fact (opaque vs translucent fills, missing hover states, swapped class names) blocks merge until the design path is the one that won.
 
 ## Vercel agent skills installed for this project
 
@@ -45,13 +46,14 @@ The user drives the AI agent with three commands. Recognise them verbatim and re
 
 ### Plan format per slice
 
-Emit the following five fields for every slice before any code is written. The output is read by the user to approve the plan, so be terse and consistent.
+Emit the following six fields for every slice before any code is written. The output is read by the user to approve the plan, so be terse and consistent.
 
 1. **Slice ID + title** (e.g. `#25 sitemap.xml + robots.txt`).
 2. **Implements**: one sentence on the observable outcome.
 3. **Depends on**: comma-separated slice numbers, or `none`.
 4. **Branch base**: `develop` by default; `feature/<dep>_<slug>` when a dependency is unmerged but stable.
 5. **Parallel group**: `A`, `B`, `C`, ... slices in the same group run in parallel; later groups wait for earlier groups to merge.
+6. **Design handoff anchors**: file paths plus line ranges in `design_handoff_portfolio/design/` that this slice mirrors (e.g. `styles.css#L68-L101 (.cursor-dot/.cursor-ring), shared.jsx#L5-L49 (CustomCursor)`), or `n/a` for slices that ship no UI surface (workflow YAML, schemas, scripts, docs only). The slice cannot enter implementation until this field is filled in.
 
 ### Implementation order
 
@@ -64,11 +66,12 @@ Emit the following five fields for every slice before any code is written. The o
 
 The main session stays focused on the **phase**, not the slice. Per-slice work routes through `slice-runner`:
 
+0. **For UI-touching slices, read the design handoff first.** Grep `design_handoff_portfolio/design/` for the components, classes, or interactions the slice will touch, and capture the file paths plus line ranges in the plan's "Design handoff anchors" field. Slice-runner refuses to start implementing a UI slice without this field filled in. For non-UI slices (schema, workflow, script, doc), record `n/a` and move on.
 1. Read `.github/phase-log.md` to pick the next `open` row in the current phase.
 2. Dispatch `slice-runner` with one input, e.g. `"Ship issue #21. Target develop."`. The slice-runner discovers acceptance criteria, branches, implements, runs gates, fans reviewers out in parallel, and opens the PR.
 3. Append the returned five-line summary as a row update in `.github/phase-log.md`. Move to the next slice.
 
-The reviewer fan-out (`qa-runner`, `code-reviewer`, `security-reviewer`, plus `browser-tester` for UI surfaces) happens inside `slice-runner`. Each report goes into a collapsible `<details>` block in the PR body. Findings are advisory; the author reconciles.
+The reviewer fan-out (`qa-runner`, `code-reviewer`, `security-reviewer`, plus `browser-tester` for UI surfaces) happens inside `slice-runner`. Each report goes into a collapsible `<details>` block in the PR body. Findings are advisory; the author reconciles. The `browser-tester` agent's golden path now includes a side-by-side parity check against the design files cited in the slice's "Design handoff anchors" field; any drift it surfaces (opaque vs translucent fills, missing hover states, swapped class names, missing font-variation axes) is treated as P1 and fixed inline before merge.
 
 ## PR body template
 
