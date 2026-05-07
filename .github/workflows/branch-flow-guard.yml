@@ -4,8 +4,13 @@ name: Branch flow guard
 # `branch-flow-guard` job when a PR's base/head pair violates the rules:
 #   - base = main:    head must equal "staging"
 #   - base = staging: head must equal "develop"
-#   - base = develop: head must match ^(feature|fix|content|chore|docs)/.+
+#   - base = develop: head must match ^(feature|fix|content|chore|docs|dependabot)/.+
 #   - any other base: rejected (no PRs to feature branches)
+#
+# `dependabot/` is allowed because Dependabot's branch names are automated
+# (`dependabot/npm_and_yarn/...`, `dependabot/github_actions/...`, etc.) and
+# we cannot rename them. Dependabot PRs target develop and ride the same CI
+# gates as any other feature PR.
 #
 # This job is required as a status check on develop, staging, and main, so
 # a non-conforming PR cannot merge.
@@ -40,7 +45,7 @@ jobs:
             echo "::error::$1"
             echo
             echo "Allowed PR shapes:"
-            echo "  feature/<n>_<slug>, fix/..., content/..., chore/..., docs/...  ->  develop"
+            echo "  feature/<n>_<slug>, fix/..., content/..., chore/..., docs/..., dependabot/...  ->  develop"
             echo "  develop                                                        ->  staging"
             echo "  staging                                                        ->  main"
             exit 1
@@ -58,8 +63,8 @@ jobs:
               fi
               ;;
             develop)
-              if ! echo "$HEAD" | grep -Eq '^(feature|fix|content|chore|docs)/.+'; then
-                fail "PRs to develop must come from feature/, fix/, content/, chore/, or docs/ branches. Got head='$HEAD'."
+              if ! echo "$HEAD" | grep -Eq '^(feature|fix|content|chore|docs|dependabot)/.+'; then
+                fail "PRs to develop must come from feature/, fix/, content/, chore/, docs/, or dependabot/ branches. Got head='$HEAD'."
               fi
               ;;
             *)
