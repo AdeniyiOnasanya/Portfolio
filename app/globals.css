@@ -2386,3 +2386,300 @@ body {
   --duration-base: var(--duration-base);
   --duration-slow: var(--duration-slow);
 }
+
+/* ==========================================================================
+   Login (admin) page, Phase 6
+   --------------------------------------------------------------------------
+   Mirrors design_handoff_portfolio/design/login.html (style block, lines 13
+   to 175; markup, lines 177 to 241). Two-column shell: dark brand panel on
+   the left, form panel on the right. Tokens map as:
+     - --bg, --fg, --fg-mute, --fg-dim from tokens.css.
+     - --serif, --sans, --mono short aliases from tokens.css.
+     - --accent and --accent-soft for the brand-green accents.
+   Where the design uses raw oklch values for one-off panel constants
+   (gradient, dot glow, link colour), the literal value is preserved so the
+   visual lift mirrors the handoff exactly.
+   ========================================================================== */
+
+.login-shell {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--sans);
+}
+
+/* Brand panel (left) */
+.login-brand {
+  position: relative;
+  background: linear-gradient(180deg, #0a0b0a 0%, #11140f 100%);
+  overflow: hidden;
+  padding: 48px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.login-brand::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    -45deg,
+    transparent 0,
+    transparent 32px,
+    rgba(255, 255, 255, 0.025) 32px,
+    rgba(255, 255, 255, 0.025) 33px
+  );
+  pointer-events: none;
+}
+
+.login-brand .topline {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+  z-index: 2;
+  position: relative;
+}
+
+.login-brand .topline .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 12px oklch(0.78 0.18 145 / 0.6);
+}
+
+.login-display {
+  z-index: 2;
+  position: relative;
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 300;
+  font-size: clamp(64px, 8vw, 120px);
+  line-height: 0.92;
+  letter-spacing: -0.04em;
+  color: #f3efe7;
+  font-variation-settings:
+    "SOFT" 100,
+    "WONK" 1,
+    "opsz" 144;
+}
+
+.login-display em {
+  font-style: italic;
+  color: var(--accent);
+}
+
+.login-foot {
+  z-index: 2;
+  position: relative;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.4);
+  display: flex;
+  gap: 18px;
+}
+
+/* Form panel (right) */
+.login-form {
+  padding: 48px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  max-width: 540px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.login-eyebrow {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--fg-mute);
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.login-eyebrow::before {
+  content: "";
+  width: 24px;
+  height: 1px;
+  background: var(--fg-mute);
+}
+
+.login-form h1 {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: clamp(40px, 5vw, 56px);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  margin: 0 0 16px;
+}
+
+.login-form h1 em {
+  font-style: italic;
+}
+
+.login-form p.lede {
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--fg-dim);
+  margin: 0 0 32px;
+  max-width: 44ch;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.field label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--fg-mute);
+}
+
+.field input {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: var(--fg);
+  padding: 14px 16px;
+  border-radius: 10px;
+  font-family: var(--sans);
+  font-size: 16px;
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    background var(--duration-fast) var(--ease-out);
+  outline: none;
+}
+
+.field input:focus {
+  border-color: var(--accent);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.submit-btn {
+  appearance: none;
+  border: 0;
+  background: var(--fg);
+  color: var(--bg);
+  padding: 14px 22px;
+  border-radius: 10px;
+  font-family: var(--sans);
+  font-weight: 500;
+  font-size: 15px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  transition:
+    transform var(--duration-fast) var(--ease-out),
+    opacity var(--duration-fast) var(--ease-out);
+}
+
+.submit-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.submit-btn .arr {
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.submit-btn:hover:not(:disabled) .arr {
+  transform: translateX(4px);
+}
+
+/* Sent state */
+.sent-state {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.sent-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  border: 1px solid oklch(0.78 0.18 145 / 0.4);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+  margin-bottom: 12px;
+}
+
+.login-status {
+  margin-top: auto;
+  padding-top: 32px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--fg-mute);
+  display: flex;
+  gap: 18px;
+}
+
+.login-status .live {
+  color: var(--accent);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.login-status .live::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent);
+  animation: login-status-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes login-status-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(0.8);
+  }
+}
+
+/* Mobile: brand panel collapses, only the form panel renders. */
+@media (max-width: 920px) {
+  .login-shell {
+    grid-template-columns: 1fr;
+  }
+  .login-shell .login-brand {
+    display: none;
+  }
+}
