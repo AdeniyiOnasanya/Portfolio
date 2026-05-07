@@ -66,4 +66,34 @@ describe('<LoginForm />', () => {
     fireEvent.submit(input.closest('form') as HTMLFormElement);
     expect(signInMock).not.toHaveBeenCalled();
   });
+
+  it('renders the on-brand expired-link message when error="expired"', () => {
+    render(<LoginForm error="expired" />);
+    const banner = screen.getByRole('alert');
+    expect(banner).toHaveTextContent(/link.*(expired|already.*used)/i);
+    // The design uses the `.err` class for this state
+    // (design_handoff_portfolio/design/login.html lines 125 to 129).
+    expect(banner).toHaveClass('err');
+    // The form input still shows so the visitor can re-request a link.
+    expect(screen.getByLabelText('Email address')).toBeInTheDocument();
+  });
+
+  it('does not render any error banner when error is undefined', () => {
+    render(<LoginForm />);
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  it('does not render an error banner for an unknown error code', () => {
+    render(<LoginForm error="something-else" />);
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  it('translates the Auth.js native "Verification" code to the expired message', () => {
+    // Auth.js v5 emits ?error=Verification when the verification token is
+    // missing, expired, or already consumed. The form maps that to the
+    // same on-brand "expired" copy so the visitor never sees a default
+    // NextAuth error page.
+    render(<LoginForm error="Verification" />);
+    expect(screen.getByRole('alert')).toHaveTextContent(/link.*(expired|already.*used)/i);
+  });
 });

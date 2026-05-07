@@ -48,6 +48,10 @@ export const authConfig = {
   ],
   pages: {
     signIn: '/login',
+    // A stale or already-consumed verification token redirects here with
+    // `?error=Verification`; the `/login` page maps that code (and our own
+    // `?error=expired` shorthand) to the on-brand banner from slice #39.
+    error: '/login',
   },
   callbacks: {
     signIn: buildSignInCallback(process.env.ADMIN_EMAIL),

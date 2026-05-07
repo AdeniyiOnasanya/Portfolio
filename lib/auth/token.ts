@@ -71,9 +71,7 @@ export type VerifyMagicTokenInput = {
   now?: number | Date;
 };
 
-export type VerifyMagicTokenResult =
-  | { ok: true }
-  | { ok: false; reason: 'expired' | 'invalid' };
+export type VerifyMagicTokenResult = { ok: true } | { ok: false; reason: 'expired' | 'invalid' };
 
 export function verifyMagicToken(input: VerifyMagicTokenInput): VerifyMagicTokenResult {
   const { candidate, storedHash, expiresAt, now = Date.now() } = input;
