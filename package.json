@@ -13,18 +13,41 @@
     "typecheck": "tsc --noEmit",
     "lint": "biome check .",
     "format": "biome format --write .",
-    "format:check": "biome format ."
+    "format:check": "biome format .",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "check:forbidden": "tsx scripts/check-forbidden-chars.ts",
+    "validate:content": "tsx scripts/validate-content.ts",
+    "prebuild": "tsx scripts/validate-content.ts"
   },
   "dependencies": {
+    "@radix-ui/react-dialog": "^1.1.15",
+    "cmdk": "^1.1.1",
+    "gray-matter": "^4.0.3",
     "next": "^16.2.4",
     "react": "^19.2.5",
-    "react-dom": "^19.2.5"
+    "react-dom": "^19.2.5",
+    "react-markdown": "^10.1.0",
+    "react-view-transitions": "^0.0.1",
+    "remark-gfm": "^4.0.1",
+    "zod": "^4.4.2"
   },
   "devDependencies": {
     "@biomejs/biome": "2.4.13",
+    "@playwright/test": "^1.59.1",
+    "@tailwindcss/postcss": "^4.2.4",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
     "@types/node": "^25.6.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
-    "typescript": "^6.0.3"
+    "happy-dom": "^20.9.0",
+    "postcss": "^8.5.13",
+    "tailwindcss": "^4.2.4",
+    "tinyglobby": "^0.2.16",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.3",
+    "vitest": "^3"
   }
 }

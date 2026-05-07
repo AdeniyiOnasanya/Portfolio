@@ -1,0 +1,40 @@
+---
+slug: calendar-tool
+n: "04"
+title: Quorum
+subtitle: Internal meeting and calendar tool
+year: "2023"
+role: Mobile + backend
+kind: React Native app
+stack:
+  - React Native (Expo)
+  - TypeScript
+  - Tailwind
+  - Azure Graph
+tagline: The meeting nobody had to chase.
+summary: An internal mobile tool that integrates with Azure-hosted company calendars to streamline scheduling, reduce coordination time, and stop the all-hands threads from sprawling.
+visuals:
+  - { label: "Home, today's schedule", w: tall }
+  - { label: Propose meeting flow, w: tall }
+  - { label: Conflict resolution sheet, w: wide, span: 2 }
+meta:
+  Year: "2023"
+  Role: Mobile + Backend
+  Sector: Internal Tools
+  Status: In production
+---
+
+## Problem
+
+Scheduling across a distributed engineering org meant juggling time zones, blocked rooms, and a half-dozen back-and-forth messages per meeting. Existing tools couldn't see the org's full calendar graph.
+
+## Approach
+
+- Designed in Figma for a thumb-first, glance-able experience.
+- Tapped Azure Graph for calendar reads and writes and free/busy resolution across teams.
+- Optimistic UI for proposals, drafts feel instant, conflicts surface immediately.
+- Native-feeling transitions throughout, in Expo.
+
+## Outcome
+
+Reduced meeting-coordination back-and-forth across teams; proposed meetings find a slot on the first try, most of the time.

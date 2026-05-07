@@ -1,0 +1,184 @@
+import type { ProjectFile } from '../../../lib/projects';
+import type {
+  AiPractice,
+  Certs,
+  Education,
+  Experience,
+  Footer,
+  Hero,
+  Person,
+  Project,
+  Projects,
+  Skills,
+} from '../../../lib/schema';
+
+export const samplePerson: Person = {
+  name: 'Ada Lovelace',
+  nameAccent: 'Lovelace',
+  role: 'Software Engineer',
+  location: 'London, United Kingdom',
+  phone: '07000 000000',
+  email: 'ada@example.com',
+  cvUrl: '/cv/ada.pdf',
+  cvDocxUrl: '/cv/ada.docx',
+  github: 'https://github.com/example',
+  linkedin: 'https://www.linkedin.com/in/example',
+  yearsExp: 6,
+  estYear: '2019',
+  statement: 'A short statement that fits in one paragraph.',
+  longBio: ['Paragraph one.', 'Paragraph two.'],
+};
+
+export const sampleSkills: Skills = [
+  { label: 'Languages', items: ['TypeScript', 'PHP'] },
+  { label: 'Frameworks', items: ['React', 'Laravel'] },
+];
+
+export const sampleHero: Hero = {
+  meta: ['Available', 'Q2 2026', 'London', 'UK'],
+  stats: [
+    { value: '06', label: 'Years shipping' },
+    { value: '07', label: 'Production projects' },
+    { value: '∞', label: 'CSS rewrites' },
+  ],
+};
+
+export const sampleExperience: Experience = [
+  {
+    role: 'Software Engineer',
+    company: 'Acme',
+    where: 'London',
+    when: '2024, Present',
+    desc: 'Building things that work.',
+    tags: ['TypeScript', 'React'],
+  },
+];
+
+export const sampleEducation: Education = [
+  {
+    degree: 'BSc Computer Science',
+    school: 'Sample University',
+    result: 'First-class honours.',
+  },
+  {
+    degree: 'A-levels',
+    school: 'Sample College',
+    result: 'AAA.',
+  },
+];
+
+export const sampleCerts: Certs = ['AWS Solutions Architect', 'Cisco CCNA'];
+
+export const sampleAiPractice: AiPractice = {
+  eyebrow: 'AI-Assisted Development',
+  headline: 'I ship faster, and better, with <em>AI in the loop</em>.',
+  intro: 'A short intro paragraph about practice.',
+  pillars: [{ n: 'i.', title: 'Specification first.', body: 'Spec everything.' }],
+  workflow: [{ k: 'Spec', v: 'Plain-English intent.' }],
+};
+
+export const sampleProjects: Projects = ['project-one', 'project-two', 'project-three'];
+
+export const sampleProjectList: Project[] = [
+  {
+    slug: 'project-one',
+    n: '01',
+    title: 'Project One',
+    subtitle: 'A platform for one.',
+    year: '2024',
+    role: 'Lead engineer',
+    kind: 'Web platform',
+    stack: ['TypeScript', 'React'],
+    tagline: 'Tagline one.',
+    summary: 'Summary one.',
+    visuals: [{ label: 'Hero', w: 'wide' }],
+    meta: { Year: '2024', Role: 'Lead', Sector: 'SaaS', Status: 'Live' },
+  },
+  {
+    slug: 'project-two',
+    n: '02',
+    title: 'Project Two',
+    subtitle: 'A platform for two.',
+    year: '2023',
+    role: 'IC engineer',
+    kind: 'Mobile app',
+    stack: ['React Native'],
+    tagline: 'Tagline two.',
+    summary: 'Summary two.',
+    visuals: [{ label: 'Hero', w: 'wide' }],
+    meta: { Year: '2023', Role: 'IC', Sector: 'Health', Status: 'Live' },
+  },
+  {
+    slug: 'project-three',
+    n: '03',
+    title: 'Project Three',
+    subtitle: 'A platform for three.',
+    year: '2022',
+    role: 'Founding engineer',
+    kind: 'Internal tool',
+    stack: ['Vue', 'Nuxt'],
+    tagline: 'Tagline three.',
+    summary: 'Summary three.',
+    visuals: [{ label: 'Hero', w: 'wide' }],
+    meta: { Year: '2022', Role: 'Founding', Sector: 'Cloud', Status: 'Sunset' },
+  },
+];
+
+export const sampleFooter: Footer = {
+  heading: 'Let us talk.',
+  copy: 'Open to roles.',
+  availability: 'Available now',
+  copyright: '(c) 2026 Ada Lovelace.',
+};
+
+export const sampleProject: Project = {
+  slug: 'sample-project',
+  n: '01',
+  title: 'Sample Project',
+  subtitle: 'A short subtitle for the case study.',
+  year: '2024',
+  role: 'Lead engineer',
+  kind: 'Web platform',
+  stack: ['TypeScript', 'React', 'Tailwind'],
+  tagline: 'A short tagline for the project.',
+  summary: 'A short summary of what this project does.',
+  visuals: [
+    { label: 'Hero shot', w: 'wide', span: 2 },
+    { label: 'Detail view', w: 'tall' },
+  ],
+  meta: {
+    Year: '2024',
+    Role: 'Lead Engineer',
+    Sector: 'SaaS',
+    Status: 'In production',
+  },
+  deepDive: {
+    metricsIntro: 'A short intro to the numbers below.',
+    metrics: [
+      {
+        value: '18',
+        suffix: '%',
+        label: 'reduction in cloud spend',
+        note: 'across pilot tenants',
+      },
+      { value: '60', suffix: '+', label: 'screens shipped to production' },
+      { value: '2', prefix: 'to', suffix: ' min', label: 'first sync time' },
+    ],
+    beforeAfter: {
+      intro: 'Before, ops leads kept context across two consoles.',
+      beforeLabel: 'Two consoles, billing CSV',
+      afterLabel: 'One pane, one source of truth',
+    },
+    process: [
+      { title: 'Discovery', desc: 'Two weeks shadowing pilot tenants.' },
+      { title: 'Figma system', desc: 'Built the design library before code.' },
+    ],
+    lessons: [{ title: 'Smaller scopes ship', body: 'Tight increments meant tight feedback.' }],
+  },
+};
+
+export const sampleProjectFile: ProjectFile = {
+  slug: sampleProject.slug,
+  frontmatter: sampleProject,
+  body: 'A short narrative about the case study.\n\nA second paragraph.',
+};

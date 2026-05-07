@@ -1,0 +1,41 @@
+---
+slug: compliance-electron
+n: "03"
+title: Vessel
+subtitle: Hot-water compliance testing rig
+year: "2024"
+role: Full-stack engineer
+kind: Electron app on Raspberry Pi
+stack:
+  - Electron
+  - React
+  - TypeScript
+  - Node / Express
+  - Web Sockets
+tagline: 30 sensors. One screen. EN16147.
+summary: An Electron application running on a Raspberry Pi for a domestic hot-water tapping compliance testing system. Replaces a brittle legacy app with a fast, readable interface and live sensor streaming.
+visuals:
+  - { label: Live sensor dashboard, w: wide, span: 2 }
+  - { label: Tap profile editor, w: tall }
+  - { label: Compliance report view, w: tall }
+meta:
+  Year: "2024"
+  Role: Full-stack
+  Sector: Industrial / IoT
+  Status: In production
+---
+
+## Problem
+
+Compliance testing under EN16147 means orchestrating tap profiles and recording data from 30+ sensors over hours. The legacy software was unmaintained and unforgiving, a single hiccup voided the test.
+
+## Approach
+
+- Read EN16147 alongside the client's lab leads to translate compliance language into a UI a technician can drive at 6am.
+- Web Socket data streaming for sub-second sensor updates without UI jank.
+- Designed in Figma first, fault states, recovery flows, and live charts laid out before the hardware arrived.
+- Hardware-friendly Electron build that boots into the app on a Pi without a desktop.
+
+## Outcome
+
+Live in the lab, replacing the legacy app. Tests are now resumable, sensor data is recoverable mid-run, and onboarding new technicians takes a shift, not a week.

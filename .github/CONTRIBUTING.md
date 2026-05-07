@@ -8,6 +8,34 @@ Solo build. These rules keep the repo reviewable, the deploys safe, and the audi
 - `tech-stack.md`: locked technical decisions.
 - `implementation-plan.md`: phased build plan; new work belongs to a phase milestone.
 
+## First-time setup (every fresh clone)
+
+Vercel deploys this project under a team allowlist. The allowlist is checked against the **commit author**, not the push credential. If a commit lands authored by an account that is not on the allowlist, the preview deployment fails with `Git author <name> must have access to the project on Vercel to create deployments.` (this happened on PR #102).
+
+A global `~/.gitconfig` `user.name` and `user.email` will not be the allowlisted account on most machines, so every fresh clone needs a repo-local override. Set it once, immediately after cloning:
+
+```bash
+git config --local user.name  "<your-github-account-name>"
+git config --local user.email "<your-no-reply-email>"
+```
+
+Where:
+
+- `<your-github-account-name>` is the GitHub username on the Vercel team allowlist (the same handle that appears as the project owner on Vercel).
+- `<your-no-reply-email>` is the no-reply address GitHub generates for that account, copied verbatim from `https://github.com/settings/emails` (look for "Keep my email addresses private" and the address shown beside it). The form is `<id>+<account-name>@users.noreply.github.com`.
+
+Do not commit the literal values into any tracked file, issue body, PR body, or commit message. They live only in `.git/config`, which is per-clone and untracked.
+
+To verify the override is in place before pushing:
+
+```bash
+git config --local user.name
+git config --local user.email
+git log -1 --format='%an <%ae>'
+```
+
+The first two should print the values you set; the third confirms the most recent commit was authored as expected.
+
 ## Hard rules
 
 - No em-dash (U+2014) anywhere in code, content, comments, commit messages, issues, or PR text. Use commas, periods, semicolons, parentheses, or colons.
@@ -15,6 +43,7 @@ Solo build. These rules keep the repo reviewable, the deploys safe, and the audi
 - Every change ships through the chain: `feature/<n>_<slug> -> develop -> staging -> main`. No direct push to any of the three protected branches. No auto-merge. No force-push. No hotfixes.
 - Every animation honours `prefers-reduced-motion`.
 - No AI-attribution trailers anywhere: never write `Co-Authored-By: Claude`, `Generated with Claude Code`, or any equivalent line in commit messages, PR or issue bodies, or code comments. Work is attributed to the human author.
+- **`design_handoff_portfolio/` is the source of truth for every UI surface.** Before planning, implementing, or reviewing a UI-touching slice, read the relevant files in `design_handoff_portfolio/design/{index.html, app.jsx, project.jsx, shared.jsx, styles.css, enhancements.jsx, data.js}`. Mirror named CSS classes, font-variation axes, hover states, animation timings, alpha values, and DOM structure exactly. The PR body must cite the design file paths plus line ranges the change mirrors (the PR template's manual checklist enforces this). The live app catches up to the design files; the design files never catch up to the live app.
 
 ## Branch model
 
@@ -68,7 +97,7 @@ The slug is a kebab-case fragment of the issue title, max 40 characters. Phase n
 
 ## PR review contract
 
-Every non-trivial PR runs a multi-agent review pass before it opens. The author dispatches each subagent in parallel against `git diff develop...HEAD`:
+Every non-trivial PR runs a multi-agent review pass before it opens. By default this is orchestrated by the `slice-runner` subagent (see "Slice dispatch" below); the calling session does not run the reviewers by hand. When the slice-runner fans out, it dispatches each reviewer in parallel against `git diff develop...HEAD`:
 
 1. **`qa-runner`** runs whichever quality gates are wired in `package.json` (`pnpm typecheck`, `pnpm lint`, `pnpm build`, `pnpm test`, etc.). Missing scripts are skipped, never failed.
 2. **`code-reviewer`** flags blockers, warnings, and suggestions against repo conventions, the installed Vercel agent skills, and React/Next.js best practices.
@@ -77,9 +106,21 @@ Every non-trivial PR runs a multi-agent review pass before it opens. The author 
 
 The PR body opens with `Closes #N` and includes one collapsible `<details>` block per dispatched subagent containing each report verbatim. Findings are advisory; the author reconciles. The reviewer subagents do not block the merge button.
 
+Each reviewer subagent pins a model in its frontmatter (`qa-runner` Haiku 4.5; `code-reviewer`, `security-reviewer`, `browser-tester` Sonnet 4.6). Before promoting `staging` to `main`, escalate `security-reviewer` to Opus by passing `model: 'opus'` to the `Agent` dispatch; the cheap PR pass stays on Sonnet.
+
 Trivial slices may skip the review pass. A slice is trivial if it changes no executable code, no workflow YAML, no schema, and no auth or GitHub-pipeline surface (typo fixes, label tweaks, single-line doc edits).
 
-Strict TDD slices carry the `tdd:strict` label, applied during triage when the Task form's "TDD strict?" dropdown is set to `yes` (typically slices in `implementation-plan.md` Phases 1, 3, 6, 8). Those slices route to the `tdd-author` subagent instead of `scaffolder`. Red, green, refactor is mechanical: no implementation file may be edited until a failing test exists in the working tree.
+Strict TDD slices carry the `tdd:strict` label, applied during triage when the Task form's "TDD strict?" dropdown is set to `yes` (typically slices in `implementation-plan.md` Phases 1, 3, 6, 8). Those slices route to the `tdd-author` subagent (dispatched by `slice-runner` for that step) rather than running inline. Red, green, refactor is mechanical: no implementation file may be edited until a failing test exists in the working tree.
+
+## Slice dispatch
+
+The default unit of work is one `phase-slices.md` slice = one closed issue = one PR, shipped end to end by the `slice-runner` subagent. The calling session does not load slice internals; it dispatches the runner and consumes its five-line summary.
+
+1. **Pick the slice.** Read `.github/phase-log.md` and choose the next `open` row in the current phase.
+2. **Dispatch.** Call `slice-runner` via the `Agent` tool with one input, e.g. `Ship issue #21. Target develop.`. The runner discovers acceptance criteria, branches, implements (delegating to `tdd-author` for `tdd:strict` slices), runs gates via `qa-runner`, pushes, fans `code-reviewer` / `security-reviewer` / `browser-tester` out in parallel, composes the PR body, and opens the PR against `develop`.
+3. **Update the phase log.** Append the runner's five-line summary as a row update in `.github/phase-log.md` (status `merged` once the PR lands, with the PR number and outcome).
+
+Trivial slices and one-off chores can be authored inline without the runner, but every non-trivial slice should route through it so context budget stays at the phase level.
 
 ## Tests
 

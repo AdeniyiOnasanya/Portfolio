@@ -30,6 +30,14 @@
   --color-brand-800: oklch(0.48 0.15 145);
   --color-brand-900: oklch(0.34 0.1 145);
 
+  /* Translucent accent, used for hover-state fills where the surface
+   * underneath should bleed through (.cursor-ring on hover, .proj-nav
+   * .nav-card:hover, etc.). Mirrors the design's `--accent-soft` token
+   * (`oklch(0.78 0.13 145 / 0.14)`) and shifts to a darker hue under
+   * the light theme so the alpha tint reads against the cream surface. */
+  --color-brand-soft-dark: oklch(0.78 0.13 145 / 0.14);
+  --color-brand-soft-light: oklch(0.55 0.14 145 / 0.14);
+
   /* Neutral, warm cream to warm charcoal */
   --color-neutral-50: oklch(0.98 0.004 85);
   --color-neutral-100: oklch(0.95 0.006 85);
@@ -107,6 +115,7 @@
   --color-accent-hover: var(--color-brand-600);
   --color-accent-active: var(--color-brand-700);
   --color-accent-subtle: var(--color-brand-50);
+  --color-accent-soft: var(--color-brand-soft-light);
   --color-focus-ring: var(--color-brand-500);
 
   /* Status */
@@ -142,10 +151,12 @@
      5. Typography
      ---------------------------------------------------------------------- */
 
-  /* Families */
-  --font-sans: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-serif: "Fraunces", ui-serif, Georgia, "Times New Roman", serif;
-  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  /* Families. The `--font-*` variables on the left are the project tokens.
+     They thread through `var(--font-geist)` etc. that next/font sets on the
+     <html> element in `app/layout.tsx`, with explicit system fallbacks. */
+  --font-sans: var(--font-geist), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-serif: var(--font-fraunces), ui-serif, Georgia, "Times New Roman", serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
   /* Weights */
   --font-light: 300;
@@ -208,9 +219,44 @@
   --z-base: 0;
   --z-raised: 10;
   --z-overlay: 50;
+  --z-nav: 100;
   --z-modal: 100;
   --z-toast: 200;
   --z-cursor: 9999;
+  --z-grain: 9000;
+
+  /* ----------------------------------------------------------------------
+     9. Texture
+        Film grain overlay opacity. Light surfaces tolerate less noise
+        before legibility suffers, so the dark theme below tunes higher.
+        Theme blocks below re-point the semantic alias at a primitive;
+        they never declare new raw values (rule 3 in the header).
+     ---------------------------------------------------------------------- */
+  --grain-opacity-low: 0.04;
+  --grain-opacity-high: 0.06;
+  --grain-opacity: var(--grain-opacity-low);
+
+  /* ----------------------------------------------------------------------
+     10. Design-handoff aliases
+        Short-name aliases (--bg, --fg, --accent etc.) used by the public
+        surfaces. They mirror the names from
+        `design_handoff_portfolio/design/styles.css` so the CSS in
+        globals.css can read directly from the handoff. Theme blocks below
+        re-point them; they never declare new raw values.
+     ---------------------------------------------------------------------- */
+  --bg: var(--color-surface-canvas);
+  --bg-elev: var(--color-surface-raised);
+  --fg: var(--color-text-primary);
+  --fg-dim: var(--color-text-secondary);
+  --fg-mute: var(--color-text-muted);
+  --line: var(--color-border-subtle);
+  --line-strong: var(--color-border);
+  --accent: var(--color-accent);
+  --accent-soft: var(--color-accent-soft);
+  --accent-strong: var(--color-accent-active);
+  --serif: var(--font-serif);
+  --sans: var(--font-sans);
+  --mono: var(--font-mono);
 }
 
 /* ==========================================================================
@@ -244,6 +290,7 @@
     --color-accent-hover: var(--color-brand-400);
     --color-accent-active: var(--color-brand-300);
     --color-accent-subtle: var(--color-brand-900);
+    --color-accent-soft: var(--color-brand-soft-dark);
     --color-focus-ring: var(--color-brand-400);
 
     /* Status (shift bg toward darker primitives so it sits on the dark canvas) */
@@ -259,6 +306,19 @@
     --shadow-md: 0 4px 12px -2px oklch(0 0 0 / 0.5);
     --shadow-lg: 0 16px 32px -8px oklch(0 0 0 / 0.6);
     --shadow-focus: 0 0 0 3px var(--color-brand-800);
+
+    --grain-opacity: var(--grain-opacity-high);
+
+    --bg: var(--color-surface-canvas);
+    --bg-elev: var(--color-surface-raised);
+    --fg: var(--color-text-primary);
+    --fg-dim: var(--color-text-secondary);
+    --fg-mute: var(--color-text-muted);
+    --line: var(--color-border-subtle);
+    --line-strong: var(--color-border);
+    --accent: var(--color-accent);
+    --accent-soft: var(--color-accent-soft);
+    --accent-strong: var(--color-accent-active);
   }
 }
 
@@ -289,6 +349,7 @@
   --color-accent-hover: var(--color-brand-600);
   --color-accent-active: var(--color-brand-700);
   --color-accent-subtle: var(--color-brand-50);
+  --color-accent-soft: var(--color-brand-soft-light);
   --color-focus-ring: var(--color-brand-500);
 
   --color-success: var(--color-success-600);
@@ -302,6 +363,19 @@
   --shadow-md: 0 4px 6px -1px oklch(0 0 0 / 0.08), 0 2px 4px -2px oklch(0 0 0 / 0.06);
   --shadow-lg: 0 12px 20px -8px oklch(0 0 0 / 0.16), 0 4px 8px -4px oklch(0 0 0 / 0.08);
   --shadow-focus: 0 0 0 3px var(--color-brand-200);
+
+  --grain-opacity: var(--grain-opacity-low);
+
+  --bg: var(--color-surface-canvas);
+  --bg-elev: var(--color-surface-raised);
+  --fg: var(--color-text-primary);
+  --fg-dim: var(--color-text-secondary);
+  --fg-mute: var(--color-text-muted);
+  --line: var(--color-border-subtle);
+  --line-strong: var(--color-border);
+  --accent: var(--color-accent);
+  --accent-soft: var(--color-accent-soft);
+  --accent-strong: var(--color-accent-active);
 }
 
 [data-theme="dark"] {
@@ -325,6 +399,7 @@
   --color-accent-hover: var(--color-brand-400);
   --color-accent-active: var(--color-brand-300);
   --color-accent-subtle: var(--color-brand-900);
+  --color-accent-soft: var(--color-brand-soft-dark);
   --color-focus-ring: var(--color-brand-400);
 
   --color-success: var(--color-success-400);
@@ -338,6 +413,19 @@
   --shadow-md: 0 4px 12px -2px oklch(0 0 0 / 0.5);
   --shadow-lg: 0 16px 32px -8px oklch(0 0 0 / 0.6);
   --shadow-focus: 0 0 0 3px var(--color-brand-800);
+
+  --grain-opacity: var(--grain-opacity-high);
+
+  --bg: var(--color-surface-canvas);
+  --bg-elev: var(--color-surface-raised);
+  --fg: var(--color-text-primary);
+  --fg-dim: var(--color-text-secondary);
+  --fg-mute: var(--color-text-muted);
+  --line: var(--color-border-subtle);
+  --line-strong: var(--color-border);
+  --accent: var(--color-accent);
+  --accent-soft: var(--color-accent-soft);
+  --accent-strong: var(--color-accent-active);
 }
 
 /* ==========================================================================
