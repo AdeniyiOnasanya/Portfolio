@@ -25,69 +25,67 @@ describe('<ThemeToggle />', () => {
     document.documentElement.removeAttribute('data-theme');
   });
 
-  it('renders with the label that matches the current mode', () => {
+  it('renders a segmented pill with two buttons (Dark and Light)', () => {
     render(
       <ThemeProvider initialMode="system" initialEffective="dark">
         <ThemeToggle />
       </ThemeProvider>,
     );
-    const button = screen.getByRole('button');
-    expect(button.textContent).toContain('System');
-    expect(button.getAttribute('aria-label')).toBe('Theme: System. Click to change.');
+    const dark = screen.getByRole('button', { name: 'Dark' });
+    const light = screen.getByRole('button', { name: 'Light' });
+    expect(dark).toBeInTheDocument();
+    expect(light).toBeInTheDocument();
   });
 
-  it('cycles system to dark to light to system on successive clicks', () => {
-    render(
-      <ThemeProvider initialMode="system" initialEffective="dark">
-        <ThemeToggle />
-      </ThemeProvider>,
-    );
-    const button = screen.getByRole('button');
-
-    expect(button.textContent).toContain('System');
-
-    fireEvent.click(button);
-    expect(button.textContent).toContain('Dark');
-    expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
-
-    fireEvent.click(button);
-    expect(button.textContent).toContain('Light');
-    expect(document.documentElement.getAttribute('data-theme')).toBe('light');
-
-    fireEvent.click(button);
-    expect(button.textContent).toContain('System');
-    expect(document.documentElement.hasAttribute('data-theme')).toBe(false);
-  });
-
-  it('persists the selected mode in the theme cookie', () => {
-    render(
-      <ThemeProvider initialMode="system" initialEffective="dark">
-        <ThemeToggle />
-      </ThemeProvider>,
-    );
-    const button = screen.getByRole('button');
-
-    fireEvent.click(button);
-    expect(document.cookie).toMatch(/theme=dark/);
-
-    fireEvent.click(button);
-    expect(document.cookie).toMatch(/theme=light/);
-
-    fireEvent.click(button);
-    expect(document.cookie).toMatch(/theme=system/);
-  });
-
-  it('starts from a non-system initial mode and cycles forward from there', () => {
+  it('marks the dark button active when the visible theme is dark', () => {
     render(
       <ThemeProvider initialMode="dark" initialEffective="dark">
         <ThemeToggle />
       </ThemeProvider>,
     );
-    const button = screen.getByRole('button');
-    expect(button.textContent).toContain('Dark');
+    const dark = screen.getByRole('button', { name: 'Dark' });
+    const light = screen.getByRole('button', { name: 'Light' });
+    expect(dark).toHaveAttribute('aria-pressed', 'true');
+    expect(light).toHaveAttribute('aria-pressed', 'false');
+  });
 
-    fireEvent.click(button);
-    expect(button.textContent).toContain('Light');
+  it('clicking Light sets data-theme to light and persists the cookie', () => {
+    render(
+      <ThemeProvider initialMode="system" initialEffective="dark">
+        <ThemeToggle />
+      </ThemeProvider>,
+    );
+    const light = screen.getByRole('button', { name: 'Light' });
+    fireEvent.click(light);
     expect(document.documentElement.getAttribute('data-theme')).toBe('light');
+    expect(document.cookie).toMatch(/theme=light/);
+    expect(light).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('clicking Dark sets data-theme to dark and persists the cookie', () => {
+    render(
+      <ThemeProvider initialMode="light" initialEffective="light">
+        <ThemeToggle />
+      </ThemeProvider>,
+    );
+    const dark = screen.getByRole('button', { name: 'Dark' });
+    fireEvent.click(dark);
+    expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
+    expect(document.cookie).toMatch(/theme=dark/);
+    expect(dark).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('reflects the visible theme on the pill data-theme attribute', () => {
+    const { container } = render(
+      <ThemeProvider initialMode="dark" initialEffective="dark">
+        <ThemeToggle />
+      </ThemeProvider>,
+    );
+    const pill = container.querySelector('.theme-pill') as HTMLElement;
+    expect(pill.getAttribute('data-theme')).toBe('dark');
+
+    const light = screen.getByRole('button', { name: 'Light' });
+    fireEvent.click(light);
+    expect(pill.getAttribute('data-theme')).toBe('light');
   });
 });

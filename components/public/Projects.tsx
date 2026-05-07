@@ -1,22 +1,18 @@
-import type { Projects as ProjectsType } from '../../lib/schema';
-import { ProjectRow } from './ProjectRow';
+import type { Project } from '../../lib/schema';
+import { ProjectsIndex } from './ProjectsIndex';
 
-export function Projects({ projects }: { projects: ProjectsType }) {
+export function Projects({ projects }: { projects: Project[] }) {
   return (
-    <section id="work" aria-labelledby="projects-heading" className="py-2xl">
-      <p className="text-fg-muted tracking-eyebrow text-xs uppercase font-mono">
-        05 / Selected work
-      </p>
-      <h2 id="projects-heading" className="font-serif tracking-display text-3xl md:text-4xl mt-xs">
-        Selected work
-      </h2>
-      <ol className="mt-lg space-y-sm">
-        {projects.map((slug, index) => (
-          <li key={slug}>
-            <ProjectRow slug={slug} index={index} />
-          </li>
-        ))}
-      </ol>
+    <section id="work" aria-label="Selected work">
+      <div className="section-head reveal">
+        <div className="num">05 / Selected work</div>
+        <h2>
+          Seven things
+          <br />
+          I&apos;m <em>proud</em> of.
+        </h2>
+      </div>
+      <ProjectsIndex projects={projects} />
     </section>
   );
 }

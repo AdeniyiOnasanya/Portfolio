@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { Projects } from '../Projects';
-import { sampleProjects } from './fixtures';
+import { sampleProjectList } from './fixtures';
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
@@ -10,31 +10,35 @@ vi.mock('next/navigation', () => ({
   }),
 }));
 
-// Mock the motion hooks the same way ProjectRow.test.tsx does so the assertions
-// in this file do not depend on happy-dom's matchMedia behaviour. Default to
-// motion allowed (reduced returns false) since these tests do not exercise the
-// reduced-motion gate; the dedicated ProjectRow.test.tsx covers that path.
 vi.mock('../../../lib/motion/preferences', () => ({
   usePrefersReducedMotion: () => false,
   prefersReducedMotion: () => false,
 }));
 
 describe('Projects', () => {
-  it('renders an h2 titled Selected work inside a region with that label', () => {
-    render(<Projects projects={sampleProjects} />);
-    const heading = screen.getByRole('heading', {
-      level: 2,
-      name: 'Selected work',
-    });
+  it('renders a region labelled Selected work containing the editorial h2', () => {
+    render(<Projects projects={sampleProjectList} />);
     const region = screen.getByRole('region', { name: 'Selected work' });
+    const heading = screen.getByRole('heading', { level: 2 });
     expect(region).toContainElement(heading);
   });
 
-  it('renders one link per slug pointing at /projects/<slug>', () => {
-    render(<Projects projects={sampleProjects} />);
-    for (const slug of sampleProjects) {
-      const link = screen.getByRole('link', { name: new RegExp(slug) });
-      expect(link).toHaveAttribute('href', `/projects/${slug}`);
+  it('renders one link per project pointing at /projects/<slug>', () => {
+    render(<Projects projects={sampleProjectList} />);
+    for (const project of sampleProjectList) {
+      const link = screen.getByRole('link', { name: new RegExp(project.title) });
+      expect(link).toHaveAttribute('href', `/projects/${project.slug}`);
+    }
+  });
+
+  it('renders the design 5-cell row content (num, year, title, subtitle, kind)', () => {
+    render(<Projects projects={sampleProjectList} />);
+    for (const project of sampleProjectList) {
+      expect(screen.getByText(project.n)).toBeInTheDocument();
+      expect(screen.getByText(project.year)).toBeInTheDocument();
+      expect(screen.getByText(project.title)).toBeInTheDocument();
+      expect(screen.getByText(`- ${project.subtitle}`)).toBeInTheDocument();
+      expect(screen.getByText(project.kind)).toBeInTheDocument();
     }
   });
 });

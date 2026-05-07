@@ -1,25 +1,30 @@
 import type { Skills as SkillsType } from '../../lib/schema';
-import { Marquee } from './Marquee';
 
 export function Skills({ skills }: { skills: SkillsType }) {
-  const allItems = skills.flatMap((group) => group.items);
-
   return (
-    <section id="skills" aria-labelledby="skills-heading" className="py-2xl">
-      <p className="text-fg-muted tracking-eyebrow text-xs uppercase font-mono">02 / Stack</p>
-      <h2 id="skills-heading" className="font-serif tracking-display text-3xl md:text-4xl mt-xs">
-        Skills
-      </h2>
-      <dl className="mt-lg grid gap-lg md:grid-cols-2">
-        {skills.map((group) => (
-          <div key={group.label}>
-            <dt className="text-fg-muted tracking-eyebrow text-xs uppercase">{group.label}</dt>
-            <dd className="text-fg-primary mt-xs">{group.items.join(', ')}</dd>
-          </div>
-        ))}
-      </dl>
-      <div className="mt-xl">
-        <Marquee items={allItems} />
+    <section id="skills" aria-label="Skills">
+      <div className="section-head reveal">
+        <div className="num">02 / Stack</div>
+        <h2>
+          Tools I reach
+          <br />
+          for <em>without</em> thinking.
+        </h2>
+      </div>
+      <div className="skills-grid skills-block reveal">
+        <div className="label">- Categories</div>
+        <div className="skills-list">
+          {skills.map((cat) => (
+            <div className="skill-cat" key={cat.label}>
+              <div className="cat-label">{cat.label}</div>
+              <ul>
+                {cat.items.map((s) => (
+                  <li key={s}>{s}</li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   );

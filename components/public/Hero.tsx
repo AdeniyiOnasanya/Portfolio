@@ -2,12 +2,6 @@ import type { Hero as HeroType, Person, Skills as SkillsType } from '../../lib/s
 import { MagneticButton } from '../shared/MagneticButton';
 import { Marquee } from './Marquee';
 
-const btnPrimaryClass =
-  'inline-flex items-center gap-2 px-lg py-sm rounded-full border border-fg-primary bg-fg-primary text-bg font-mono uppercase tracking-eyebrow text-xs hover:bg-accent hover:text-bg hover:border-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg transition-colors';
-
-const btnGhostClass =
-  'inline-flex items-center gap-2 px-lg py-sm rounded-full border border-border text-fg-primary font-mono uppercase tracking-eyebrow text-xs hover:bg-fg-primary hover:text-bg hover:border-fg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg transition-colors';
-
 export function Hero({
   person,
   hero,
@@ -21,8 +15,8 @@ export function Hero({
   const stackLabels = skills.flatMap((g) => g.items);
   const { firstWord, restWord } = splitName(person.name, person.nameAccent);
   return (
-    <section id="home" aria-labelledby="hero-heading" className="hero pt-3xl pb-2xl">
-      <div className="hero-meta-row">
+    <section id="home" aria-labelledby="hero-heading" className="hero">
+      <div className="hero-meta-row reveal">
         {hero.meta.map((label) => (
           <span key={label} className="hero-meta-pill">
             {label}
@@ -30,41 +24,32 @@ export function Hero({
         ))}
       </div>
 
-      <h1
-        id="hero-heading"
-        className="font-serif tracking-display leading-tight mt-md text-5xl md:text-6xl lg:text-7xl"
-      >
+      <h1 id="hero-heading">
         <span className="line-mask">
           <span>{firstWord}</span>
         </span>
         <span className="line-mask">
           <span>
-            <em className="text-accent not-italic">{restWord}</em>
+            <em>{restWord}</em>
           </span>
         </span>
       </h1>
 
-      <div className="hero-sub-row mt-2xl grid gap-xl md:grid-cols-2">
-        <p className="reveal text-fg-secondary text-lg leading-relaxed max-w-prose">
-          {person.statement}
-        </p>
-        <dl className="hero-stats grid grid-cols-3 gap-lg text-right">
+      <div className="hero-sub-row">
+        <p className="reveal">{person.statement}</p>
+        <dl className="hero-stats">
           {hero.stats.map((stat) => (
             <div key={stat.label} className="hero-stat reveal">
-              <dt className="text-fg-muted tracking-eyebrow text-xs uppercase font-mono">
-                {stat.label}
-              </dt>
-              <dd className="hero-stat-value font-serif italic text-accent text-4xl md:text-5xl mt-xs">
-                {stat.value}
-              </dd>
+              <dd className="hero-stat-v">{stat.value}</dd>
+              <dt className="hero-stat-l">{stat.label}</dt>
             </div>
           ))}
         </dl>
       </div>
 
-      <div className="hero-actions reveal mt-xl flex flex-wrap gap-sm">
+      <div className="hero-actions reveal">
         <MagneticButton>
-          <a href={person.cvUrl} download={cvFilename} className={btnPrimaryClass} data-magnetic>
+          <a href={person.cvUrl} download={cvFilename} className="btn-primary" data-magnetic>
             <span>Download CV</span>
             <svg
               aria-hidden="true"
@@ -85,7 +70,7 @@ export function Hero({
             href={person.github}
             target="_blank"
             rel="noreferrer noopener"
-            className={btnGhostClass}
+            className="btn-ghost"
             data-magnetic
           >
             <svg aria-hidden="true" width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
@@ -99,7 +84,7 @@ export function Hero({
             href={person.linkedin}
             target="_blank"
             rel="noreferrer noopener"
-            className={btnGhostClass}
+            className="btn-ghost"
             data-magnetic
           >
             <svg aria-hidden="true" width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
@@ -109,7 +94,7 @@ export function Hero({
           </a>
         </MagneticButton>
         <MagneticButton>
-          <a href={`mailto:${person.email}`} className={btnGhostClass} data-magnetic>
+          <a href={`mailto:${person.email}`} className="btn-ghost" data-magnetic>
             <svg
               aria-hidden="true"
               width="14"
@@ -127,9 +112,7 @@ export function Hero({
         </MagneticButton>
       </div>
 
-      <div className="mt-2xl">
-        <Marquee items={stackLabels} ariaLabel="Stack" />
-      </div>
+      <Marquee items={stackLabels} ariaLabel="Stack" />
     </section>
   );
 }

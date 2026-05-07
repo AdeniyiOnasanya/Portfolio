@@ -1,35 +1,85 @@
-import type { Experience as ExperienceType } from '../../lib/schema';
+import type { Certs, Education, Experience as ExperienceType } from '../../lib/schema';
 
-export function Experience({ experience }: { experience: ExperienceType }) {
+export function Experience({
+  experience,
+  education,
+  certs,
+}: {
+  experience: ExperienceType;
+  education: Education;
+  certs: Certs;
+}) {
+  const primaryEducation = education[0];
+  const secondaryEducation = education[1];
+  if (!primaryEducation) return null;
   return (
-    <section id="cv" aria-labelledby="experience-heading" className="py-2xl">
-      <p className="text-fg-muted tracking-eyebrow text-xs uppercase font-mono">03 / CV</p>
-      <h2
-        id="experience-heading"
-        className="font-serif tracking-display text-3xl md:text-4xl mt-xs"
-      >
-        Experience
-      </h2>
-      <ol className="mt-lg space-y-xl">
+    <section id="cv" aria-label="Experience">
+      <div className="section-head reveal">
+        <div className="num">03 / CV</div>
+        <h2>
+          Six years.
+          <br />
+          Three <em>chapters</em>.
+        </h2>
+      </div>
+      <div className="exp-list">
         {experience.map((entry) => (
-          <li key={`${entry.company}-${entry.when}`} className="space-y-xs">
-            <div className="flex flex-wrap items-baseline gap-x-md">
-              <h3 className="font-serif text-xl">
-                {entry.role}
-                <span className="text-fg-muted">, {entry.company}</span>
-              </h3>
-              <span className="text-fg-muted text-sm font-mono">{entry.when}</span>
+          <article className="exp-item reveal" key={`${entry.company}-${entry.when}`}>
+            <div className="when">
+              {entry.when}
+              <br />
+              <span className="exp-where">{entry.where}</span>
             </div>
-            <p className="text-fg-muted text-sm">{entry.where}</p>
-            <p className="text-fg-secondary leading-relaxed max-w-prose">{entry.desc}</p>
-            <ul className="flex flex-wrap gap-xs text-xs font-mono text-fg-muted">
-              {entry.tags.map((tag) => (
-                <li key={tag}>{tag}</li>
+            <div className="role">
+              {entry.role}
+              <span className="co">{entry.company}</span>
+            </div>
+            <div className="desc">
+              {entry.desc}
+              <div className="tags">
+                {entry.tags.map((tag) => (
+                  <span key={tag}>{tag}</span>
+                ))}
+              </div>
+            </div>
+          </article>
+        ))}
+      </div>
+
+      <div className="exp-list exp-list-tail">
+        <article className="exp-item reveal">
+          <div className="when">Education</div>
+          <div className="role">
+            {primaryEducation.degree}
+            <span className="co">{primaryEducation.school}</span>
+          </div>
+          <div className="desc">
+            {primaryEducation.result}
+            {secondaryEducation ? (
+              <div className="exp-edu-secondary">
+                <div className="exp-edu-secondary-degree">
+                  {secondaryEducation.degree}
+                  <span className="exp-edu-secondary-school">{secondaryEducation.school}</span>
+                </div>
+                <div className="exp-edu-secondary-result">{secondaryEducation.result}</div>
+              </div>
+            ) : null}
+          </div>
+        </article>
+        <article className="exp-item reveal">
+          <div className="when">Certifications</div>
+          <div className="role">
+            Cloud<span className="co">& Networking</span>
+          </div>
+          <div className="desc">
+            <ul className="exp-cert-list">
+              {certs.map((c) => (
+                <li key={c}>{c}</li>
               ))}
             </ul>
-          </li>
-        ))}
-      </ol>
+          </div>
+        </article>
+      </div>
     </section>
   );
 }

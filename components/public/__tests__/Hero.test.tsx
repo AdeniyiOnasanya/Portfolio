@@ -33,13 +33,12 @@ describe('Hero', () => {
     expect(screen.getByText(samplePerson.statement)).toBeInTheDocument();
   });
 
-  it('wraps the accent word in an em with the accent class inside the h1', () => {
+  it('wraps the accent word in an em inside the h1', () => {
     renderHero();
     const heading = screen.getByRole('heading', { level: 1 });
     const em = heading.querySelector('em');
     expect(em).not.toBeNull();
     expect(em?.textContent).toBe(samplePerson.nameAccent);
-    expect(em?.className).toMatch(/text-accent/);
   });
 
   it('renders the h1 in two .line-mask spans for the scroll-triggered reveal', () => {

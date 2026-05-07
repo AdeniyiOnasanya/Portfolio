@@ -1,79 +1,92 @@
 import type { Project } from '../../lib/schema';
+import { BeforeAfter } from './BeforeAfter';
 
 type DeepDiveData = NonNullable<Project['deepDive']>;
 
-export function DeepDive({ data }: { data: DeepDiveData }) {
+const HUE_BY_N: Record<string, number> = {
+  '01': 145,
+  '02': 28,
+  '03': 210,
+  '04': 280,
+  '05': 180,
+  '06': 340,
+  '07': 60,
+};
+
+export function DeepDive({ data, n }: { data: DeepDiveData; n?: string }) {
+  const hue = n ? (HUE_BY_N[n] ?? 145) : 145;
+
   return (
-    <section aria-labelledby="deep-dive-heading" className="py-2xl border-t border-fg-muted/20">
-      <h2 id="deep-dive-heading" className="font-serif tracking-display text-3xl md:text-4xl">
-        Deep dive
-      </h2>
-
-      <p className="mt-lg text-fg-secondary leading-relaxed max-w-prose">{data.metricsIntro}</p>
-
-      <ol aria-label="Project metrics" className="mt-xl grid gap-lg md:grid-cols-2">
-        {data.metrics.map((metric) => (
-          <li key={metric.label} className="space-y-xs">
-            <p className="font-serif text-4xl tabular-nums leading-none">
-              {metric.prefix ? (
-                <span className="text-fg-muted text-xl">{metric.prefix} </span>
-              ) : null}
-              {metric.value}
-              {metric.suffix ? (
-                <span className="text-fg-muted text-xl">{metric.suffix}</span>
-              ) : null}
-            </p>
-            <p className="text-fg-primary">{metric.label}</p>
-            {metric.note ? <p className="text-fg-muted text-sm">{metric.note}</p> : null}
-          </li>
-        ))}
-      </ol>
-
-      <section aria-labelledby="before-after-heading" className="mt-2xl">
-        <h3 id="before-after-heading" className="text-fg-muted tracking-eyebrow text-xs uppercase">
-          Before / after
-        </h3>
-        <p className="mt-xs text-fg-secondary leading-relaxed max-w-prose">
-          {data.beforeAfter.intro}
-        </p>
-        <dl className="mt-md grid gap-md md:grid-cols-2">
-          <div>
-            <dt className="text-fg-muted text-sm uppercase tracking-eyebrow">Before</dt>
-            <dd className="text-fg-primary mt-xs">{data.beforeAfter.beforeLabel}</dd>
+    <section aria-label="Deep dive">
+      <section className="proj-section reveal dd-section">
+        <div className="label">- Impact</div>
+        <div>
+          <h3>
+            By the <em>numbers</em>.
+          </h3>
+          <p>{data.metricsIntro}</p>
+          <div className="dd-metrics">
+            {data.metrics.map((metric) => (
+              <div className="dd-metric" key={metric.label}>
+                <div className="dd-metric-v">
+                  {metric.prefix ? <span className="dd-metric-pre">{metric.prefix}</span> : null}
+                  <span>{metric.value}</span>
+                  {metric.suffix ? <span className="dd-metric-suf">{metric.suffix}</span> : null}
+                </div>
+                <div className="dd-metric-l">{metric.label}</div>
+                {metric.note ? <div className="dd-metric-n">{metric.note}</div> : null}
+              </div>
+            ))}
           </div>
-          <div>
-            <dt className="text-fg-muted text-sm uppercase tracking-eyebrow">After</dt>
-            <dd className="text-fg-primary mt-xs">{data.beforeAfter.afterLabel}</dd>
-          </div>
-        </dl>
+        </div>
       </section>
 
-      <section aria-labelledby="process-heading" className="mt-2xl">
-        <h3 id="process-heading" className="text-fg-muted tracking-eyebrow text-xs uppercase">
-          Process
-        </h3>
-        <ol className="mt-md space-y-lg">
-          {data.process.map((step) => (
-            <li key={step.title}>
-              <p className="font-serif text-xl">{step.title}</p>
-              <p className="text-fg-secondary mt-xs leading-relaxed max-w-prose">{step.desc}</p>
-            </li>
-          ))}
-        </ol>
+      <section className="proj-section reveal dd-section">
+        <div className="label">- Before & After</div>
+        <div>
+          <h3>
+            What <em>changed</em>.
+          </h3>
+          <p>{data.beforeAfter.intro}</p>
+          <BeforeAfter ba={data.beforeAfter} hue={hue} />
+        </div>
       </section>
 
-      <section aria-labelledby="lessons-heading" className="mt-2xl">
-        <h3 id="lessons-heading" className="text-fg-muted tracking-eyebrow text-xs uppercase">
-          Lessons
-        </h3>
-        <ol className="mt-md space-y-lg">
-          {data.lessons.map((lesson) => (
-            <li key={lesson.title}>
-              <p className="font-serif text-xl">{lesson.title}</p>
-              <p className="text-fg-secondary mt-xs leading-relaxed max-w-prose">{lesson.body}</p>
-            </li>
-          ))}
-        </ol>
+      <section className="proj-section reveal dd-section">
+        <div className="label">- Process</div>
+        <div>
+          <h3>
+            How it <em>came together</em>.
+          </h3>
+          <ol className="dd-process">
+            {data.process.map((step, index) => (
+              <li key={step.title}>
+                <div className="dd-step-n">{String(index + 1).padStart(2, '0')}</div>
+                <div className="dd-step-body">
+                  <div className="dd-step-t">{step.title}</div>
+                  <div className="dd-step-d">{step.desc}</div>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
+
+      <section className="proj-section reveal dd-section">
+        <div className="label">- Reflections</div>
+        <div>
+          <h3>
+            What I <em>took away</em>.
+          </h3>
+          <ul className="dd-lessons">
+            {data.lessons.map((lesson) => (
+              <li key={lesson.title}>
+                <div className="dd-lesson-t">{lesson.title}</div>
+                <div className="dd-lesson-d">{lesson.body}</div>
+              </li>
+            ))}
+          </ul>
+        </div>
       </section>
     </section>
   );

@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { prefersReducedMotion, usePrefersReducedMotion } from '../../../lib/motion/preferences';
 import { ProjectRow } from '../ProjectRow';
+import { sampleProjectList } from './fixtures';
 
 vi.mock('../../../lib/motion/preferences', () => ({
   prefersReducedMotion: vi.fn(),
@@ -15,6 +16,11 @@ vi.mock('next/navigation', () => ({
   }),
 }));
 
+const sample = sampleProjectList[0];
+if (!sample) {
+  throw new Error('sampleProjectList must include at least one project for tests.');
+}
+
 describe('ProjectRow', () => {
   beforeEach(() => {
     vi.mocked(prefersReducedMotion).mockReturnValue(false);
@@ -25,43 +31,48 @@ describe('ProjectRow', () => {
     vi.clearAllMocks();
   });
 
-  it('renders a link to /projects/<slug> with the slug as visible text', () => {
-    render(<ProjectRow slug="project-one" index={0} />);
-    const link = screen.getByRole('link', { name: /project-one/ });
-    expect(link).toHaveAttribute('href', '/projects/project-one');
-    expect(link).toHaveTextContent('project-one');
+  it('renders a link to /projects/<slug> with the project title visible', () => {
+    render(<ProjectRow project={sample} />);
+    const link = screen.getByRole('link', { name: new RegExp(sample.title) });
+    expect(link).toHaveAttribute('href', `/projects/${sample.slug}`);
+    expect(link).toHaveTextContent(sample.title);
   });
 
-  it('renders the index padded to two digits', () => {
-    render(<ProjectRow slug="project-one" index={0} />);
-    expect(screen.getByText('01')).toBeInTheDocument();
+  it('renders the project number, year, kind, and a subtitle', () => {
+    render(<ProjectRow project={sample} />);
+    expect(screen.getByText(sample.n)).toBeInTheDocument();
+    expect(screen.getByText(sample.year)).toBeInTheDocument();
+    expect(screen.getByText(sample.kind)).toBeInTheDocument();
+    expect(screen.getByText(`- ${sample.subtitle}`)).toBeInTheDocument();
   });
 
   it('carries the per-slug view-transition-name on the title when motion is allowed', () => {
     vi.mocked(usePrefersReducedMotion).mockReturnValue(false);
-    const { container } = render(<ProjectRow slug="project-one" index={0} />);
+    const { container } = render(<ProjectRow project={sample} />);
     const titled = container.querySelector('[data-project-row-title]') as HTMLElement | null;
     expect(titled).not.toBeNull();
-    expect(titled?.style.viewTransitionName).toBe('project-project-one');
+    expect(titled?.style.viewTransitionName).toBe(`project-${sample.slug}`);
   });
 
   it('does NOT set view-transition-name when reduced-motion is on (instant nav)', () => {
     vi.mocked(usePrefersReducedMotion).mockReturnValue(true);
-    const { container } = render(<ProjectRow slug="project-one" index={0} />);
+    const { container } = render(<ProjectRow project={sample} />);
     const titled = container.querySelector('[data-project-row-title]') as HTMLElement | null;
     expect(titled).not.toBeNull();
     expect(titled?.style.viewTransitionName ?? '').toBe('');
     expect(titled?.getAttribute('style') ?? '').not.toMatch(/view-transition-name/);
   });
 
-  it('uses a unique view-transition-name per slug (pairs with the case-study heading)', () => {
+  it('uses a unique view-transition-name per project (pairs with the case-study heading)', () => {
     vi.mocked(usePrefersReducedMotion).mockReturnValue(false);
-    const { container, rerender } = render(<ProjectRow slug="alpha" index={0} />);
+    const second = sampleProjectList[1];
+    if (!second) throw new Error('sampleProjectList must include at least two projects.');
+    const { container, rerender } = render(<ProjectRow project={sample} />);
     const first = container.querySelector('[data-project-row-title]') as HTMLElement;
-    expect(first.style.viewTransitionName).toBe('project-alpha');
+    expect(first.style.viewTransitionName).toBe(`project-${sample.slug}`);
 
-    rerender(<ProjectRow slug="beta" index={1} />);
-    const second = container.querySelector('[data-project-row-title]') as HTMLElement;
-    expect(second.style.viewTransitionName).toBe('project-beta');
+    rerender(<ProjectRow project={second} />);
+    const next = container.querySelector('[data-project-row-title]') as HTMLElement;
+    expect(next.style.viewTransitionName).toBe(`project-${second.slug}`);
   });
 });

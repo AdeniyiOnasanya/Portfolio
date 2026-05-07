@@ -1,6 +1,8 @@
 import type { ProjectFile } from '../../../lib/projects';
 import type {
   AiPractice,
+  Certs,
+  Education,
   Experience,
   Footer,
   Hero,
@@ -52,6 +54,21 @@ export const sampleExperience: Experience = [
   },
 ];
 
+export const sampleEducation: Education = [
+  {
+    degree: 'BSc Computer Science',
+    school: 'Sample University',
+    result: 'First-class honours.',
+  },
+  {
+    degree: 'A-levels',
+    school: 'Sample College',
+    result: 'AAA.',
+  },
+];
+
+export const sampleCerts: Certs = ['AWS Solutions Architect', 'Cisco CCNA'];
+
 export const sampleAiPractice: AiPractice = {
   eyebrow: 'AI-Assisted Development',
   headline: 'I ship faster, and better, with <em>AI in the loop</em>.',
@@ -61,6 +78,51 @@ export const sampleAiPractice: AiPractice = {
 };
 
 export const sampleProjects: Projects = ['project-one', 'project-two', 'project-three'];
+
+export const sampleProjectList: Project[] = [
+  {
+    slug: 'project-one',
+    n: '01',
+    title: 'Project One',
+    subtitle: 'A platform for one.',
+    year: '2024',
+    role: 'Lead engineer',
+    kind: 'Web platform',
+    stack: ['TypeScript', 'React'],
+    tagline: 'Tagline one.',
+    summary: 'Summary one.',
+    visuals: [{ label: 'Hero', w: 'wide' }],
+    meta: { Year: '2024', Role: 'Lead', Sector: 'SaaS', Status: 'Live' },
+  },
+  {
+    slug: 'project-two',
+    n: '02',
+    title: 'Project Two',
+    subtitle: 'A platform for two.',
+    year: '2023',
+    role: 'IC engineer',
+    kind: 'Mobile app',
+    stack: ['React Native'],
+    tagline: 'Tagline two.',
+    summary: 'Summary two.',
+    visuals: [{ label: 'Hero', w: 'wide' }],
+    meta: { Year: '2023', Role: 'IC', Sector: 'Health', Status: 'Live' },
+  },
+  {
+    slug: 'project-three',
+    n: '03',
+    title: 'Project Three',
+    subtitle: 'A platform for three.',
+    year: '2022',
+    role: 'Founding engineer',
+    kind: 'Internal tool',
+    stack: ['Vue', 'Nuxt'],
+    tagline: 'Tagline three.',
+    summary: 'Summary three.',
+    visuals: [{ label: 'Hero', w: 'wide' }],
+    meta: { Year: '2022', Role: 'Founding', Sector: 'Cloud', Status: 'Sunset' },
+  },
+];
 
 export const sampleFooter: Footer = {
   heading: 'Let us talk.',

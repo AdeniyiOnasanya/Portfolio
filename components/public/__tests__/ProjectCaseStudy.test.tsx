@@ -1,7 +1,12 @@
-import { render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { render, screen, within } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
 import { ProjectCaseStudy } from '../ProjectCaseStudy';
 import { sampleProjectFile } from './fixtures';
+
+vi.mock('../../../lib/motion/preferences', () => ({
+  prefersReducedMotion: () => false,
+  usePrefersReducedMotion: () => false,
+}));
 
 describe('ProjectCaseStudy', () => {
   it('renders the title as the only h1', () => {
@@ -12,16 +17,20 @@ describe('ProjectCaseStudy', () => {
 
   it('renders subtitle, tagline, and summary from frontmatter', () => {
     render(<ProjectCaseStudy file={sampleProjectFile} />);
-    expect(screen.getByText(sampleProjectFile.frontmatter.subtitle)).toBeInTheDocument();
+    expect(screen.getAllByText(sampleProjectFile.frontmatter.subtitle).length).toBeGreaterThan(0);
     expect(screen.getByText(sampleProjectFile.frontmatter.tagline)).toBeInTheDocument();
     expect(screen.getByText(sampleProjectFile.frontmatter.summary)).toBeInTheDocument();
   });
 
-  it('renders meta keys Year, Role, Sector, Status with their values', () => {
-    render(<ProjectCaseStudy file={sampleProjectFile} />);
+  it('renders meta keys Year, Role, Sector, Status with their values inside .proj-meta', () => {
+    const { container } = render(<ProjectCaseStudy file={sampleProjectFile} />);
+    const meta = container.querySelector('.proj-meta') as HTMLElement | null;
+    expect(meta).not.toBeNull();
+    if (!meta) return;
+    const scope = within(meta);
     for (const [key, value] of Object.entries(sampleProjectFile.frontmatter.meta)) {
-      expect(screen.getByText(key)).toBeInTheDocument();
-      expect(screen.getByText(value)).toBeInTheDocument();
+      expect(scope.getByText(key)).toBeInTheDocument();
+      expect(scope.getByText(value)).toBeInTheDocument();
     }
   });
 
@@ -39,15 +48,18 @@ describe('ProjectCaseStudy', () => {
     }
   });
 
-  it('renders the body when present, omits the Notes heading when empty', () => {
-    render(<ProjectCaseStudy file={sampleProjectFile} />);
-    expect(screen.getByRole('heading', { level: 2, name: 'Notes' })).toBeInTheDocument();
+  it('renders the Notes section when body is present and omits it when empty', () => {
+    const { container } = render(<ProjectCaseStudy file={sampleProjectFile} />);
+    const notesSection = container.querySelector(
+      '[aria-labelledby="case-study-narrative-heading"]',
+    );
+    expect(notesSection).not.toBeNull();
 
     const empty = { ...sampleProjectFile, body: '' };
-    const { container } = render(<ProjectCaseStudy file={empty} />);
-    const notesHeadings = Array.from(container.querySelectorAll('h2')).filter(
-      (h) => h.textContent === 'Notes',
+    const { container: emptyContainer } = render(<ProjectCaseStudy file={empty} />);
+    const emptyNotes = emptyContainer.querySelector(
+      '[aria-labelledby="case-study-narrative-heading"]',
     );
-    expect(notesHeadings).toHaveLength(0);
+    expect(emptyNotes).toBeNull();
   });
 });
