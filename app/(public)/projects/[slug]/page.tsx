@@ -44,7 +44,9 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(projectLd) }}
       />
       <ProjectCaseStudy file={file} prev={prev} next={next} total={all.length} />
-      {file.frontmatter.deepDive ? <DeepDive data={file.frontmatter.deepDive} /> : null}
+      {file.frontmatter.deepDive ? (
+        <DeepDive data={file.frontmatter.deepDive} n={file.frontmatter.n} />
+      ) : null}
     </>
   );
 }

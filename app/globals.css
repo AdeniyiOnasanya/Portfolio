@@ -1677,12 +1677,12 @@ body {
   border: 1px solid var(--color-border);
   border-radius: 999px;
 }
-.proj-section ul:not(.proj-stack):not(.gallery) {
+.proj-list {
   margin-top: 16px;
   padding-left: 0;
   list-style: none;
 }
-.proj-section ul:not(.proj-stack):not(.gallery) li {
+.proj-list li {
   font-size: 16px;
   color: var(--color-text-secondary);
   line-height: 1.6;
@@ -1690,7 +1690,7 @@ body {
   position: relative;
   margin-bottom: 8px;
 }
-.proj-section ul:not(.proj-stack):not(.gallery) li::before {
+.proj-list li::before {
   content: "\2192";
   position: absolute;
   left: 0;
@@ -1830,6 +1830,382 @@ body {
   }
   .proj-nav .right {
     text-align: left;
+  }
+}
+
+/* ==========================================================================
+   Flagship Deep Dive
+   --------------------------------------------------------------------------
+   Mirrors `design_handoff_portfolio/design/styles.css` `.dd-section`,
+   `.dd-metrics`, `.dd-ba`, `.dd-process`, `.dd-lessons`. The before/after
+   slider, process timeline, lessons grid all live here.
+   ========================================================================== */
+
+.dd-section h3 + p {
+  max-width: 64ch;
+}
+.dd-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 24px;
+  margin-top: 48px;
+  border-top: 1px solid var(--color-border-subtle);
+  padding-top: 32px;
+}
+.dd-metric {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-right: 24px;
+  border-right: 1px solid var(--color-border-subtle);
+}
+.dd-metric:last-child {
+  border-right: 0;
+}
+.dd-metric-v {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: var(--font-light);
+  font-size: clamp(48px, 6vw, 84px);
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+  color: var(--color-text-primary);
+  font-variation-settings:
+    "SOFT" 100,
+    "opsz" 144;
+  display: inline-flex;
+  align-items: baseline;
+}
+.dd-metric-pre,
+.dd-metric-suf {
+  font-style: normal;
+  font-size: 0.5em;
+  font-family: var(--font-mono);
+  font-weight: 400;
+  margin: 0 6px;
+  letter-spacing: 0.04em;
+  opacity: 0.7;
+}
+.dd-metric-l {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--color-text-primary);
+  margin-top: 8px;
+}
+.dd-metric-n {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+
+/* Before / After slider */
+.dd-ba {
+  position: relative;
+  margin-top: 32px;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  cursor: ew-resize;
+  user-select: none;
+  background: #0c0d0c;
+}
+.dd-ba-pane {
+  position: absolute;
+  inset: 0;
+}
+.dd-ba-tag {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 3;
+  padding: 6px 10px;
+  background: rgba(0, 0, 0, 0.65);
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  border-radius: 4px;
+  pointer-events: none;
+}
+.dd-ba-tag-after {
+  left: 16px;
+  right: auto;
+}
+.dd-ba-handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  z-index: 5;
+  pointer-events: none;
+}
+.dd-ba-line {
+  position: absolute;
+  inset: 0;
+  width: 2px;
+  background: #fff;
+  transform: translateX(-1px);
+  box-shadow: 0 0 18px rgba(0, 0, 0, 0.4);
+}
+.dd-ba-knob {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  transform: translate(-50%, -50%);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #fff;
+  color: #0a0b0a;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-around;
+  font-family: var(--font-mono);
+  font-size: 18px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.4);
+  pointer-events: auto;
+}
+.dd-ba-hint {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  z-index: 4;
+  padding: 6px 10px;
+  background: rgba(0, 0, 0, 0.55);
+  color: rgba(255, 255, 255, 0.75);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border-radius: 4px;
+  pointer-events: none;
+}
+.dd-ba-canvas {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+}
+.dd-ba-canvas-before {
+  background: #1a1815;
+  font-family: var(--font-mono);
+}
+.dd-ba-chrome {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px;
+  background: #25221e;
+  border-bottom: 1px solid #312e29;
+}
+.dd-ba-chrome .dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.dd-ba-url {
+  margin-left: 12px;
+  font-size: 11px;
+  color: #8a857c;
+  letter-spacing: 0.04em;
+}
+.dd-ba-rows {
+  flex: 1;
+  padding: 12px 18px;
+  overflow: hidden;
+  display: grid;
+  grid-auto-rows: minmax(0, 22px);
+  gap: 6px;
+}
+.dd-ba-row {
+  display: grid;
+  grid-template-columns: 130px 100px 80px 1fr;
+  align-items: center;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: #b8b3a9;
+}
+.dd-ba-cell {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dd-ba-watermark {
+  position: absolute;
+  bottom: 12px;
+  left: 16px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.35);
+}
+.dd-ba-canvas-after {
+  padding: 32px;
+}
+.dd-ba-after-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  grid-template-rows: auto 1fr;
+  gap: 16px;
+  height: 100%;
+}
+.dd-ba-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.dd-ba-card.big {
+  grid-row: span 1;
+}
+.dd-ba-card.wide {
+  grid-column: span 3;
+}
+.dd-ba-card-l {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+}
+.dd-ba-card-v {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: var(--font-light);
+  font-size: 44px;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: #fff;
+  margin-top: 8px;
+}
+.dd-ba-card-v.small {
+  font-size: 28px;
+}
+.dd-ba-spark {
+  margin-top: 12px;
+  height: 40px;
+}
+.dd-ba-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  height: 100%;
+  margin-top: 12px;
+}
+.dd-ba-bar {
+  flex: 1;
+  border-radius: 3px 3px 0 0;
+  min-height: 8px;
+}
+
+/* Process timeline */
+.dd-process {
+  list-style: none;
+  padding: 0;
+  margin: 32px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  border-left: 1px solid var(--color-border-subtle);
+}
+.dd-process li {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  gap: 24px;
+  padding-left: 24px;
+  position: relative;
+}
+.dd-process li::before {
+  content: "";
+  position: absolute;
+  left: -5px;
+  top: 6px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  box-shadow: 0 0 0 4px var(--color-surface-canvas);
+}
+.dd-step-n {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  color: var(--color-text-muted);
+  padding-top: 4px;
+}
+.dd-step-t {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: 22px;
+  letter-spacing: -0.01em;
+  color: var(--color-text-primary);
+  margin-bottom: 4px;
+}
+.dd-step-d {
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--color-text-secondary);
+  max-width: 60ch;
+}
+
+/* Lessons */
+.dd-lessons {
+  list-style: none;
+  padding: 0;
+  margin: 32px 0 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 24px;
+}
+.dd-lessons li {
+  padding: 24px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
+}
+.dd-lesson-t {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 22px;
+  letter-spacing: -0.01em;
+  color: var(--color-text-primary);
+  margin-bottom: 10px;
+}
+.dd-lesson-d {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--color-text-secondary);
+}
+
+@media (max-width: 720px) {
+  .dd-process li {
+    grid-template-columns: 60px 1fr;
+    gap: 12px;
+  }
+  .dd-ba-after-grid {
+    grid-template-columns: 1fr;
+  }
+  .dd-ba-card.wide {
+    grid-column: span 1;
+  }
+  .dd-ba-row {
+    grid-template-columns: 80px 60px 50px 1fr;
+    font-size: 9px;
   }
 }
 
