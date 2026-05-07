@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { generateMagicToken, isWithinExpiry, safeCompareTokens } from '../token';
+import {
+  generateMagicToken,
+  hashMagicToken,
+  isWithinExpiry,
+  safeCompareTokens,
+  verifyMagicToken,
+} from '../token';
 
 /*
  * Magic-link token helpers.
@@ -97,5 +103,137 @@ describe('safeCompareTokens()', () => {
   it('does not throw when inputs contain non-ASCII bytes', () => {
     expect(() => safeCompareTokens('café', 'café')).not.toThrow();
     expect(safeCompareTokens('café', 'café')).toBe(true);
+  });
+});
+
+describe('hashMagicToken()', () => {
+  it('returns a 64-char lowercase hex string (sha256)', () => {
+    const hash = hashMagicToken('a-token');
+    expect(hash).toHaveLength(64);
+    expect(hash).toMatch(/^[0-9a-f]{64}$/);
+  });
+
+  it('returns the same hash for identical inputs', () => {
+    expect(hashMagicToken('same-input')).toBe(hashMagicToken('same-input'));
+  });
+
+  it('returns different hashes for distinct inputs', () => {
+    expect(hashMagicToken('one')).not.toBe(hashMagicToken('two'));
+  });
+
+  it('throws on non-string input so call sites surface the bug fast', () => {
+    // The verifier composes against this; a silent default would hide a
+    // mistyped storedHash and produce a confusing "invalid" outcome.
+    expect(() => hashMagicToken(undefined as unknown as string)).toThrow();
+    expect(() => hashMagicToken(null as unknown as string)).toThrow();
+  });
+});
+
+describe('verifyMagicToken()', () => {
+  /*
+   * The verifier composes expiry and constant-time compare into one shape so
+   * call sites can route to `/login?error=expired` without re-implementing
+   * the precedence rules. Single-use enforcement (deleting the row from
+   * verification_tokens on success) stays the call site's job; the Drizzle
+   * adapter already does that for Auth.js's own flow, but a future bespoke
+   * link (claim-this-draft, share-preview) would compose this helper.
+   *
+   * Precedence: expiry is checked first. If a token is past its TTL, the
+   * outcome is `expired` regardless of whether the hash would have matched;
+   * we never want to leak through a side channel that "the token was at
+   * least correct, it just timed out".
+   */
+
+  function fixedNow() {
+    return new Date('2026-05-05T12:00:00Z').getTime();
+  }
+
+  it('returns { ok: true } when the candidate matches storedHash and is unexpired', () => {
+    const candidate = 'fresh-token-value';
+    const result = verifyMagicToken({
+      candidate,
+      storedHash: hashMagicToken(candidate),
+      expiresAt: fixedNow() + 60_000,
+      now: fixedNow(),
+    });
+    expect(result).toEqual({ ok: true });
+  });
+
+  it("returns { ok: false, reason: 'expired' } at the exact expiry boundary", () => {
+    const candidate = 'fresh-token-value';
+    const result = verifyMagicToken({
+      candidate,
+      storedHash: hashMagicToken(candidate),
+      expiresAt: fixedNow(),
+      now: fixedNow(),
+    });
+    expect(result).toEqual({ ok: false, reason: 'expired' });
+  });
+
+  it("returns { ok: false, reason: 'expired' } when expired even if the hash matches", () => {
+    const candidate = 'fresh-token-value';
+    const result = verifyMagicToken({
+      candidate,
+      storedHash: hashMagicToken(candidate),
+      expiresAt: fixedNow() - 1,
+      now: fixedNow(),
+    });
+    expect(result).toEqual({ ok: false, reason: 'expired' });
+  });
+
+  it("returns { ok: false, reason: 'invalid' } when the candidate does not match", () => {
+    const result = verifyMagicToken({
+      candidate: 'wrong-token-value',
+      storedHash: hashMagicToken('right-token-value'),
+      expiresAt: fixedNow() + 60_000,
+      now: fixedNow(),
+    });
+    expect(result).toEqual({ ok: false, reason: 'invalid' });
+  });
+
+  it("returns { ok: false, reason: 'invalid' } when the candidate is empty", () => {
+    const result = verifyMagicToken({
+      candidate: '',
+      storedHash: hashMagicToken('right-token-value'),
+      expiresAt: fixedNow() + 60_000,
+      now: fixedNow(),
+    });
+    expect(result).toEqual({ ok: false, reason: 'invalid' });
+  });
+
+  it('does not throw when distinct same-length candidates are tested back-to-back', () => {
+    // Smoke test for constant-time compare under the hood; if the
+    // comparison ever short-circuits on first byte, this still passes
+    // logically, but the test doubles as an early warning that the call
+    // path stays exception-free for adversarial inputs.
+    const stored = hashMagicToken('right-token-value');
+    expect(() =>
+      verifyMagicToken({
+        candidate: 'aaaaaaaaaaaaaaaa',
+        storedHash: stored,
+        expiresAt: fixedNow() + 60_000,
+        now: fixedNow(),
+      }),
+    ).not.toThrow();
+    expect(() =>
+      verifyMagicToken({
+        candidate: 'bbbbbbbbbbbbbbbb',
+        storedHash: stored,
+        expiresAt: fixedNow() + 60_000,
+        now: fixedNow(),
+      }),
+    ).not.toThrow();
+  });
+
+  it('defaults `now` to Date.now() when omitted', () => {
+    const candidate = 'fresh-token-value';
+    const result = verifyMagicToken({
+      candidate,
+      storedHash: hashMagicToken(candidate),
+      // 60 s in the past from real wall clock -> expired without any
+      // injection of `now`.
+      expiresAt: Date.now() - 60_000,
+    });
+    expect(result).toEqual({ ok: false, reason: 'expired' });
   });
 });

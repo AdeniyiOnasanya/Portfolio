@@ -13,16 +13,35 @@ import { type FormEvent, useState } from 'react';
  * `app/globals.css`, so theme tokens (mono caps eyebrow, italic Fraunces
  * h1, accent-bordered focus state) come through without further wiring.
  *
+ * The optional `error` prop drives the on-brand error banner styled by the
+ * `.err` class (design_handoff_portfolio/design/login.html lines 125 to 129
+ * and 216). Two values surface the "expired or already-used link" copy:
+ *  - `expired` is the local, on-brand redirect target for slice #39.
+ *  - `Verification` is the native Auth.js v5 code emitted when a
+ *    verification token is missing, expired, or already consumed; we map
+ *    it to the same copy so the visitor never lands on a NextAuth default.
+ * Any other value is ignored (no banner) so the page does not echo
+ * arbitrary query strings back into the DOM.
+ *
  * Submission uses Auth.js v5 client-side `signIn('resend', ...)`, which
  * routes through `/api/auth/signin/resend` and triggers the Resend provider.
  * The success copy is intentionally generic so #37 (non-admin emails) can
  * reuse this same shell without exposing whether the entered address is on
  * the allowlist.
  */
-export function LoginForm() {
+
+type LoginFormProps = {
+  error?: string;
+};
+
+const EXPIRED_ERROR_CODES = new Set(['expired', 'Verification']);
+const EXPIRED_COPY = 'That sign-in link has expired or already been used. Request a new one below.';
+
+export function LoginForm({ error }: LoginFormProps = {}) {
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const showExpired = typeof error === 'string' && EXPIRED_ERROR_CODES.has(error);
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -100,6 +119,11 @@ export function LoginForm() {
           </span>
         </button>
       </form>
+      {showExpired ? (
+        <div className="err" role="alert">
+          {EXPIRED_COPY}
+        </div>
+      ) : null}
     </div>
   );
 }
