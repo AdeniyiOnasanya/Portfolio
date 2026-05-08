@@ -255,4 +255,97 @@ describe('POST /api/cms/save', () => {
     const body = (await response.json()) as Record<string, unknown>;
     expect(body).toMatchObject({ ok: false });
   });
+
+  /*
+   * Token / repo configuration mappings, slice #51.
+   *
+   * The publishCommit Octokit calls can fail with 401 (token revoked or
+   * invalid), 403 (token missing required scope) or 404 (repo not found
+   * or PAT lacks repository access). Each HTTP status maps to a stable
+   * `errorCode` string the modal already understands. The route must
+   * never echo Octokit's raw `error.message` because GitHub responses
+   * sometimes include rate-limit headers, request IDs, or partial token
+   * fingerprints; the operator-facing copy is the modal's job.
+   */
+
+  type RequestErrorLike = Error & {
+    status: number;
+    request?: { method?: string; url?: string };
+  };
+
+  function makeOctokitError(
+    status: number,
+    url = 'https://api.github.com/repos/owner/repo/git/refs',
+  ): RequestErrorLike {
+    const error = new Error(
+      `mocked upstream: token=ghp_PARTIAL ratelimit-remaining=0`,
+    ) as RequestErrorLike;
+    error.name = 'HttpError';
+    error.status = status;
+    error.request = { method: 'POST', url };
+    return error;
+  }
+
+  function primeAdminAndDraft() {
+    authMock.mockResolvedValue({ user: { email: 'admin@example.com' } });
+    getDraftMock.mockResolvedValue({
+      id: 'hero',
+      content: { person: { name: 'Grace Hopper' } },
+      updatedAt: new Date(),
+    });
+    loadSiteMock.mockResolvedValue(validSite);
+    getOctokitMock.mockReturnValue({ rest: {} });
+  }
+
+  it('maps a 401 from publishCommit to errorCode token_invalid', async () => {
+    primeAdminAndDraft();
+    publishCommitMock.mockRejectedValue(makeOctokitError(401));
+    const POST = await loadHandler();
+    const response = await POST(makeRequest({ section: 'hero' }));
+    expect(response.status).toBe(401);
+    const body = (await response.json()) as Record<string, unknown>;
+    expect(body).toMatchObject({ ok: false, error: 'token_invalid' });
+  });
+
+  it('maps a 403 from publishCommit to errorCode token_scope', async () => {
+    primeAdminAndDraft();
+    publishCommitMock.mockRejectedValue(makeOctokitError(403));
+    const POST = await loadHandler();
+    const response = await POST(makeRequest({ section: 'hero' }));
+    expect(response.status).toBe(403);
+    const body = (await response.json()) as Record<string, unknown>;
+    expect(body).toMatchObject({ ok: false, error: 'token_scope' });
+  });
+
+  it('maps a 404 from publishCommit to errorCode repo_not_found', async () => {
+    primeAdminAndDraft();
+    publishCommitMock.mockRejectedValue(makeOctokitError(404));
+    const POST = await loadHandler();
+    const response = await POST(makeRequest({ section: 'hero' }));
+    expect(response.status).toBe(404);
+    const body = (await response.json()) as Record<string, unknown>;
+    expect(body).toMatchObject({ ok: false, error: 'repo_not_found' });
+  });
+
+  it('does not echo the raw GitHub error message in the JSON body', async () => {
+    primeAdminAndDraft();
+    publishCommitMock.mockRejectedValue(makeOctokitError(401));
+    const POST = await loadHandler();
+    const response = await POST(makeRequest({ section: 'hero' }));
+    const text = await response.text();
+    // Defence: the partial-token fingerprint and the rate-limit hint that
+    // the mock embeds in the error message must never reach the wire.
+    expect(text).not.toContain('ghp_PARTIAL');
+    expect(text).not.toContain('ratelimit-remaining');
+  });
+
+  it('maps a 500 from publishCommit to the generic upstream_error', async () => {
+    primeAdminAndDraft();
+    publishCommitMock.mockRejectedValue(makeOctokitError(500));
+    const POST = await loadHandler();
+    const response = await POST(makeRequest({ section: 'hero' }));
+    expect(response.status).toBe(502);
+    const body = (await response.json()) as Record<string, unknown>;
+    expect(body).toMatchObject({ ok: false, error: 'upstream_error' });
+  });
 });

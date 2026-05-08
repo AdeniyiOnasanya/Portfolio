@@ -104,4 +104,49 @@ describe('PublishButton', () => {
     fireEvent.click(screen.getByRole('button', { name: /publish/i }));
     expect(await screen.findByText(/could not reach the publish endpoint/i)).toBeInTheDocument();
   });
+
+  /*
+   * Token + repo configuration mappings, slice #51.
+   *
+   * The server tags structured failures with a stable `error` string the
+   * button forwards to the modal. The button's own status fallback only
+   * fires when the body shape is missing or unrecognised, so each named
+   * code here is asserted via the JSON body, not the HTTP status.
+   */
+
+  it('shows token_invalid copy when the server returns error: token_invalid', async () => {
+    fetchMock.mockResolvedValue(
+      new Response(JSON.stringify({ ok: false, error: 'token_invalid' }), {
+        status: 401,
+        headers: { 'content-type': 'application/json' },
+      }),
+    );
+    render(<PublishButton section="hero" />);
+    fireEvent.click(screen.getByRole('button', { name: /publish/i }));
+    expect(await screen.findByText(/token is invalid or revoked/i)).toBeInTheDocument();
+  });
+
+  it('shows token_scope copy when the server returns error: token_scope', async () => {
+    fetchMock.mockResolvedValue(
+      new Response(JSON.stringify({ ok: false, error: 'token_scope' }), {
+        status: 403,
+        headers: { 'content-type': 'application/json' },
+      }),
+    );
+    render(<PublishButton section="hero" />);
+    fireEvent.click(screen.getByRole('button', { name: /publish/i }));
+    expect(await screen.findByText(/lacks required scope/i)).toBeInTheDocument();
+  });
+
+  it('shows repo_not_found copy when the server returns error: repo_not_found', async () => {
+    fetchMock.mockResolvedValue(
+      new Response(JSON.stringify({ ok: false, error: 'repo_not_found' }), {
+        status: 404,
+        headers: { 'content-type': 'application/json' },
+      }),
+    );
+    render(<PublishButton section="hero" />);
+    fireEvent.click(screen.getByRole('button', { name: /publish/i }));
+    expect(await screen.findByText(/repo not found/i)).toBeInTheDocument();
+  });
 });
