@@ -2939,6 +2939,17 @@ body {
   color: var(--fg-mute);
 }
 
+/* Auto-save status sits in the same slot as `.num` in the head row but the
+   string contains mixed case ("Draft saved at 12:34") that would render as
+   ALL CAPS under the `.num` rule. Dedicated class so the cascade does not
+   uppercase the time. */
+.editor-section .head .autosave-status {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--fg-mute);
+}
+
 .section-ribbon {
   display: inline-flex;
   align-items: center;
@@ -3127,8 +3138,331 @@ body {
   color: oklch(0.7 0.18 25);
 }
 
+/* ==========================================================================
+   Admin form primitives, Phase 7 (slice #46)
+   --------------------------------------------------------------------------
+   Mirrors design_handoff_portfolio/design/admin.css lines 181 to 231 (.f
+   field wrapper, label/hint, input/textarea, .toggle-row, .switch) and
+   lines 299 to 334 (.modal-mask, .modal, .admin-toast). Class names are
+   kept verbatim so the design files remain the source of truth; on top of
+   the design we add a minimal `.f-error` slot and an `.f-invalid` modifier
+   so inline Zod errors render in-line next to the input that produced
+   them (issue #46), not as a global toast.
+   ========================================================================== */
+
+.field-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 1fr 1fr;
+}
+
+.field-grid.col-1 {
+  grid-template-columns: 1fr;
+}
+
+.field-grid.col-3 {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+.f {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.f label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--fg-mute);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.f label .hint {
+  font-family: var(--sans);
+  font-size: 11px;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--fg-mute);
+}
+
+.f input[type="text"],
+.f input[type="email"],
+.f input[type="tel"],
+.f input[type="url"],
+.f input[type="number"],
+.f textarea,
+.f select {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--line-strong);
+  color: var(--fg);
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-family: var(--sans);
+  font-size: 14px;
+  outline: none;
+  transition: border-color var(--duration-fast) var(--ease-out);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.f textarea {
+  font-family: var(--sans);
+  resize: vertical;
+  min-height: 90px;
+  line-height: 1.5;
+}
+
+.f input:focus,
+.f textarea:focus,
+.f select:focus {
+  border-color: var(--accent);
+}
+
+.f input:focus-visible,
+.f textarea:focus-visible,
+.f select:focus-visible {
+  box-shadow: var(--shadow-focus);
+}
+
+.f input.mono,
+.f textarea.mono,
+.f textarea.markdown {
+  font-family: var(--mono);
+  font-size: 13px;
+}
+
+.f-invalid input,
+.f-invalid textarea,
+.f-invalid select {
+  border-color: oklch(0.7 0.2 25);
+}
+
+.f-error {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: oklch(0.7 0.2 25);
+  line-height: 1.4;
+}
+
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+
+.toggle-row:last-child {
+  border-bottom: 0;
+}
+
+.toggle-row .label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.toggle-row .label b {
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.toggle-row .label span {
+  font-size: 12px;
+  color: var(--fg-dim);
+}
+
+.toggle-row.f-invalid .switch {
+  outline: 1px solid oklch(0.7 0.2 25);
+  outline-offset: 2px;
+}
+
+.toggle-row .f-error {
+  flex-basis: 100%;
+}
+
+.switch {
+  position: relative;
+  width: 38px;
+  height: 22px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 0;
+  padding: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-out);
+  flex-shrink: 0;
+}
+
+.switch::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--fg);
+  transition:
+    transform var(--duration-fast) var(--ease-out),
+    background var(--duration-fast) var(--ease-out);
+}
+
+.switch.on {
+  background: var(--accent);
+}
+
+.switch.on::after {
+  transform: translateX(16px);
+  background: var(--bg);
+}
+
+.switch:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.modal-mask {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 24px;
+}
+
+/* The close button is rendered as a real `<button>` so click and keyboard
+   activation share one a11y-compliant surface. It stretches behind the
+   `.modal` card via absolute positioning, which keeps the visible design
+   from admin.css line 299 onwards intact while satisfying lint/a11y rules
+   that forbid onClick on a static <div>. */
+.modal-mask-close {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  appearance: none;
+  background: transparent;
+  border: 0;
+  margin: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+.modal-mask-close:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.modal {
+  position: relative;
+  z-index: 1;
+  background: var(--bg-elev);
+  border: 1px solid var(--line-strong);
+  border-radius: 14px;
+  width: 100%;
+  max-width: 520px;
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  outline: none;
+}
+
+.modal:focus-visible {
+  box-shadow: var(--shadow-focus);
+}
+
+.modal h3 {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 300;
+  font-size: 26px;
+  margin: 0;
+}
+
+.modal p {
+  color: var(--fg-dim);
+  font-size: 14px;
+  line-height: 1.55;
+  margin: 0;
+}
+
+.modal .row {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.admin-toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-elev);
+  border: 1px solid var(--line-strong);
+  padding: 10px 16px;
+  border-radius: 999px;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--fg);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 200;
+  animation: admin-toast-in 0.22s var(--ease-out);
+}
+
+.admin-toast.ok::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.admin-toast.warn::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: oklch(0.78 0.16 80);
+}
+
+@keyframes admin-toast-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 8px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .uploader .drop {
+  .uploader .drop,
+  .f input,
+  .f textarea,
+  .f select,
+  .switch,
+  .switch::after {
     transition: none;
+  }
+
+  .admin-toast {
+    animation: none;
   }
 }

@@ -1,18 +1,19 @@
 import { notFound } from 'next/navigation';
+import { HeroEditor } from '@/components/admin/HeroEditor';
 import {
   type AdminSectionId,
   getAdminNavItem,
   isAdminSectionId,
-} from '../../../../components/admin/sections';
+} from '@/components/admin/sections';
+import { getDraft } from '@/lib/draft/store';
 
 /**
- * Per-section editor placeholder.
+ * Per-section editor route.
  *
- * Slice #41 (Phase 7) ships only the routing + visible editor frame. Each
- * section renders an editorial heading and a "coming soon" paragraph; the
- * real editors land in slice #42 (Hero), #44 (Projects drag-reorder), #45
- * (image upload), and #46 (Zod validation). Do not pre-empt those slices
- * from here.
+ * Slice #41 shipped the routing frame; slice #42 (this change) wires the
+ * Hero editor to a debounced auto-save backed by Neon (`lib/draft/store.ts`).
+ * The other section ids still render the placeholder copy until their own
+ * slices land.
  *
  * Validation: the `[section]` segment is checked against the closed list in
  * `components/admin/sections.ts`. Anything unknown calls `notFound()`, so an
@@ -25,8 +26,7 @@ import {
  * 169 to 179 and 290 to 297.
  */
 
-const COMING_SOON_COPY: Record<AdminSectionId, string> = {
-  hero: 'The Hero editor lands in slice #42.',
+const COMING_SOON_COPY: Record<Exclude<AdminSectionId, 'hero'>, string> = {
   about: 'The About editor lands in slice #46 (Zod validation across all field editors).',
   skills: 'The Skills editor lands in slice #46.',
   experience: 'The Experience editor lands in slice #46.',
@@ -35,6 +35,24 @@ const COMING_SOON_COPY: Record<AdminSectionId, string> = {
   footer: 'The Footer editor lands in slice #46.',
   settings: 'Site-wide settings (theme defaults, danger zone) land in slice #47.',
 };
+
+type HeroDraftShape = {
+  person?: {
+    name?: string;
+    role?: string;
+    location?: string;
+    yearsExp?: number;
+    statement?: string;
+    longBio?: string[];
+  };
+};
+
+function asHeroDraft(value: unknown): HeroDraftShape | null {
+  if (value && typeof value === 'object' && !Array.isArray(value)) {
+    return value as HeroDraftShape;
+  }
+  return null;
+}
 
 export default async function AdminSectionPage({
   params,
@@ -45,6 +63,17 @@ export default async function AdminSectionPage({
   if (!isAdminSectionId(section)) {
     notFound();
   }
+
+  if (section === 'hero') {
+    const row = await getDraft('hero');
+    return (
+      <HeroEditor
+        initialDraft={asHeroDraft(row?.content)}
+        initialUpdatedAt={row?.updatedAt ? row.updatedAt.toISOString() : null}
+      />
+    );
+  }
+
   const item = getAdminNavItem(section);
   return (
     <article className="editor-section">
