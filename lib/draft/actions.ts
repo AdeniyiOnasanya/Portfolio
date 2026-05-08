@@ -104,9 +104,23 @@ export async function saveDraftAction(
  * the JSONB column's soft ceiling bails before the database is touched.
  */
 
+// Slug shape matches the kebab-case alphabet enforced by the publish-time
+// project schema. Per-element regex blocks an attacker from smuggling
+// arbitrary strings into the JSONB column even with a valid admin session;
+// the uniqueness refine prevents a duplicate id from collapsing two real
+// projects into one when applyOrder runs.
 const OrderedSlugsSchema = z
-  .array(z.string().min(1))
-  .max(64, 'Too many project slugs in reorder payload.');
+  .array(
+    z
+      .string()
+      .min(1)
+      .max(100)
+      .regex(/^[a-z0-9-]+$/, 'Project slugs must be kebab-case ASCII.'),
+  )
+  .max(64, 'Too many project slugs in reorder payload.')
+  .refine((arr) => new Set(arr).size === arr.length, {
+    message: 'Duplicate slugs in reorder payload.',
+  });
 
 export type ReorderProjectsResult =
   | { ok: true; updatedAt: string; projects: ProjectDraft[] }
