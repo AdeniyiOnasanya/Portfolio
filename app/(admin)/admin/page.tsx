@@ -1,25 +1,19 @@
-import { auth } from '@/lib/auth';
+import { redirect } from 'next/navigation';
+import { DEFAULT_ADMIN_SECTION } from '@/components/admin/sections';
 
-/*
- * Admin landing stub.
+/**
+ * /admin landing.
  *
- * Phase 6 ships only the happy-path sign-in: the magic link routes here, and
- * the page renders a minimal "you are signed in" affordance. The full editor
- * shell (Hero, About, Skills, etc.) lands in Phase 7 (#42 onward), at which
- * point this file is replaced by `app/(admin)/admin/[section]/page.tsx`.
+ * Slice #41 (Phase 7) gives every section its own URL under
+ * /admin/<section>. The bare /admin entry is a server-side redirect to the
+ * default section so the magic-link flow (which lands on /admin) and any
+ * direct visit both end up on /admin/hero. The redirect runs on the server,
+ * so there is no flash of empty admin shell on the client.
  *
- * `force-dynamic` keeps Next from prerendering the page during `next build`,
- * because `auth()` reads cookies at request time. Without it the build
- * compiles fine but throws at static-generation time.
+ * `force-dynamic` is inherited from the layout's `dynamic` export; we keep
+ * the page itself thin so the redirect happens before anything renders.
  */
-export const dynamic = 'force-dynamic';
 
-export default async function AdminLanding() {
-  const session = await auth();
-  return (
-    <main style={{ padding: 48 }}>
-      <h1>Admin</h1>
-      <p>Signed in as {session?.user?.email ?? 'unknown'}.</p>
-    </main>
-  );
+export default function AdminLanding(): never {
+  redirect(`/admin/${DEFAULT_ADMIN_SECTION}`);
 }
