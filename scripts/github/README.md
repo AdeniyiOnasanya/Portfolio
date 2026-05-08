@@ -61,7 +61,7 @@ Run after the bootstrap merge so the workflow files exist on `main`. Order:
 2. **Production branch:** `main`. Domain: `davidonasanya.com` (DNS may be deferred to Phase 13). Add `www.davidonasanya.com` as a 308 redirect to apex.
 3. **Staging branch alias:** in Project Settings -> Domains, add `staging.davidonasanya.com`. Edit it and set "Git Branch" to `staging`. The latest deploy of the `staging` branch will always serve at this URL.
 4. **Preview deploys:** Vercel auto-creates previews for every branch and PR. No extra config; URLs look like `portfolio-git-<branch>-<account>.vercel.app`.
-5. **Env vars:** in Project Settings -> Environment Variables, set per-environment values for `AUTH_URL`, `NEXT_PUBLIC_SITE_URL`, `RESEND_FROM`, `ADMIN_EMAIL`, `DATABASE_URL`, `UPSTASH_REDIS_*`, `BLOB_READ_WRITE_TOKEN`, `GITHUB_TOKEN`, `SENTRY_DSN`. Production gets production-tier values; Preview covers `develop`, `staging`, and feature branches.
+5. **Env vars:** in Project Settings -> Environment Variables, set per-environment values for `AUTH_URL`, `NEXT_PUBLIC_SITE_URL`, `RESEND_FROM`, `ADMIN_EMAIL`, `DATABASE_URL`, `UPSTASH_REDIS_*`, `BLOB_READ_WRITE_TOKEN`, `GITHUB_TOKEN_CMS`, `GITHUB_REPO`, `SENTRY_DSN`. Production gets production-tier values; Preview covers `develop`, `staging`, and feature branches. `GITHUB_TOKEN_CMS` is a fine-grained PAT scoped to this repo with `Contents: Read and write` and `Pull requests: Read and write` permissions; `GITHUB_REPO` is the `owner/repo` target for CMS-driven publish PRs (Phase 8 #48).
 
 ## Branch protection
 

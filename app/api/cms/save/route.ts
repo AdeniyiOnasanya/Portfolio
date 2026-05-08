@@ -91,10 +91,14 @@ export async function POST(request: Request): Promise<Response> {
     }
   }
 
-  // 2. Auth.
+  // 2. Auth. The explicit narrowing after the allowlist check turns the
+  // `string | null` shape into the `string` the GitHub commit pipeline
+  // requires. `isAllowedAdminEmail` already rejects null and empty
+  // values; the typeof guard makes the invariant visible to TypeScript so
+  // a future restructure cannot silently produce a null commit author.
   const session = await auth();
   const email = session?.user?.email ?? null;
-  if (!isAllowedAdminEmail(email, process.env.ADMIN_EMAIL)) {
+  if (!isAllowedAdminEmail(email, process.env.ADMIN_EMAIL) || typeof email !== 'string') {
     return NextResponse.json(GENERIC_UNAUTHORISED, { status: 401 });
   }
 
@@ -157,7 +161,7 @@ export async function POST(request: Request): Promise<Response> {
       branchName,
       commitMessage,
       authorName: 'CMS Publish',
-      authorEmail: email as string,
+      authorEmail: email,
       pullRequestTitle: commitMessage,
       pullRequestBody: 'Updated hero section.',
       treeEntries: buildTreeEntries({ siteJson }),
@@ -184,10 +188,15 @@ export async function POST(request: Request): Promise<Response> {
 
 type RepoConfig = { ok: true; owner: string; repo: string; baseBranch: string } | { ok: false };
 
+// Strict `owner/repo` shape: rejects empty, single-segment, and
+// multi-segment values like `owner/repo/extra` so a misconfigured env var
+// does not silently point commits at the wrong target.
+const GITHUB_REPO_PATTERN = /^[^/\s]+\/[^/\s]+$/;
+
 function readRepoConfig(): RepoConfig {
   const repo = process.env.GITHUB_REPO;
   const baseBranch = process.env.GITHUB_BRANCH_BASE ?? 'develop';
-  if (typeof repo !== 'string' || repo.trim() === '' || !repo.includes('/')) {
+  if (typeof repo !== 'string' || !GITHUB_REPO_PATTERN.test(repo)) {
     return { ok: false };
   }
   const [owner, name] = repo.split('/');
