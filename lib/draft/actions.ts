@@ -4,9 +4,10 @@ import { z } from 'zod';
 import { ADMIN_SECTION_IDS, type AdminSectionId } from '@/components/admin/sections';
 import { auth } from '@/lib/auth';
 import { assertAllowlistConfigured, isAllowedAdminEmail } from '@/lib/auth/allowlist';
+import { isDraftHidden } from './hidden';
 import { applyOrder, type ProjectDraft, type ProjectsDraft, renumberProjects } from './projects';
 import { readOrSeedProjects } from './projects.server';
-import { saveDraft } from './store';
+import { getDraft, saveDraft } from './store';
 
 // Boot-time assertion. A deployment without ADMIN_EMAIL would otherwise
 // reject every save silently (isAllowedAdminEmail is fail-closed) with no
@@ -144,11 +145,16 @@ export async function reorderProjectsAction(orderedSlugs: unknown): Promise<Reor
     return { ok: false, error: 'invalid_order' };
   }
 
-  const current = await readOrSeedProjects();
+  const [current, existingRow] = await Promise.all([readOrSeedProjects(), getDraft('projects')]);
   const reordered = applyOrder(current, orderResult.data);
   const renumbered = renumberProjects(reordered);
 
-  const next: ProjectsDraft = { projects: renumbered };
+  // Carry the per-section visibility flag forward (slice #47). Reorder is
+  // an order-only edit; flipping the section's `hidden` bit silently on a
+  // drag would surprise the operator.
+  const next: ProjectsDraft = isDraftHidden(existingRow?.content)
+    ? { projects: renumbered, hidden: true }
+    : { projects: renumbered };
   if (JSON.stringify(next).length > MAX_DRAFT_BYTES) {
     return { ok: false, error: 'invalid_content' };
   }

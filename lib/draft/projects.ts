@@ -38,6 +38,7 @@ export type ProjectDraft = {
 
 export type ProjectsDraft = {
   projects: ProjectDraft[];
+  hidden?: boolean;
 };
 
 /**

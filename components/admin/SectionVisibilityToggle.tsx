@@ -24,7 +24,7 @@
  * row top-to-bottom: when the switch is on the section is shown.
  */
 
-import { useState, useTransition } from 'react';
+import { useEffect, useRef, useState, useTransition } from 'react';
 import type { AdminSectionId } from '@/components/admin/sections';
 import { saveDraftAction } from '@/lib/draft/actions';
 import { withHidden } from '@/lib/draft/hidden';
@@ -61,11 +61,22 @@ export function SectionVisibilityToggle({
   const [hidden, setHidden] = useState<boolean>(initialHidden);
   const [, startTransition] = useTransition();
 
+  // The merge target for `withHidden` must be the latest server-known
+  // content, not the mount-time snapshot. Without this ref, a second
+  // toggle after the server has updated the draft would overwrite that
+  // newer content with the stale `initialContent` closure. The ref
+  // tracks every prop change so subsequent merges always see the latest
+  // shape the parent has handed us.
+  const latestContent = useRef(initialContent);
+  useEffect(() => {
+    latestContent.current = initialContent;
+  }, [initialContent]);
+
   function handleChange(nextOn: boolean): void {
     // The toggle is "Show on site": on => visible, off => hidden.
     const nextHidden = !nextOn;
     setHidden(nextHidden);
-    const nextContent = withHidden(initialContent, nextHidden);
+    const nextContent = withHidden(latestContent.current, nextHidden);
     startTransition(async () => {
       const result = await saveDraftAction(section, nextContent);
       if (result.ok && onSaved) {
