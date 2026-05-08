@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import { HeroEditor } from '@/components/admin/HeroEditor';
 import { ProjectsEditor } from '@/components/admin/ProjectsEditor';
+import { PublishButton } from '@/components/admin/PublishButton';
 import { SectionVisibilityToggle } from '@/components/admin/SectionVisibilityToggle';
 import {
   type AdminSectionId,
@@ -74,11 +75,22 @@ export default async function AdminSectionPage({
     const row = await getDraft('hero');
     const draft = asHeroDraft(row?.content);
     return (
-      <HeroEditor
-        initialDraft={draft}
-        initialUpdatedAt={row?.updatedAt ? row.updatedAt.toISOString() : null}
-        initialHidden={isDraftHidden(row?.content)}
-      />
+      <>
+        <HeroEditor
+          initialDraft={draft}
+          initialUpdatedAt={row?.updatedAt ? row.updatedAt.toISOString() : null}
+          initialHidden={isDraftHidden(row?.content)}
+        />
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'flex-end',
+            marginTop: 24,
+          }}
+        >
+          <PublishButton section="hero" />
+        </div>
+      </>
     );
   }
 
