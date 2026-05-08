@@ -1,4 +1,4 @@
-import { boolean, integer, pgTable, primaryKey, text, timestamp } from 'drizzle-orm/pg-core';
+import { boolean, integer, jsonb, pgTable, primaryKey, text, timestamp } from 'drizzle-orm/pg-core';
 import type { AdapterAccountType } from 'next-auth/adapters';
 
 /*
@@ -86,3 +86,27 @@ export const authenticators = pgTable(
   },
   (authenticator) => [primaryKey({ columns: [authenticator.userId, authenticator.credentialID] })],
 );
+
+/*
+ * `drafts` is the staging area for the admin CMS. One row per top-level
+ * section id (`hero`, `about`, `skills`, ...) keyed by the matching
+ * `AdminSectionId` string from `components/admin/sections.ts`. The `content`
+ * column stores the section payload as a JSON blob so the schema does not
+ * have to evolve every time a content field is renamed; the read side
+ * (Phase 7 editors) and the eventual publish path (Phase 8 GitHub commit
+ * pipeline) re-validate against the Zod schemas in `lib/schema.ts` before
+ * trusting the value.
+ *
+ * `updatedAt` is a `timestamptz` so cross-region writes from the admin
+ * preview iframe and the editor agree on ordering. The default is set on
+ * the database side so a forgotten column in an upsert still records the
+ * write. Drizzle's `$onUpdate` keeps the value fresh on every save.
+ */
+export const drafts = pgTable('draft', {
+  id: text('id').primaryKey(),
+  content: jsonb('content').notNull(),
+  updatedAt: timestamp('updatedAt', { mode: 'date', withTimezone: true })
+    .notNull()
+    .defaultNow()
+    .$onUpdate(() => new Date()),
+});

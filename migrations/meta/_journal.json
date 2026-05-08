@@ -8,6 +8,13 @@
       "when": 1778165509344,
       "tag": "0000_thin_silver_centurion",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1782345600000,
+      "tag": "0001_drafts_table",
+      "breakpoints": true
     }
   ]
 }
