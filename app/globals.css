@@ -2939,6 +2939,17 @@ body {
   color: var(--fg-mute);
 }
 
+/* Auto-save status sits in the same slot as `.num` in the head row but the
+   string contains mixed case ("Draft saved at 12:34") that would render as
+   ALL CAPS under the `.num` rule. Dedicated class so the cascade does not
+   uppercase the time. */
+.editor-section .head .autosave-status {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--fg-mute);
+}
+
 .section-ribbon {
   display: inline-flex;
   align-items: center;

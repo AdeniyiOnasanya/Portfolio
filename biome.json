@@ -20,6 +20,7 @@
       "!**/coverage",
       "!**/.vercel",
       "!**/.turbo",
+      "!**/.claude",
       "!**/pnpm-lock.yaml",
       "!**/cv",
       "!next-env.d.ts"
