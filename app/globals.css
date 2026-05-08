@@ -3452,13 +3452,111 @@ body {
   }
 }
 
+/* List items, slice #44 ProjectsEditor.
+   Mirrors design_handoff_portfolio/design/admin.css lines 234 to 260
+   (.item-list, .item-card, .item-card .item-head, .item-card .drag,
+   .item-card.dragging, .item-card.drop-over, .item-card .item-title,
+   .item-card .item-meta, .add-row) and 370 to 379 (.help-panel). The
+   class names match verbatim so dnd-kit-driven rows pick up the same
+   visual frame the design uses for skills, experience, and projects. */
+.item-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.item-card {
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: border-color var(--duration-fast) var(--ease-out);
+}
+
+.item-card:hover {
+  border-color: var(--line-strong);
+}
+
+.item-card .item-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.item-card .drag {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  cursor: grab;
+  color: var(--fg-mute);
+  font-family: var(--mono);
+  font-size: 14px;
+  user-select: none;
+  width: 18px;
+  text-align: center;
+  touch-action: none;
+}
+
+.item-card .drag:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+  border-radius: 4px;
+}
+
+.item-card .drag:active {
+  cursor: grabbing;
+}
+
+.item-card.dragging {
+  opacity: 0.4;
+}
+
+.item-card.drop-over {
+  border-color: var(--accent);
+}
+
+.item-card .item-title {
+  flex: 1;
+  font-weight: 500;
+}
+
+.item-card .item-meta {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--fg-mute);
+}
+
+.help-panel {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 14px 16px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--fg-dim);
+  margin-bottom: 24px;
+}
+
+.help-panel b {
+  color: var(--fg);
+  font-weight: 500;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .uploader .drop,
   .f input,
   .f textarea,
   .f select,
   .switch,
-  .switch::after {
+  .switch::after,
+  .item-card {
     transition: none;
   }
 

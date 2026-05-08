@@ -26,6 +26,14 @@ vi.mock('@/lib/draft/store', () => ({
   getDraft: vi.fn(async () => null),
 }));
 
+// Mock the server-only seam so the page does not pull `'server-only'`
+// into the Node test runtime. The mock returns an empty seed list; the
+// ProjectsEditor stub below ignores the value.
+vi.mock('@/lib/draft/projects.server', () => ({
+  loadProjectsDraft: vi.fn(async () => ({ projects: [], updatedAt: null })),
+  readOrSeedProjects: vi.fn(),
+}));
+
 vi.mock('@/components/admin/HeroEditor', () => ({
   HeroEditor: ({
     initialDraft,
@@ -43,6 +51,14 @@ vi.mock('@/components/admin/HeroEditor', () => ({
   ),
 }));
 
+vi.mock('@/components/admin/ProjectsEditor', () => ({
+  ProjectsEditor: () => (
+    <article data-testid="projects-editor-stub">
+      <h2>Projects</h2>
+    </article>
+  ),
+}));
+
 async function loadPage() {
   const mod = await import('../page');
   return mod.default;
@@ -50,7 +66,7 @@ async function loadPage() {
 
 describe('AdminSectionPage at /admin/[section]', () => {
   it.each(
-    ADMIN_SECTION_IDS.filter((id) => id !== 'hero'),
+    ADMIN_SECTION_IDS.filter((id) => id !== 'hero' && id !== 'projects'),
   )('renders an editor placeholder for the %s section', async (section) => {
     const AdminSectionPage = await loadPage();
     const ui = await AdminSectionPage({ params: Promise.resolve({ section }) });
@@ -65,6 +81,13 @@ describe('AdminSectionPage at /admin/[section]', () => {
     const ui = await AdminSectionPage({ params: Promise.resolve({ section: 'hero' }) });
     render(ui);
     expect(screen.getByTestId('hero-editor-stub')).toBeInTheDocument();
+  });
+
+  it('renders the live ProjectsEditor at /admin/projects', async () => {
+    const AdminSectionPage = await loadPage();
+    const ui = await AdminSectionPage({ params: Promise.resolve({ section: 'projects' }) });
+    render(ui);
+    expect(screen.getByTestId('projects-editor-stub')).toBeInTheDocument();
   });
 
   it('numbers each placeholder section visibly so the sidebar and editor stay in sync', async () => {
