@@ -21,12 +21,13 @@ import { Modal } from './Modal';
 
 export type PublishOutcome =
   | { ok: true; pullRequestUrl: string; pullRequestNumber: number; branchName: string }
-  | { ok: false; errorCode: PublishErrorCode };
+  | { ok: false; errorCode: PublishErrorCode; field?: string };
 
 export type PublishErrorCode =
   | 'unauthorised'
   | 'bad_request'
   | 'unprocessable'
+  | 'forbidden_character'
   | 'config_error'
   | 'upstream_error'
   | 'network_error';
@@ -41,6 +42,8 @@ const ERROR_COPY: Record<PublishErrorCode, string> = {
   bad_request: 'The publish request was malformed. Try again or refresh the page.',
   unprocessable:
     'Content failed validation. Look for an em-dash or emoji in the hero fields and try again.',
+  forbidden_character:
+    'A field contains an em-dash or emoji. Remove the character and press Publish again.',
   config_error:
     'The publish pipeline is not configured. Set GITHUB_TOKEN_CMS and GITHUB_REPO on the deploy.',
   upstream_error:
@@ -89,6 +92,11 @@ export function PublishResultModal({ outcome, onClose }: PublishResultModalProps
       }
     >
       <p>{ERROR_COPY[outcome.errorCode]}</p>
+      {outcome.errorCode === 'forbidden_character' && outcome.field ? (
+        <p>
+          Offending field: <code>{outcome.field}</code>
+        </p>
+      ) : null}
     </Modal>
   );
 }

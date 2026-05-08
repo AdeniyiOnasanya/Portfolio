@@ -68,6 +68,21 @@ export function PublishButton({ section }: PublishButtonProps) {
           });
           return;
         }
+        // The route handler distinguishes a forbidden-character throw from
+        // the generic 'unprocessable' code by emitting `error:
+        // 'forbidden_character'` plus a `field` key. When the body carries
+        // that signal we surface it directly so the modal can name the
+        // offending field; otherwise the error code is derived from the
+        // HTTP status.
+        const errorBody = body as { error?: string; field?: string };
+        if (errorBody.error === 'forbidden_character' && response.status === 422) {
+          setOutcome({
+            ok: false,
+            errorCode: 'forbidden_character',
+            ...(typeof errorBody.field === 'string' ? { field: errorBody.field } : {}),
+          });
+          return;
+        }
         setOutcome({
           ok: false,
           errorCode: ERROR_BY_STATUS[response.status] ?? 'upstream_error',

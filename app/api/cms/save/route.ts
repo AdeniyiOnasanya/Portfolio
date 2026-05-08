@@ -8,7 +8,12 @@ import { parseHeroDraft } from '@/lib/draft/hero-types';
 import { getDraft } from '@/lib/draft/store';
 import { getOctokit } from '@/lib/github';
 import { buildBranchName } from '@/lib/github/branch';
-import { buildSiteJsonAfterHeroEdit, buildTreeEntries, publishCommit } from '@/lib/github/commit';
+import {
+  buildSiteJsonAfterHeroEdit,
+  buildTreeEntries,
+  ForbiddenCharacterError,
+  publishCommit,
+} from '@/lib/github/commit';
 
 /**
  * Publish route, Phase 8 slice #48.
@@ -141,6 +146,21 @@ export async function POST(request: Request): Promise<Response> {
     const site = await loadSite();
     siteJson = buildSiteJsonAfterHeroEdit(site, draft);
   } catch (error) {
+    if (error instanceof ForbiddenCharacterError) {
+      // The walker reports the path inside the Site object (e.g.
+      // `person.name`); the operator sees it under the section they
+      // were editing, so prefix with the section id (`hero.person.name`).
+      // The pipeline is never reached on this branch: no branch and no
+      // PR can leak when the scan refuses the input.
+      return NextResponse.json(
+        {
+          ok: false,
+          error: 'forbidden_character',
+          field: `${parsedBody.section}.${error.field}`,
+        },
+        { status: 422 },
+      );
+    }
     if (isForbiddenCharError(error)) {
       return NextResponse.json(GENERIC_UNPROCESSABLE, { status: 422 });
     }
@@ -178,6 +198,16 @@ export async function POST(request: Request): Promise<Response> {
   } catch (error) {
     if (isConfigError(error)) {
       return NextResponse.json(GENERIC_CONFIG_ERROR, { status: 500 });
+    }
+    if (error instanceof ForbiddenCharacterError) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: 'forbidden_character',
+          field: `${parsedBody.section}.${error.field}`,
+        },
+        { status: 422 },
+      );
     }
     if (isForbiddenCharError(error)) {
       return NextResponse.json(GENERIC_UNPROCESSABLE, { status: 422 });
