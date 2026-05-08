@@ -8,7 +8,12 @@ import { parseHeroDraft } from '@/lib/draft/hero-types';
 import { getDraft } from '@/lib/draft/store';
 import { getOctokit } from '@/lib/github';
 import { buildBranchName } from '@/lib/github/branch';
-import { buildSiteJsonAfterHeroEdit, buildTreeEntries, publishCommit } from '@/lib/github/commit';
+import {
+  buildSiteJsonAfterHeroEdit,
+  buildTreeEntries,
+  classifyGitHubRequestError,
+  publishCommit,
+} from '@/lib/github/commit';
 
 /**
  * Publish route, Phase 8 slice #48.
@@ -66,6 +71,9 @@ const GENERIC_BAD_REQUEST = { ok: false, error: 'bad_request' } as const;
 const GENERIC_UNPROCESSABLE = { ok: false, error: 'unprocessable' } as const;
 const GENERIC_CONFIG_ERROR = { ok: false, error: 'config_error' } as const;
 const GENERIC_UPSTREAM_ERROR = { ok: false, error: 'upstream_error' } as const;
+const TOKEN_INVALID = { ok: false, error: 'token_invalid' } as const;
+const TOKEN_SCOPE = { ok: false, error: 'token_scope' } as const;
+const REPO_NOT_FOUND = { ok: false, error: 'repo_not_found' } as const;
 
 const PublishBodySchema = z.object({
   section: z.enum(ADMIN_SECTION_IDS),
@@ -182,7 +190,28 @@ export async function POST(request: Request): Promise<Response> {
     if (isForbiddenCharError(error)) {
       return NextResponse.json(GENERIC_UNPROCESSABLE, { status: 422 });
     }
-    return NextResponse.json(GENERIC_UPSTREAM_ERROR, { status: 502 });
+    // Slice #51: Octokit RequestErrors carry a numeric status that maps
+    // to a fixed, operator-facing copy in the publish modal. The classifier
+    // never reads `error.message`, so partial-token fingerprints and
+    // rate-limit hints from GitHub responses cannot leak through this path.
+    const classified = classifyGitHubRequestError(error);
+    switch (classified.kind) {
+      case 'token_invalid':
+        return NextResponse.json(TOKEN_INVALID, { status: 401 });
+      case 'token_scope':
+        return NextResponse.json(TOKEN_SCOPE, { status: 403 });
+      case 'repo_not_found':
+        return NextResponse.json(REPO_NOT_FOUND, { status: 404 });
+      case 'idempotent_collision':
+        // Slice #50 owns the recovery path (update the existing PR instead
+        // of opening a second). Until #50 lands the conservative answer
+        // is the same generic upstream surface the modal already handles,
+        // so the operator gets a retryable failure rather than a stack
+        // trace.
+        return NextResponse.json(GENERIC_UPSTREAM_ERROR, { status: 502 });
+      default:
+        return NextResponse.json(GENERIC_UPSTREAM_ERROR, { status: 502 });
+    }
   }
 }
 

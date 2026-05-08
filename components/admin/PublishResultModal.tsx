@@ -29,7 +29,10 @@ export type PublishErrorCode =
   | 'unprocessable'
   | 'config_error'
   | 'upstream_error'
-  | 'network_error';
+  | 'network_error'
+  | 'token_invalid'
+  | 'token_scope'
+  | 'repo_not_found';
 
 export type PublishResultModalProps = {
   outcome: PublishOutcome;
@@ -46,6 +49,16 @@ const ERROR_COPY: Record<PublishErrorCode, string> = {
   upstream_error:
     'GitHub returned an error. Check the repo permissions on the token and try again.',
   network_error: 'Could not reach the publish endpoint. Check your connection and try again.',
+  // Slice #51: configuration-level diagnoses that the route handler maps
+  // from the Octokit RequestError.status. The copy is intentionally
+  // actionable so the operator knows the next step without opening a
+  // browser console.
+  token_invalid:
+    'GitHub token is invalid or revoked. Set a fresh fine-grained PAT in Vercel and redeploy.',
+  token_scope:
+    'GitHub token lacks required scope. Verify Contents: Read and write and Pull requests: Read and write on the fine-grained PAT.',
+  repo_not_found:
+    'GitHub repo not found. Check GITHUB_REPO is owner/repo and that the PAT has repository access.',
 };
 
 export function PublishResultModal({ outcome, onClose }: PublishResultModalProps) {

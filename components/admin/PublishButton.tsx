@@ -35,6 +35,34 @@ const ERROR_BY_STATUS: Record<number, PublishErrorCode> = {
   502: 'upstream_error',
 };
 
+/*
+ * Slice #51: the server tags configuration-level failures with a stable
+ * `error` string. When present the button forwards it directly so the
+ * modal can show actionable copy ("token is invalid or revoked", "repo
+ * not found", and so on). Status-only fallback stays as a safety net for
+ * unrecognised shapes.
+ */
+const KNOWN_ERROR_CODES: ReadonlySet<PublishErrorCode> = new Set<PublishErrorCode>([
+  'unauthorised',
+  'bad_request',
+  'unprocessable',
+  'config_error',
+  'upstream_error',
+  'network_error',
+  'token_invalid',
+  'token_scope',
+  'repo_not_found',
+]);
+
+function readServerErrorCode(body: unknown): PublishErrorCode | null {
+  if (typeof body !== 'object' || body === null) return null;
+  const candidate = (body as { error?: unknown }).error;
+  if (typeof candidate !== 'string') return null;
+  return KNOWN_ERROR_CODES.has(candidate as PublishErrorCode)
+    ? (candidate as PublishErrorCode)
+    : null;
+}
+
 export type PublishButtonProps = {
   section: AdminSectionId;
 };
@@ -68,9 +96,10 @@ export function PublishButton({ section }: PublishButtonProps) {
           });
           return;
         }
+        const serverCode = readServerErrorCode(body);
         setOutcome({
           ok: false,
-          errorCode: ERROR_BY_STATUS[response.status] ?? 'upstream_error',
+          errorCode: serverCode ?? ERROR_BY_STATUS[response.status] ?? 'upstream_error',
         });
       } catch {
         setOutcome({ ok: false, errorCode: 'network_error' });
