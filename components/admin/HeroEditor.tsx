@@ -33,19 +33,7 @@ import { VisibilityToggle } from './VisibilityToggle';
  * `admin.css` lines 181 to 205 verbatim.
  */
 
-type HeroPersonDraft = {
-  name?: string;
-  role?: string;
-  location?: string;
-  yearsExp?: number;
-  statement?: string;
-  longBio?: string[];
-};
-
-type HeroDraft = {
-  person?: HeroPersonDraft;
-  hidden?: boolean;
-};
+import type { HeroDraft, HeroPersonDraft } from '@/lib/draft/hero-types';
 
 type HeroEditorProps = {
   initialDraft: HeroDraft | null;
@@ -59,6 +47,13 @@ type HeroEditorProps = {
    * (or vice versa).
    */
   initialHidden?: boolean;
+  // Optional sibling-state mirror. Slice #43 (live preview pane) lifts the
+  // working person record up so a parallel `<Hero>` render can read the
+  // same in-memory shape on every keystroke. The callback fires
+  // synchronously inside `setField`, before React commits, so the preview
+  // never lags the editor. Omitted callers keep the existing
+  // single-route behaviour (server save is the only consumer).
+  onPersonChange?: (next: HeroPersonDraft) => void;
 };
 
 // Local, single-instance copies of `TextField` and `TextArea` from
@@ -142,6 +137,7 @@ export function HeroEditor({
   initialDraft,
   initialUpdatedAt,
   initialHidden = false,
+  onPersonChange,
 }: HeroEditorProps) {
   const [person, setPerson] = useState<HeroPersonDraft>(() => initialDraft?.person ?? {});
   const [hidden, setHidden] = useState<boolean>(
@@ -186,7 +182,16 @@ export function HeroEditor({
   }, [debounced]);
 
   function setField<K extends keyof HeroPersonDraft>(key: K, value: HeroPersonDraft[K]): void {
-    setPerson((prev) => ({ ...prev, [key]: value }));
+    setPerson((prev) => {
+      const next = { ...prev, [key]: value };
+      // Synchronous mirror to the optional parent (slice #43 preview pane).
+      // Calling inside the updater gives the parent the freshly composed
+      // snapshot before React commits, so the preview never lags the
+      // editor by a tick. The base case (no parent) drops the call
+      // entirely, leaving the auto-save server action as the only consumer.
+      onPersonChange?.(next);
+      return next;
+    });
     debounced();
   }
 

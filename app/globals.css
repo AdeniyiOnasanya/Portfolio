@@ -2909,6 +2909,47 @@ body {
   padding: 32px 40px 80px;
 }
 
+/*
+ * Preview pane, slice #43.
+ *
+ * Mirrors `design_handoff_portfolio/design/admin.css` lines 155 to 166
+ * (`.admin-preview` and `.admin-preview .preview-bar` and `.admin-preview
+ * iframe`). The handoff renders the preview as an iframe; this slice
+ * renders the same `<Hero>` component the public site uses inside a
+ * scrollable `.preview-frame`, so the iframe rule is replaced with a
+ * matching `flex: 1` container.
+ */
+.admin-preview {
+  border-left: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  background: #000;
+  overflow: hidden;
+}
+
+.admin-preview .preview-bar {
+  flex: 0 0 auto;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid var(--line);
+  background: var(--bg-elev);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--fg-mute);
+}
+
+.admin-preview .preview-frame {
+  flex: 1;
+  width: 100%;
+  border: 0;
+  background: var(--bg);
+  overflow: auto;
+}
+
 .editor-section {
   margin-bottom: 48px;
 }

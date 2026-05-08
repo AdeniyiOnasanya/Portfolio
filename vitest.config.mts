@@ -10,7 +10,13 @@ const projectRoot = dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   resolve: {
-    alias: [{ find: /^@\/(.*)$/, replacement: `${resolve(projectRoot)}/$1` }],
+    alias: [
+      { find: /^@\/(.*)$/, replacement: `${resolve(projectRoot)}/$1` },
+      // `server-only` throws on import outside a Next.js server build. The
+      // shim resolves it to an empty module so tests that load modules
+      // marked server-only can still execute under the Node test runner.
+      { find: 'server-only', replacement: `${resolve(projectRoot)}/test/server-only-shim.ts` },
+    ],
   },
   test: {
     environment: 'happy-dom',
