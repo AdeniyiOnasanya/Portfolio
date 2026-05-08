@@ -15,7 +15,7 @@
  *    inside Vercel's 4.5 MiB serverless body limit, (b) the AVIF transform
  *    halves storage on top of that, (c) the design files do not show a
  *    larger asset use case. The PR body documents the tie-break.
- *  - `ALLOWED_MIME_TYPES` is the JPEG / PNG / WebP / AVIF whitelist. Other
+ *  - `ALLOWED_MIME_TYPES` is the JPEG / PNG / WebP / AVIF allowlist. Other
  *    image types (TIFF, BMP, SVG, HEIC) are rejected because the AVIF
  *    transform path either does not handle them safely (SVG is a script
  *    surface, HEIC requires a different decoder) or has no real use case

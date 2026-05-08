@@ -62,6 +62,26 @@ const GENERIC_UNPROCESSABLE = { error: 'unprocessable' } as const;
 const GENERIC_INTERNAL = { error: 'internal' } as const;
 
 export async function POST(request: NextRequest): Promise<Response> {
+  // 0. CSRF guard. Route handlers do not get the implicit origin check that
+  // server actions ship with, so we reject any cross-origin POST whose
+  // Origin header does not match the request host. A null Origin header is
+  // accepted because curl, fetch with `mode: 'no-cors'`, and same-origin
+  // navigations may omit it; the auth check downstream still gates the
+  // request body itself.
+  const origin = request.headers.get('origin');
+  if (origin !== null) {
+    const host = request.headers.get('host') ?? '';
+    let originHost = '';
+    try {
+      originHost = new URL(origin).host;
+    } catch {
+      return NextResponse.json(GENERIC_BAD_REQUEST, { status: 403 });
+    }
+    if (originHost !== host) {
+      return NextResponse.json(GENERIC_BAD_REQUEST, { status: 403 });
+    }
+  }
+
   // 1. Auth + allowlist. Both failure modes share a body so a probe cannot
   // tell from the response whether the cookie existed at all.
   const session = await auth();

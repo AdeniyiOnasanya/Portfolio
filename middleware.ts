@@ -17,12 +17,17 @@ import { auth } from '@/lib/auth';
 
 export default auth((req) => {
   const { pathname } = req.nextUrl;
-  if (pathname.startsWith('/admin') && !req.auth) {
+  const isAdmin = pathname === '/admin' || pathname.startsWith('/admin/');
+  const isAdminApi = pathname.startsWith('/api/cms/');
+  if ((isAdmin || isAdminApi) && !req.auth) {
+    if (isAdminApi) {
+      return new NextResponse(null, { status: 401 });
+    }
     return NextResponse.redirect(new URL('/login', req.url));
   }
   return NextResponse.next();
 });
 
 export const config = {
-  matcher: ['/admin/:path*'],
+  matcher: ['/admin/:path*', '/api/cms/:path*'],
 };

@@ -28,6 +28,13 @@ import sharp from 'sharp';
 
 export const AVIF_QUALITY = 70;
 
+// Cap the decoded pixel count at 16 megapixels (4096 x 4096). The 1.5 MiB
+// upload byte cap does not protect against image bombs; a small file can
+// declare absurd dimensions and force libvips to allocate gigabytes when it
+// decompresses. Sharp's default `limitInputPixels` is ~268 megapixels, which
+// is enough to OOM a serverless worker.
+const MAX_INPUT_PIXELS = 4096 * 4096;
+
 export type TranscodeFailure = { ok: false; reason: 'decode' } | { ok: false; reason: 'encode' };
 
 export type TranscodeResult = { ok: true; avif: Buffer } | TranscodeFailure;
@@ -55,13 +62,21 @@ export async function transformToAvif(input: Uint8Array | Buffer): Promise<Trans
   // similar) without guessing.
   let pipeline: sharp.Sharp;
   try {
-    pipeline = sharp(buffer, { failOn: 'error' }).rotate();
+    pipeline = sharp(buffer, {
+      failOn: 'error',
+      limitInputPixels: MAX_INPUT_PIXELS,
+    }).rotate();
     await pipeline.metadata();
   } catch {
     return { ok: false, reason: 'decode' };
   }
 
   try {
+    // Sharp's AVIF encoder strips EXIF and ICC by default; we deliberately do
+    // not call `.withMetadata(...)` so the default (no metadata copy-through)
+    // applies. The test in `transform.test.ts` confirms `meta.exif` is
+    // undefined on the encoded output, which would regress if a future
+    // sharp version changed the default.
     const avif = await pipeline.avif({ quality: AVIF_QUALITY }).toBuffer();
     return { ok: true, avif };
   } catch {

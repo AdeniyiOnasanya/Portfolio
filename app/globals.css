@@ -3050,12 +3050,14 @@ body {
   display: flex;
   gap: 10px;
   align-items: stretch;
-  flex-wrap: wrap;
 }
 
+/* `.drop` is a real <button> rather than the design's <div> for keyboard
+   accessibility; appearance/background are the button reset to keep the
+   visual identical to the handoff. The error region keeps its own row
+   beneath via flex order on the parent's wrapped layout. */
 .uploader .drop {
   flex: 1;
-  min-width: 200px;
   appearance: none;
   background: transparent;
   border: 1px dashed var(--line-strong);
@@ -3073,7 +3075,7 @@ body {
     color var(--duration-fast) var(--ease-out);
 }
 
-.uploader .drop:hover:not(:disabled) {
+.uploader .drop:hover {
   border-color: oklch(0.78 0.18 145);
   color: var(--fg);
 }
@@ -3108,8 +3110,16 @@ body {
   letter-spacing: 0.12em;
 }
 
-.uploader .upload-error {
-  flex: 1 1 100%;
+/* `.upload-error` lives in the `.uploader-region` wrapper alongside the
+   `.uploader` flex row so the design's `.uploader` selector stays a strict
+   mirror of admin.css#L337-L339. */
+.uploader-region {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.uploader-region .upload-error {
   margin: 0;
   font-family: var(--mono);
   font-size: 11px;

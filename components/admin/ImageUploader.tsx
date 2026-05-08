@@ -16,7 +16,7 @@ import { ALLOWED_MIME_TYPES, MAX_UPLOAD_BYTES } from '../../lib/upload/limits';
  * Behaviour beyond the design (the design file is presentational only):
  *
  *  - The file input gates on `MAX_UPLOAD_BYTES` (1.5 MiB) and the MIME
- *    whitelist before fetch. The server enforces the same checks; the
+ *    allowlist before fetch. The server enforces the same checks; the
  *    client gate is purely a UX shortcut so the user does not wait for a
  *    round trip to learn the file is too large.
  *  - On success the parent's `onChange(url)` callback fires with the Blob
@@ -117,47 +117,49 @@ export function ImageUploader({ value, onChange, hint, label = 'Image' }: ImageU
   }
 
   return (
-    <div className="uploader">
-      <div
-        className={`preview${value ? '' : ' empty'}`}
-        style={value ? { backgroundImage: `url(${value})` } : undefined}
-        aria-label={value ? `${label} preview` : `${label}, no image`}
-        role="img"
-      >
-        {!value && <span>NO IMAGE</span>}
-      </div>
-      <button
-        type="button"
-        className="drop"
-        onClick={() => inputRef.current?.click()}
-        onDragOver={(event) => event.preventDefault()}
-        onDrop={(event) => {
-          event.preventDefault();
-          const dropped = event.dataTransfer.files?.[0];
-          void handle(dropped);
-        }}
-        disabled={isUploading}
-        aria-describedby={state.status === 'error' ? errorId : undefined}
-      >
-        {isUploading
-          ? `Uploading ${state.filename}...`
-          : `Drop image or click. ${hint ?? ''}`.trim()}
-      </button>
-      {value && !isUploading && (
-        <button type="button" className="btn btn-ghost btn-sm" onClick={onClear}>
-          Clear
+    <div className="uploader-region">
+      <div className="uploader">
+        <div
+          className={`preview${value ? '' : ' empty'}`}
+          style={value ? { backgroundImage: `url(${value})` } : undefined}
+          aria-label={value ? `${label} preview` : `${label}, no image`}
+          role="img"
+        >
+          {!value && <span>NO IMAGE</span>}
+        </div>
+        <button
+          type="button"
+          className="drop"
+          onClick={() => inputRef.current?.click()}
+          onDragOver={(event) => event.preventDefault()}
+          onDrop={(event) => {
+            event.preventDefault();
+            const dropped = event.dataTransfer.files?.[0];
+            void handle(dropped);
+          }}
+          disabled={isUploading}
+          aria-describedby={state.status === 'error' ? errorId : undefined}
+        >
+          {isUploading
+            ? `Uploading ${state.filename}...`
+            : `Drop image or click. ${hint ?? ''}`.trim()}
         </button>
-      )}
-      <input
-        ref={inputRef}
-        type="file"
-        accept={ACCEPT_ATTR}
-        style={{ display: 'none' }}
-        onChange={(event) => {
-          const next = event.target.files?.[0];
-          void handle(next);
-        }}
-      />
+        {value && !isUploading && (
+          <button type="button" className="btn btn-ghost btn-sm" onClick={onClear}>
+            Clear
+          </button>
+        )}
+        <input
+          ref={inputRef}
+          type="file"
+          accept={ACCEPT_ATTR}
+          style={{ display: 'none' }}
+          onChange={(event) => {
+            const next = event.target.files?.[0];
+            void handle(next);
+          }}
+        />
+      </div>
       {state.status === 'error' && (
         <p id={errorId} role="alert" className="upload-error">
           {state.message}
