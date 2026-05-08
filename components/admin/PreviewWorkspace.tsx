@@ -1,7 +1,8 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Hero } from '@/components/public/Hero';
+import type { HeroDraft, HeroPersonDraft } from '@/lib/draft/hero-types';
 import type { Hero as HeroType, Person, Skills as SkillsType } from '@/lib/schema';
 import { HeroEditor } from './HeroEditor';
 
@@ -31,19 +32,6 @@ import { HeroEditor } from './HeroEditor';
  * here.
  */
 
-type HeroPersonDraft = {
-  name?: string;
-  role?: string;
-  location?: string;
-  yearsExp?: number;
-  statement?: string;
-  longBio?: string[];
-};
-
-type HeroDraft = {
-  person?: HeroPersonDraft;
-};
-
 export type PreviewWorkspaceProps = {
   initialDraft: HeroDraft | null;
   initialUpdatedAt: string | null;
@@ -59,12 +47,23 @@ export type PreviewWorkspaceProps = {
 function mergePerson(base: Person, draft: HeroPersonDraft | undefined): Person {
   // Overlay only the fields the Hero editor actually edits. Anything the
   // draft does not carry (cvUrl, github, email, ...) keeps its base value
-  // so the preview's call-to-action buttons still link somewhere; once
-  // the long-bio edit lands the About-section preview will use the same
-  // overlay strategy.
+  // so the preview's call-to-action buttons still link somewhere.
   if (!draft) return base;
   const merged: Person = { ...base };
-  if (typeof draft.name === 'string' && draft.name.length > 0) merged.name = draft.name;
+  if (typeof draft.name === 'string' && draft.name.length > 0) {
+    merged.name = draft.name;
+    // The publish-time `Person` schema requires `nameAccent` to appear
+    // verbatim inside `name`. When the operator types a new name the base
+    // accent may no longer be a substring; clear it so the public
+    // `<Hero>`'s `splitName(name, nameAccent)` falls back to its
+    // first-word-of-name path instead of rendering a corrupt split.
+    if (
+      typeof merged.nameAccent === 'string' &&
+      !merged.name.includes(merged.nameAccent)
+    ) {
+      merged.nameAccent = merged.name;
+    }
+  }
   if (typeof draft.role === 'string' && draft.role.length > 0) merged.role = draft.role;
   if (typeof draft.location === 'string' && draft.location.length > 0) {
     merged.location = draft.location;
@@ -94,7 +93,12 @@ export function PreviewWorkspace({
     setPerson(next);
   }, []);
 
-  const previewPerson = mergePerson(basePerson, person);
+  // Memoize so a re-render that does not change `person` or `basePerson`
+  // does not produce a new prop reference for `<Hero>`. `<Hero>` itself is
+  // not memo-wrapped, so identity-stable props let React skip its render
+  // when its parent re-renders for unrelated reasons (e.g. a Suspense
+  // boundary settling above).
+  const previewPerson = useMemo(() => mergePerson(basePerson, person), [basePerson, person]);
 
   return (
     <>

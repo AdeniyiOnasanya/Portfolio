@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { PreviewWorkspace } from '@/components/admin/PreviewWorkspace';
 import { auth } from '@/lib/auth';
 import { loadSite } from '@/lib/content';
+import { parseHeroDraft } from '@/lib/draft/hero-types';
 import { getDraft } from '@/lib/draft/store';
 
 /**
@@ -38,26 +39,6 @@ import { getDraft } from '@/lib/draft/store';
  * not require `DATABASE_URL`, and `getDraft` only runs at request time.
  */
 
-type HeroPersonDraft = {
-  name?: string;
-  role?: string;
-  location?: string;
-  yearsExp?: number;
-  statement?: string;
-  longBio?: string[];
-};
-
-type HeroDraftShape = {
-  person?: HeroPersonDraft;
-};
-
-function asHeroDraft(value: unknown): HeroDraftShape | null {
-  if (value && typeof value === 'object' && !Array.isArray(value)) {
-    return value as HeroDraftShape;
-  }
-  return null;
-}
-
 export default async function AdminPreviewPage() {
   const session = await auth();
   if (!session?.user?.email) {
@@ -68,7 +49,10 @@ export default async function AdminPreviewPage() {
 
   return (
     <PreviewWorkspace
-      initialDraft={asHeroDraft(row?.content)}
+      // `parseHeroDraft` runs the row's JSONB through Zod and returns null
+      // on any shape mismatch, so a corrupt or stale draft cannot
+      // destabilise the preview render.
+      initialDraft={parseHeroDraft(row?.content)}
       initialUpdatedAt={row?.updatedAt ? row.updatedAt.toISOString() : null}
       basePerson={site.person}
       baseHero={site.hero}

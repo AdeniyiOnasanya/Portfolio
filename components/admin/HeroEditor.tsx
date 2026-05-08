@@ -32,18 +32,7 @@ import { debounce } from '@/lib/draft/debounce';
  * `admin.css` lines 181 to 205 verbatim.
  */
 
-type HeroPersonDraft = {
-  name?: string;
-  role?: string;
-  location?: string;
-  yearsExp?: number;
-  statement?: string;
-  longBio?: string[];
-};
-
-type HeroDraft = {
-  person?: HeroPersonDraft;
-};
+import type { HeroDraft, HeroPersonDraft } from '@/lib/draft/hero-types';
 
 type HeroEditorProps = {
   initialDraft: HeroDraft | null;
@@ -51,9 +40,9 @@ type HeroEditorProps = {
   // Optional sibling-state mirror. Slice #43 (live preview pane) lifts the
   // working person record up so a parallel `<Hero>` render can read the
   // same in-memory shape on every keystroke. The callback fires
-  // synchronously on each setField, before the debounced server-action
-  // save, so the preview never lags the editor. Omitted callers keep the
-  // existing single-route behaviour (server save is the only consumer).
+  // synchronously inside `setField`, before React commits, so the preview
+  // never lags the editor. Omitted callers keep the existing
+  // single-route behaviour (server save is the only consumer).
   onPersonChange?: (next: HeroPersonDraft) => void;
 };
 
@@ -168,24 +157,17 @@ export function HeroEditor({ initialDraft, initialUpdatedAt, onPersonChange }: H
     };
   }, [debounced]);
 
-  // Mirror the working person up to a parent that wants to render a live
-  // preview from the same record (slice #43). The effect is keyed on the
-  // local `person` state so the mirror fires once per committed edit; the
-  // dependency on the latest callback ref keeps the parent free to swap
-  // handlers without re-running on every keystroke. We skip the mirror on
-  // the first commit because the parent already seeds the same initial
-  // shape from server data.
-  const isFirstMirror = useRef(true);
-  useEffect(() => {
-    if (isFirstMirror.current) {
-      isFirstMirror.current = false;
-      return;
-    }
-    onPersonChange?.(person);
-  }, [person, onPersonChange]);
-
   function setField<K extends keyof HeroPersonDraft>(key: K, value: HeroPersonDraft[K]): void {
-    setPerson((prev) => ({ ...prev, [key]: value }));
+    setPerson((prev) => {
+      const next = { ...prev, [key]: value };
+      // Synchronous mirror to the optional parent (slice #43 preview pane).
+      // Calling inside the updater gives the parent the freshly composed
+      // snapshot before React commits, so the preview never lags the
+      // editor by a tick. The base case (no parent) drops the call
+      // entirely, leaving the auto-save server action as the only consumer.
+      onPersonChange?.(next);
+      return next;
+    });
     debounced();
   }
 
