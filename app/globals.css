@@ -3038,3 +3038,87 @@ body {
     border-bottom: 1px solid var(--line);
   }
 }
+
+/* Image uploader, Phase 7 slice #45.
+   Mirrors design_handoff_portfolio/design/admin.css lines 336 to 359
+   (.uploader, .uploader .drop, .uploader .preview, .uploader .preview.empty).
+   Same dashed dropzone, same 96px square preview, same hover accent on the
+   dashed border. The .upload-error class is new (the design file ships no
+   error state); it borrows the mono caption style from the rest of the
+   admin shell. */
+.uploader {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+  flex-wrap: wrap;
+}
+
+.uploader .drop {
+  flex: 1;
+  min-width: 200px;
+  appearance: none;
+  background: transparent;
+  border: 1px dashed var(--line-strong);
+  border-radius: 10px;
+  padding: 18px;
+  text-align: center;
+  cursor: pointer;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--fg-mute);
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.uploader .drop:hover:not(:disabled) {
+  border-color: oklch(0.78 0.18 145);
+  color: var(--fg);
+}
+
+.uploader .drop:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+  border-color: var(--color-focus-ring);
+}
+
+.uploader .drop:disabled {
+  cursor: progress;
+  opacity: 0.7;
+}
+
+.uploader .preview {
+  width: 96px;
+  height: 96px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--bg) center / cover no-repeat;
+  flex-shrink: 0;
+}
+
+.uploader .preview.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--fg-mute);
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+}
+
+.uploader .upload-error {
+  flex: 1 1 100%;
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: oklch(0.7 0.18 25);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .uploader .drop {
+    transition: none;
+  }
+}

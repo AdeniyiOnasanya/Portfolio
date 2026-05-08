@@ -26,6 +26,7 @@
     "@radix-ui/react-dialog": "^1.1.15",
     "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.38.0",
+    "@vercel/blob": "^2.3.3",
     "cmdk": "^1.1.1",
     "drizzle-orm": "^0.45.2",
     "gray-matter": "^4.0.3",
@@ -37,6 +38,7 @@
     "react-view-transitions": "^0.0.1",
     "remark-gfm": "^4.0.1",
     "resend": "^6.12.3",
+    "sharp": "^0.34.5",
     "zod": "^4.4.3"
   },
   "devDependencies": {
