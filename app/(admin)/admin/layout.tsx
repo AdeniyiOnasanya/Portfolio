@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import type { ReactNode } from 'react';
+import { AdminMain } from '@/components/admin/AdminMain';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import { auth } from '@/lib/auth';
 import { signOutAction } from './actions';
@@ -26,6 +27,13 @@ import { signOutAction } from './actions';
  * server-side redirect: if `auth()` returns null or no email, it redirects
  * before rendering, so a future middleware misconfig cannot leak the admin
  * shell to an anonymous request.
+ *
+ * Slice #43 swaps the static `<main className="admin-main no-preview">`
+ * for a small client component (`AdminMain`) that flips the `no-preview`
+ * modifier off when the URL is `/admin/preview/*`. The two-column rule in
+ * `design_handoff_portfolio/design/admin.css` line 150 (`grid-template-columns:
+ * 1fr 1fr;`) only kicks in on the preview route; every other section keeps
+ * the single-column editor frame.
  *
  * `dynamic = 'force-dynamic'` keeps Next from prerendering the layout at
  * build time; `auth()` reads cookies and the build would otherwise throw at
@@ -58,9 +66,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
           <b>Editor</b>
         </div>
       </header>
-      <main className="admin-main no-preview">
-        <div className="admin-editor">{children}</div>
-      </main>
+      <AdminMain>{children}</AdminMain>
     </div>
   );
 }

@@ -48,6 +48,13 @@ type HeroDraft = {
 type HeroEditorProps = {
   initialDraft: HeroDraft | null;
   initialUpdatedAt: string | null;
+  // Optional sibling-state mirror. Slice #43 (live preview pane) lifts the
+  // working person record up so a parallel `<Hero>` render can read the
+  // same in-memory shape on every keystroke. The callback fires
+  // synchronously on each setField, before the debounced server-action
+  // save, so the preview never lags the editor. Omitted callers keep the
+  // existing single-route behaviour (server save is the only consumer).
+  onPersonChange?: (next: HeroPersonDraft) => void;
 };
 
 // Local, single-instance copies of `TextField` and `TextArea` from
@@ -127,7 +134,7 @@ function formatStatus(updatedAt: string | null, isPending: boolean): string {
   return `Draft saved at ${time}`;
 }
 
-export function HeroEditor({ initialDraft, initialUpdatedAt }: HeroEditorProps) {
+export function HeroEditor({ initialDraft, initialUpdatedAt, onPersonChange }: HeroEditorProps) {
   const [person, setPerson] = useState<HeroPersonDraft>(() => initialDraft?.person ?? {});
   const [updatedAt, setUpdatedAt] = useState<string | null>(initialUpdatedAt);
   const [isPending, startTransition] = useTransition();
@@ -160,6 +167,22 @@ export function HeroEditor({ initialDraft, initialUpdatedAt }: HeroEditorProps) 
       debounced.flush();
     };
   }, [debounced]);
+
+  // Mirror the working person up to a parent that wants to render a live
+  // preview from the same record (slice #43). The effect is keyed on the
+  // local `person` state so the mirror fires once per committed edit; the
+  // dependency on the latest callback ref keeps the parent free to swap
+  // handlers without re-running on every keystroke. We skip the mirror on
+  // the first commit because the parent already seeds the same initial
+  // shape from server data.
+  const isFirstMirror = useRef(true);
+  useEffect(() => {
+    if (isFirstMirror.current) {
+      isFirstMirror.current = false;
+      return;
+    }
+    onPersonChange?.(person);
+  }, [person, onPersonChange]);
 
   function setField<K extends keyof HeroPersonDraft>(key: K, value: HeroPersonDraft[K]): void {
     setPerson((prev) => ({ ...prev, [key]: value }));
