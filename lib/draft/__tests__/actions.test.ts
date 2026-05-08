@@ -28,6 +28,20 @@ vi.mock('@/lib/auth', () => ({
 
 vi.mock('@/lib/draft/store', () => ({
   saveDraft: (...args: unknown[]) => saveDraftMock(...args),
+  // getDraft and clearDraft are unused by saveDraftAction; the exports
+  // are declared so the projects-server seam below can resolve them
+  // through the same module graph.
+  getDraft: vi.fn(),
+  clearDraft: vi.fn(),
+}));
+
+// Mock the server-only seam so importing `actions.ts` does not pull
+// `projects.server.ts` (with its `'server-only'` import) into the Node
+// test runtime. The functions exported here are not called by
+// `saveDraftAction`; the mock just keeps the module graph satisfied.
+vi.mock('@/lib/draft/projects.server', () => ({
+  readOrSeedProjects: vi.fn(),
+  loadProjectsDraft: vi.fn(),
 }));
 
 beforeEach(() => {

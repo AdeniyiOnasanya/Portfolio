@@ -4,6 +4,8 @@ import { z } from 'zod';
 import { ADMIN_SECTION_IDS, type AdminSectionId } from '@/components/admin/sections';
 import { auth } from '@/lib/auth';
 import { assertAllowlistConfigured, isAllowedAdminEmail } from '@/lib/auth/allowlist';
+import { applyOrder, type ProjectDraft, type ProjectsDraft, renumberProjects } from './projects';
+import { readOrSeedProjects } from './projects.server';
 import { saveDraft } from './store';
 
 // Boot-time assertion. A deployment without ADMIN_EMAIL would otherwise
@@ -82,4 +84,65 @@ export async function saveDraftAction(
 
   const row = await saveDraft(sectionResult.data, contentResult.data);
   return { ok: true, updatedAt: row.updatedAt.toISOString() };
+}
+
+/**
+ * Server action invoked when the operator finishes a drag or a keyboard
+ * pickup-move-drop in the projects editor (slice #44). The wire payload is
+ * just the new slug order; the server reads the current draft (or seeds
+ * from MDX), applies the order, renumbers `n` contiguously, and persists.
+ *
+ * The action is intentionally narrow: it does not accept the full project
+ * objects from the client because the publish-time schema has not had a
+ * chance to validate them on this hot path. Reorder is order-only;
+ * structural edits to a project (title, subtitle, ...) flow through a
+ * different per-row editor in slices #45 and #46.
+ *
+ * Auth and the 32 KiB cap mirror `saveDraftAction` so the two write
+ * surfaces share an audit shape: any admin write is rejected unless the
+ * session email matches `ADMIN_EMAIL`, and any payload that would exceed
+ * the JSONB column's soft ceiling bails before the database is touched.
+ */
+
+const OrderedSlugsSchema = z
+  .array(z.string().min(1))
+  .max(64, 'Too many project slugs in reorder payload.');
+
+export type ReorderProjectsResult =
+  | { ok: true; updatedAt: string; projects: ProjectDraft[] }
+  | {
+      ok: false;
+      error: 'unauthenticated' | 'forbidden' | 'invalid_order' | 'invalid_content';
+    };
+
+export async function reorderProjectsAction(orderedSlugs: unknown): Promise<ReorderProjectsResult> {
+  const session = await auth();
+  const email = session?.user?.email;
+  if (!email) {
+    return { ok: false, error: 'unauthenticated' };
+  }
+  if (!isAllowedAdminEmail(email, process.env.ADMIN_EMAIL)) {
+    return { ok: false, error: 'forbidden' };
+  }
+
+  const orderResult = OrderedSlugsSchema.safeParse(orderedSlugs);
+  if (!orderResult.success) {
+    return { ok: false, error: 'invalid_order' };
+  }
+
+  const current = await readOrSeedProjects();
+  const reordered = applyOrder(current, orderResult.data);
+  const renumbered = renumberProjects(reordered);
+
+  const next: ProjectsDraft = { projects: renumbered };
+  if (JSON.stringify(next).length > MAX_DRAFT_BYTES) {
+    return { ok: false, error: 'invalid_content' };
+  }
+
+  const row = await saveDraft('projects', next);
+  return {
+    ok: true,
+    updatedAt: row.updatedAt.toISOString(),
+    projects: renumbered,
+  };
 }

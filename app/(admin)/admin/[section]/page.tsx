@@ -1,10 +1,12 @@
 import { notFound } from 'next/navigation';
 import { HeroEditor } from '@/components/admin/HeroEditor';
+import { ProjectsEditor } from '@/components/admin/ProjectsEditor';
 import {
   type AdminSectionId,
   getAdminNavItem,
   isAdminSectionId,
 } from '@/components/admin/sections';
+import { loadProjectsDraft } from '@/lib/draft/projects.server';
 import { getDraft } from '@/lib/draft/store';
 
 /**
@@ -26,12 +28,11 @@ import { getDraft } from '@/lib/draft/store';
  * 169 to 179 and 290 to 297.
  */
 
-const COMING_SOON_COPY: Record<Exclude<AdminSectionId, 'hero'>, string> = {
+const COMING_SOON_COPY: Record<Exclude<AdminSectionId, 'hero' | 'projects'>, string> = {
   about: 'The About editor lands in slice #46 (Zod validation across all field editors).',
   skills: 'The Skills editor lands in slice #46.',
   experience: 'The Experience editor lands in slice #46.',
   ai: 'The AI Practice editor lands in slice #46.',
-  projects: 'The Projects editor (drag-reorder + image upload) lands in slices #44 and #45.',
   footer: 'The Footer editor lands in slice #46.',
   settings: 'Site-wide settings (theme defaults, danger zone) land in slice #47.',
 };
@@ -72,6 +73,11 @@ export default async function AdminSectionPage({
         initialUpdatedAt={row?.updatedAt ? row.updatedAt.toISOString() : null}
       />
     );
+  }
+
+  if (section === 'projects') {
+    const { projects, updatedAt } = await loadProjectsDraft();
+    return <ProjectsEditor initialProjects={projects} initialUpdatedAt={updatedAt} />;
   }
 
   const item = getAdminNavItem(section);
