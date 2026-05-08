@@ -236,7 +236,20 @@ describe('POST /api/cms/save', () => {
     expect((args.branchName as string).startsWith('cms/')).toBe(true);
     expect(args.commitMessage).toMatch(/^cms: update hero \(\d+\)$/);
     expect(args.pullRequestTitle).toBe(args.commitMessage);
-    expect(args.pullRequestBody).toBe('Updated hero section.');
+    // #52: PR body is now a real plain-language diff. The header line is
+    // fixed and each changed leaf field is listed as a single bullet. The
+    // fixture above changes `person.name` and `person.role`; both bullets
+    // appear with the dot path rooted at `hero.person`, ordered by the
+    // summariser's stable lexical sort.
+    const pullRequestBody = args.pullRequestBody as string;
+    expect(pullRequestBody.startsWith('Hero section update from the admin CMS.\n')).toBe(true);
+    expect(pullRequestBody).toContain(
+      '- Changed `hero.person.name` from "Ada Lovelace" to "Grace Hopper"',
+    );
+    expect(pullRequestBody).toContain(
+      '- Changed `hero.person.role` from "Software Engineer" to "Compiler Pioneer"',
+    );
+    expect(pullRequestBody).not.toContain('Updated hero section.');
   });
 
   it('maps a publishCommit forbidden-char throw to a 422', async () => {

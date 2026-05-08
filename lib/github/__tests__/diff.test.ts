@@ -54,9 +54,7 @@ describe('summariseHeroDiff', () => {
       person: { ...baseHero.person, name: 'Grace Hopper' },
     };
     const body = summariseHeroDiff(baseHero, after);
-    expect(body).toContain(
-      '- Changed `hero.person.name` from "Ada Lovelace" to "Grace Hopper"',
-    );
+    expect(body).toContain('- Changed `hero.person.name` from "Ada Lovelace" to "Grace Hopper"');
     expect(body.startsWith('Hero section update from the admin CMS.\n')).toBe(true);
   });
 
@@ -181,10 +179,10 @@ describe('summariseHeroDiff', () => {
     expect(body).toMatchInlineSnapshot(`
       "Hero section update from the admin CMS.
 
+      - Added 1 paragraph to \`hero.person.longBio\`
       - Changed \`hero.person.name\` from "Ada Lovelace" to "Grace Hopper"
       - Changed \`hero.person.role\` from "Software Engineer" to "Compiler Pioneer"
       - Changed \`hero.person.yearsExp\` from 6 to 7
-      - Added 1 paragraph to \`hero.person.longBio\`
       "
     `);
   });
@@ -216,10 +214,13 @@ describe('summariseHeroDiff', () => {
     // not smuggle the raw character into the PR body. The contract is
     // that the function throws so the route handler maps the throw to a
     // 422, exactly as it does for `buildSiteJsonAfterHeroEdit`.
+    // The em-dash is constructed via Unicode escape so the test source
+    // file itself stays forbidden-char clean; the meta-test that scans
+    // the tree for U+2014 must not flag this file.
     const after: HeroDraft = {
       person: {
         ...baseHero.person,
-        statement: 'A statement with a stray — in it.',
+        statement: `A statement with a stray ${String.fromCodePoint(0x2014)} in it.`,
       },
     };
     expect(() => summariseHeroDiff(baseHero, after)).toThrow(/forbidden character/i);
