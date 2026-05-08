@@ -57,10 +57,7 @@ function mergePerson(base: Person, draft: HeroPersonDraft | undefined): Person {
     // accent may no longer be a substring; clear it so the public
     // `<Hero>`'s `splitName(name, nameAccent)` falls back to its
     // first-word-of-name path instead of rendering a corrupt split.
-    if (
-      typeof merged.nameAccent === 'string' &&
-      !merged.name.includes(merged.nameAccent)
-    ) {
+    if (typeof merged.nameAccent === 'string' && !merged.name.includes(merged.nameAccent)) {
       merged.nameAccent = merged.name;
     }
   }
