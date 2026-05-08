@@ -104,4 +104,24 @@ describe('PublishButton', () => {
     fireEvent.click(screen.getByRole('button', { name: /publish/i }));
     expect(await screen.findByText(/could not reach the publish endpoint/i)).toBeInTheDocument();
   });
+
+  it('renders the draft-updated copy when the API reports reused=true', async () => {
+    fetchMock.mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          ok: true,
+          pullRequestUrl: 'https://github.com/owner/repo/pull/42',
+          pullRequestNumber: 42,
+          branchName: 'cms/hero-3a4f9b2c',
+          reused: true,
+        }),
+        { status: 200, headers: { 'content-type': 'application/json' } },
+      ),
+    );
+    render(<PublishButton section="hero" />);
+    fireEvent.click(screen.getByRole('button', { name: /publish/i }));
+    expect(await screen.findByText(/draft updated/i)).toBeInTheDocument();
+    const link = await screen.findByRole('link', { name: /pull request/i });
+    expect(link).toHaveAttribute('href', 'https://github.com/owner/repo/pull/42');
+  });
 });

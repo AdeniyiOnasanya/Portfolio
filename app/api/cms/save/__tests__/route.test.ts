@@ -214,7 +214,8 @@ describe('POST /api/cms/save', () => {
     publishCommitMock.mockResolvedValue({
       pullRequestUrl: 'https://github.com/owner/repo/pull/42',
       pullRequestNumber: 42,
-      branchName: 'cms/1746630000-hero',
+      branchName: 'cms/hero-3a4f9b2c',
+      reused: false,
     });
 
     const POST = await loadHandler();
@@ -226,17 +227,60 @@ describe('POST /api/cms/save', () => {
       ok: true,
       pullRequestUrl: 'https://github.com/owner/repo/pull/42',
       pullRequestNumber: 42,
-      branchName: 'cms/1746630000-hero',
+      branchName: 'cms/hero-3a4f9b2c',
+      reused: false,
     });
     expect(publishCommitMock).toHaveBeenCalledTimes(1);
     const args = publishCommitMock.mock.calls[0][0] as Record<string, unknown>;
     expect(args.owner).toBe('owner');
     expect(args.repo).toBe('repo');
     expect(args.baseBranch).toBe('develop');
-    expect((args.branchName as string).startsWith('cms/')).toBe(true);
+    expect(args.branchName).toMatch(/^cms\/hero-[0-9a-f]{8}$/);
     expect(args.commitMessage).toMatch(/^cms: update hero \(\d+\)$/);
     expect(args.pullRequestTitle).toBe(args.commitMessage);
     expect(args.pullRequestBody).toBe('Updated hero section.');
+  });
+
+  it('returns the same PR URL with reused=true when publish is pressed twice on the same section', async () => {
+    authMock.mockResolvedValue({ user: { email: 'admin@example.com' } });
+    getDraftMock.mockResolvedValue({
+      id: 'hero',
+      content: { person: { name: 'Grace Hopper' } },
+      updatedAt: new Date(),
+    });
+    loadSiteMock.mockResolvedValue(validSite);
+    getOctokitMock.mockReturnValue({ rest: {} });
+    publishCommitMock.mockResolvedValueOnce({
+      pullRequestUrl: 'https://github.com/owner/repo/pull/42',
+      pullRequestNumber: 42,
+      branchName: 'cms/hero-3a4f9b2c',
+      reused: false,
+    });
+    publishCommitMock.mockResolvedValueOnce({
+      pullRequestUrl: 'https://github.com/owner/repo/pull/42',
+      pullRequestNumber: 42,
+      branchName: 'cms/hero-3a4f9b2c',
+      reused: true,
+    });
+
+    const POST = await loadHandler();
+    const first = (await (await POST(makeRequest({ section: 'hero' }))).json()) as Record<
+      string,
+      unknown
+    >;
+    const second = (await (await POST(makeRequest({ section: 'hero' }))).json()) as Record<
+      string,
+      unknown
+    >;
+
+    expect(first.pullRequestUrl).toBe('https://github.com/owner/repo/pull/42');
+    expect(first.reused).toBe(false);
+    expect(second.pullRequestUrl).toBe(first.pullRequestUrl);
+    expect(second.reused).toBe(true);
+    // Both calls received the same deterministic branch name.
+    const firstArgs = publishCommitMock.mock.calls[0][0] as Record<string, unknown>;
+    const secondArgs = publishCommitMock.mock.calls[1][0] as Record<string, unknown>;
+    expect(firstArgs.branchName).toBe(secondArgs.branchName);
   });
 
   it('maps a publishCommit forbidden-char throw to a 422', async () => {
