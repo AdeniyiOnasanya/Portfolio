@@ -55,18 +55,16 @@ export function AdminSidebar({ email, signOutAction }: AdminSidebarProps) {
   const active = deriveActiveSection(pathname);
 
   return (
-    <aside className="admin-sidebar" aria-label="Admin sections">
+    <aside className="admin-sidebar" aria-label="Admin navigation">
       <div className="brand">
-        <div className="brand-mark">
-          <span style={{ fontStyle: 'italic' }}>D</span>
-        </div>
+        <div className="brand-mark">D</div>
         <div>
-          <div style={{ fontWeight: 500, fontSize: 14 }}>Portfolio CMS</div>
+          <div className="brand-title">Portfolio CMS</div>
           <div className="brand-name">Onasanya / v1</div>
         </div>
       </div>
 
-      <nav aria-label="Editor sections">
+      <nav aria-label="Section links">
         {ADMIN_NAV.map((group) => (
           <div key={group.group}>
             <div className="nav-group">{group.group}</div>
@@ -94,12 +92,12 @@ export function AdminSidebar({ email, signOutAction }: AdminSidebarProps) {
             {avatarInitial(email)}
           </div>
           <div className="meta">
-            <b>{email || 'admin'}</b>
-            <span style={{ color: 'var(--fg-mute)' }}>SIGNED IN</span>
+            <b>{email}</b>
+            <span className="status">SIGNED IN</span>
           </div>
         </div>
         <form action={signOutAction}>
-          <button type="submit" className="btn btn-ghost btn-sm" style={{ width: '100%' }}>
+          <button type="submit" className="btn btn-ghost btn-sm sign-out">
             Sign out
           </button>
         </form>

@@ -2779,6 +2779,11 @@ body {
   line-height: 1;
 }
 
+.admin-sidebar .brand-title {
+  font-weight: 500;
+  font-size: 14px;
+}
+
 .admin-sidebar .brand-name {
   font-family: var(--mono);
   font-size: 11px;
@@ -2884,6 +2889,10 @@ body {
   font-size: 12px;
 }
 
+.admin-sidebar .footer .user .meta .status {
+  color: var(--fg-mute);
+}
+
 .admin-main {
   grid-area: main;
   display: grid;
@@ -2968,7 +2977,17 @@ body {
   transition:
     background var(--duration-fast) var(--ease-out),
     border-color var(--duration-fast) var(--ease-out),
-    transform 0.08s ease;
+    transform var(--duration-fast) var(--ease-out);
+}
+
+.admin-sidebar .btn:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+  border-color: var(--color-focus-ring);
+}
+
+.admin-sidebar .sign-out {
+  width: 100%;
 }
 
 .admin-sidebar .btn:hover {

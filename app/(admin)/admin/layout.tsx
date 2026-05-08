@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { redirect } from 'next/navigation';
 import type { ReactNode } from 'react';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import { auth } from '@/lib/auth';
@@ -20,10 +21,11 @@ import { signOutAction } from './actions';
  * highlight, but the email rendering, the brand block, and the layout grid
  * stay on the server.
  *
- * Auth gating: `middleware.ts` already redirects unauthenticated traffic on
- * `/admin/*` to `/login`, so the layout assumes a session exists. The
- * fallback string `admin` is a defence-in-depth render path; it should
- * never appear in practice.
+ * Auth gating: two layers. `middleware.ts` already redirects unauthenticated
+ * traffic on `/admin/*` to `/login`. The layout adds a defence-in-depth
+ * server-side redirect: if `auth()` returns null or no email, it redirects
+ * before rendering, so a future middleware misconfig cannot leak the admin
+ * shell to an anonymous request.
  *
  * `dynamic = 'force-dynamic'` keeps Next from prerendering the layout at
  * build time; `auth()` reads cookies and the build would otherwise throw at
@@ -41,7 +43,10 @@ export const metadata: Metadata = {
 
 export default async function AdminLayout({ children }: { children: ReactNode }) {
   const session = await auth();
-  const email = session?.user?.email ?? 'admin';
+  if (!session?.user?.email) {
+    redirect('/login');
+  }
+  const email = session.user.email;
 
   return (
     <div className="admin-app">

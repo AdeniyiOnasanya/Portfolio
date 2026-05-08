@@ -17,15 +17,23 @@
  * parity between the two.
  */
 
-export type AdminSectionId =
-  | 'hero'
-  | 'about'
-  | 'skills'
-  | 'experience'
-  | 'ai'
-  | 'projects'
-  | 'footer'
-  | 'settings';
+// Single source of truth for the section id list. The TypeScript union
+// `AdminSectionId` is derived from this tuple so adding or removing a section
+// here updates the union automatically; the runtime array
+// `ADMIN_SECTION_IDS` is the same tuple, used by `isAdminSectionId` for the
+// path-param guard. The two cannot drift.
+const ADMIN_SECTION_IDS_TUPLE = [
+  'hero',
+  'about',
+  'skills',
+  'experience',
+  'ai',
+  'projects',
+  'footer',
+  'settings',
+] as const;
+
+export type AdminSectionId = (typeof ADMIN_SECTION_IDS_TUPLE)[number];
 
 export type AdminNavItem = {
   id: AdminSectionId;
@@ -62,9 +70,7 @@ export const ADMIN_NAV: readonly AdminNavGroup[] = [
   },
 ] as const;
 
-export const ADMIN_SECTION_IDS: readonly AdminSectionId[] = ADMIN_NAV.flatMap((group) =>
-  group.items.map((item) => item.id),
-);
+export const ADMIN_SECTION_IDS = ADMIN_SECTION_IDS_TUPLE;
 
 export const DEFAULT_ADMIN_SECTION: AdminSectionId = 'hero';
 
