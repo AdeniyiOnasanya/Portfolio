@@ -21,12 +21,14 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
  */
 
 const reorderProjectsActionMock = vi.fn();
+const saveDraftActionMock = vi.fn();
 
 vi.mock('@/lib/draft/actions', () => ({
   reorderProjectsAction: (...args: unknown[]) => reorderProjectsActionMock(...args),
-  // Re-declare saveDraftAction to keep the mocked module's surface
-  // honest. ProjectsEditor only calls reorderProjectsAction.
-  saveDraftAction: vi.fn(),
+  // ProjectsEditor calls saveDraftAction for the per-section visibility
+  // toggle (slice #47); the reorder pathway still routes through
+  // reorderProjectsAction so the renumbered list is canonical.
+  saveDraftAction: (...args: unknown[]) => saveDraftActionMock(...args),
 }));
 
 // Replace DragList with a stub that renders rows and exposes the
@@ -90,6 +92,7 @@ vi.mock('../DragList', () => ({
 
 afterEach(() => {
   reorderProjectsActionMock.mockReset();
+  saveDraftActionMock.mockReset();
 });
 
 async function loadEditor() {
@@ -177,6 +180,41 @@ describe('<ProjectsEditor />', () => {
       container.querySelectorAll('[data-testid="project-row"] .item-meta'),
     ).filter((cell) => /^\d{2}$/.test(cell.textContent ?? ''));
     expect(numberCells.map((cell) => cell.textContent)).toEqual(['01', '02', '03']);
+  });
+
+  it('renders the per-section visibility toggle with initialHidden hydrated', async () => {
+    const ProjectsEditor = await loadEditor();
+    render(
+      <ProjectsEditor
+        initialProjects={seed(['a', 'b'])}
+        initialUpdatedAt={null}
+        initialHidden={true}
+      />,
+    );
+    expect(screen.getByRole('switch', { name: 'Show on site' })).toHaveAttribute(
+      'aria-checked',
+      'false',
+    );
+  });
+
+  it('persists hidden alongside the current order via saveDraftAction', async () => {
+    saveDraftActionMock.mockResolvedValue({
+      ok: true,
+      updatedAt: new Date('2026-05-07T12:34:00Z').toISOString(),
+    });
+    const ProjectsEditor = await loadEditor();
+    const initialProjects = seed(['a', 'b']);
+    render(<ProjectsEditor initialProjects={initialProjects} initialUpdatedAt={null} />);
+
+    await act(async () => {
+      screen.getByRole('switch', { name: 'Show on site' }).click();
+    });
+
+    expect(saveDraftActionMock).toHaveBeenCalledTimes(1);
+    expect(saveDraftActionMock).toHaveBeenCalledWith('projects', {
+      projects: initialProjects,
+      hidden: true,
+    });
   });
 
   it('shows the saved-at status after the action resolves', async () => {

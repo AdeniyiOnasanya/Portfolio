@@ -1,5 +1,6 @@
 import 'server-only';
 import { loadProjectFiles } from '@/lib/projects';
+import { isDraftHidden } from './hidden';
 import { isProjectsDraft, type ProjectDraft } from './projects';
 import { getDraft } from './store';
 
@@ -45,18 +46,24 @@ export async function readOrSeedProjects(): Promise<ProjectDraft[]> {
  * Server-only loader the page route uses to render the editor. Returns the
  * current draft if one exists; otherwise seeds from MDX so the operator
  * sees the canonical project list from the moment they open the editor.
+ *
+ * The `hidden` flag (slice #47) lives alongside the projects array on the
+ * persisted blob; it is read with the same JSONB-tolerant helper used by
+ * every other section so a fresh draft (no row yet) defaults to visible.
  */
 export async function loadProjectsDraft(): Promise<{
   projects: ProjectDraft[];
   updatedAt: string | null;
+  hidden: boolean;
 }> {
   const row = await getDraft('projects');
   if (row && isProjectsDraft(row.content)) {
     return {
       projects: row.content.projects,
       updatedAt: row.updatedAt.toISOString(),
+      hidden: isDraftHidden(row.content),
     };
   }
   const seeded = await readOrSeedProjects();
-  return { projects: seeded, updatedAt: null };
+  return { projects: seeded, updatedAt: null, hidden: false };
 }

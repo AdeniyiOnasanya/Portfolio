@@ -30,8 +30,21 @@ vi.mock('@/lib/draft/store', () => ({
 // into the Node test runtime. The mock returns an empty seed list; the
 // ProjectsEditor stub below ignores the value.
 vi.mock('@/lib/draft/projects.server', () => ({
-  loadProjectsDraft: vi.fn(async () => ({ projects: [], updatedAt: null })),
+  loadProjectsDraft: vi.fn(async () => ({ projects: [], updatedAt: null, hidden: false })),
   readOrSeedProjects: vi.fn(),
+}));
+
+// SectionVisibilityToggle calls saveDraftAction transitively, which pulls
+// next-auth into the module graph. Stub it out so this suite stays a
+// unit test on the route logic.
+vi.mock('@/components/admin/SectionVisibilityToggle', () => ({
+  SectionVisibilityToggle: ({
+    section,
+    initialHidden,
+  }: {
+    section: string;
+    initialHidden: boolean;
+  }) => <div data-testid={`visibility-toggle-${section}`} data-hidden={String(initialHidden)} />,
 }));
 
 vi.mock('@/components/admin/HeroEditor', () => ({

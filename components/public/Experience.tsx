@@ -4,11 +4,14 @@ export function Experience({
   experience,
   education,
   certs,
+  hidden,
 }: {
   experience: ExperienceType;
   education: Education;
   certs: Certs;
+  hidden?: boolean;
 }) {
+  if (hidden) return null;
   const primaryEducation = education[0];
   const secondaryEducation = education[1];
   if (!primaryEducation) return null;

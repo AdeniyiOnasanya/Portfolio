@@ -20,4 +20,9 @@ describe('Skills', () => {
       }
     }
   });
+
+  it('returns null when hidden is true', () => {
+    const { container } = render(<Skills skills={sampleSkills} hidden={true} />);
+    expect(container.firstChild).toBeNull();
+  });
 });

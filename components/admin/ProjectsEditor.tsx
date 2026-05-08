@@ -26,13 +26,22 @@
  */
 
 import { useCallback, useState, useTransition } from 'react';
-import { reorderProjectsAction } from '@/lib/draft/actions';
+import { reorderProjectsAction, saveDraftAction } from '@/lib/draft/actions';
 import type { ProjectDraft } from '@/lib/draft/projects';
 import { DragList } from './DragList';
+import { VisibilityToggle } from './VisibilityToggle';
 
 export type ProjectsEditorProps = {
   initialProjects: ProjectDraft[];
   initialUpdatedAt: string | null;
+  /**
+   * Initial value of the per-section `hidden` flag from the persisted
+   * draft. Default `false`. Slice #47 wires this through; toggling
+   * persists alongside the project list via `saveDraftAction` so the
+   * stored blob keeps the order, the renumbered `n`, and the visibility
+   * flag in one shape.
+   */
+  initialHidden?: boolean;
 };
 
 function formatStatus(updatedAt: string | null, isPending: boolean): string {
@@ -44,12 +53,36 @@ function formatStatus(updatedAt: string | null, isPending: boolean): string {
   return `Order saved at ${time}`;
 }
 
-export function ProjectsEditor({ initialProjects, initialUpdatedAt }: ProjectsEditorProps) {
+export function ProjectsEditor({
+  initialProjects,
+  initialUpdatedAt,
+  initialHidden = false,
+}: ProjectsEditorProps) {
   const [projects, setProjects] = useState<ProjectDraft[]>(initialProjects);
+  const [hidden, setHidden] = useState<boolean>(initialHidden);
   const [updatedAt, setUpdatedAt] = useState<string | null>(initialUpdatedAt);
   const [isPending, startTransition] = useTransition();
 
   const items = projects.map((project) => ({ ...project, id: project.slug }));
+
+  const handleVisibilityChange = useCallback(
+    (nextOn: boolean) => {
+      const nextHidden = !nextOn;
+      setHidden(nextHidden);
+      // Snapshot the current order alongside the flag so a toggle does
+      // not blow away the renumbered list. The publish-time validator
+      // re-reads this shape; the wire format mirrors `ProjectsDraft`
+      // with `hidden` appended.
+      const snapshot = { projects, hidden: nextHidden };
+      startTransition(async () => {
+        const result = await saveDraftAction('projects', snapshot);
+        if (result.ok) {
+          setUpdatedAt(result.updatedAt);
+        }
+      });
+    },
+    [projects],
+  );
 
   const handleReorder = useCallback((orderedIds: string[]) => {
     // Optimistic local reorder so the UI commits immediately; the
@@ -90,6 +123,14 @@ export function ProjectsEditor({ initialProjects, initialUpdatedAt }: ProjectsEd
           {formatStatus(updatedAt, isPending)}
         </span>
       </div>
+
+      <VisibilityToggle
+        id="projects-visible"
+        label="Show on site"
+        sub="Section visible on public preview"
+        on={!hidden}
+        onChange={handleVisibilityChange}
+      />
 
       <div className="help-panel">
         <b>Drag</b> the handle to reorder, the list number updates automatically. Use Space to pick

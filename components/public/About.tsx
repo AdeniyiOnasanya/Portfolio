@@ -1,6 +1,7 @@
 import type { Person } from '../../lib/schema';
 
-export function About({ person }: { person: Person }) {
+export function About({ person, hidden }: { person: Person; hidden?: boolean }) {
+  if (hidden) return null;
   return (
     <section id="about" aria-label="About">
       <div className="section-head reveal">

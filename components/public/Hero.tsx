@@ -6,11 +6,21 @@ export function Hero({
   person,
   hero,
   skills,
+  hidden,
 }: {
   person: Person;
   hero: HeroType;
   skills: SkillsType;
+  /**
+   * Slice #47: when the operator hides the section via the admin
+   * VisibilityToggle, callers that read the per-section `hidden` flag
+   * (the future preview pane and the publish-time mapper) pass `true`
+   * here and the section renders nothing. Default `false` so the public
+   * read path (`content/site.json`) is unchanged.
+   */
+  hidden?: boolean;
 }) {
+  if (hidden) return null;
   const cvFilename = person.cvUrl.split('/').pop() || undefined;
   const stackLabels = skills.flatMap((g) => g.items);
   const { firstWord, restWord } = splitName(person.name, person.nameAccent);
