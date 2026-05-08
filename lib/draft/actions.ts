@@ -3,8 +3,18 @@
 import { z } from 'zod';
 import { ADMIN_SECTION_IDS, type AdminSectionId } from '@/components/admin/sections';
 import { auth } from '@/lib/auth';
-import { isAllowedAdminEmail } from '@/lib/auth/allowlist';
+import { assertAllowlistConfigured, isAllowedAdminEmail } from '@/lib/auth/allowlist';
 import { saveDraft } from './store';
+
+// Boot-time assertion. A deployment without ADMIN_EMAIL would otherwise
+// reject every save silently (isAllowedAdminEmail is fail-closed) with no
+// operator-visible error. Mirrors the same guard in the auth route handler.
+assertAllowlistConfigured(process.env.ADMIN_EMAIL);
+
+// Cap each draft payload at 32 KiB. A single section's JSON should be a few
+// KB at most; anything larger is a misconfigured client or an attacker
+// trying to fill the JSONB column.
+const MAX_DRAFT_BYTES = 32 * 1024;
 
 /**
  * Server action that persists a section draft.
@@ -61,6 +71,12 @@ export async function saveDraftAction(
   }
   const contentResult = DraftContentSchema.safeParse(content);
   if (!contentResult.success) {
+    return { ok: false, error: 'invalid_content' };
+  }
+
+  // Size check after Zod confirms `content` is a record so JSON.stringify is
+  // bounded; we still want to bail before writing to Postgres.
+  if (JSON.stringify(contentResult.data).length > MAX_DRAFT_BYTES) {
     return { ok: false, error: 'invalid_content' };
   }
 

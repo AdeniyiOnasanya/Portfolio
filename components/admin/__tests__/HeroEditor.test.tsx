@@ -50,7 +50,7 @@ describe('<HeroEditor />', () => {
     const HeroEditor = await loadEditor();
     render(<HeroEditor initialDraft={null} initialUpdatedAt={null} />);
     expect(screen.getByText('Hero')).toBeInTheDocument();
-    expect(screen.getByText('Section 01')).toBeInTheDocument();
+    expect(screen.getByText('SECTION 01')).toBeInTheDocument();
     expect(screen.getByText('Name')).toBeInTheDocument();
     expect(screen.getByText('Role')).toBeInTheDocument();
     expect(screen.getByText('Location')).toBeInTheDocument();

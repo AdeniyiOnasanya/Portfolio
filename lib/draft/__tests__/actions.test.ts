@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { AdminSectionId } from '@/components/admin/sections';
 
 /*
  * saveDraftAction integration, Phase 7 slice #42.
@@ -64,8 +65,10 @@ describe('saveDraftAction', () => {
   it('rejects an unknown section id', async () => {
     authMock.mockResolvedValue({ user: { email: 'admin@example.com' } });
     const action = await loadAction();
-    // biome-ignore lint/suspicious/noExplicitAny: deliberate invalid input
-    const result = await action('not-a-section' as any, { person: {} });
+    // Cast through `unknown` to a valid AdminSectionId so we feed a
+    // deliberately-wrong value at runtime without bypassing the type system
+    // any wider than the test requires.
+    const result = await action('not-a-section' as unknown as AdminSectionId, { person: {} });
     expect(result).toEqual({ ok: false, error: 'invalid_section' });
     expect(saveDraftMock).not.toHaveBeenCalled();
   });

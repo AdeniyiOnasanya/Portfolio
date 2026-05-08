@@ -169,19 +169,19 @@ export function HeroEditor({ initialDraft, initialUpdatedAt }: HeroEditorProps) 
   const longBioValue = (person.longBio ?? []).join('\n\n');
 
   return (
-    <article className="editor-section" aria-label="Hero editor">
-      <header className="head">
+    <div className="editor-section">
+      <div className="head">
         <div>
           <div className="section-ribbon">
             <span className="bar" aria-hidden="true" />
-            <span>Section 01</span>
+            SECTION 01
           </div>
           <h2>Hero</h2>
         </div>
-        <span className="num" data-testid="autosave-status">
+        <span className="autosave-status" data-testid="autosave-status">
           {formatStatus(updatedAt, isPending)}
         </span>
-      </header>
+      </div>
 
       <div className="field-grid">
         <TextField label="Name" value={person.name ?? ''} onChange={(v) => setField('name', v)} />
@@ -227,6 +227,6 @@ export function HeroEditor({ initialDraft, initialUpdatedAt }: HeroEditorProps) 
           )
         }
       />
-    </article>
+    </div>
   );
 }
