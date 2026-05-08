@@ -20,6 +20,11 @@ describe('AiPractice', () => {
     expect(em?.textContent).toBe('AI in the loop');
   });
 
+  it('returns null when hidden is true', () => {
+    const { container } = render(<AiPractice ai={sampleAiPractice} hidden={true} />);
+    expect(container.firstChild).toBeNull();
+  });
+
   it('renders the eyebrow, intro, pillars, and workflow', () => {
     render(<AiPractice ai={sampleAiPractice} />);
     // Eyebrow is now prefixed with `04 / ` to match the design handoff's

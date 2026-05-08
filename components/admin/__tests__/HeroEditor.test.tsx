@@ -114,6 +114,79 @@ describe('<HeroEditor />', () => {
     }
   });
 
+  it('renders the "Show on site" toggle in the editor head row', async () => {
+    const HeroEditor = await loadEditor();
+    render(<HeroEditor initialDraft={null} initialUpdatedAt={null} />);
+    const toggle = screen.getByRole('switch', { name: 'Show on site' });
+    // initialHidden defaults to false, so the switch reads as on (visible).
+    expect(toggle).toHaveAttribute('aria-checked', 'true');
+    expect(screen.getByText('Section visible on public preview')).toBeInTheDocument();
+  });
+
+  it('hydrates the toggle from initialHidden', async () => {
+    const HeroEditor = await loadEditor();
+    render(<HeroEditor initialDraft={null} initialUpdatedAt={null} initialHidden={true} />);
+    expect(screen.getByRole('switch', { name: 'Show on site' })).toHaveAttribute(
+      'aria-checked',
+      'false',
+    );
+  });
+
+  it('persists hidden:true via saveDraftAction when toggled off', async () => {
+    saveDraftActionMock.mockResolvedValue({ ok: true, updatedAt: new Date().toISOString() });
+    const HeroEditor = await loadEditor();
+    render(
+      <HeroEditor
+        initialDraft={{ person: { name: 'David' } }}
+        initialUpdatedAt={null}
+        initialHidden={false}
+      />,
+    );
+    await act(async () => {
+      screen.getByRole('switch', { name: 'Show on site' }).click();
+    });
+    expect(saveDraftActionMock).toHaveBeenCalledTimes(1);
+    expect(saveDraftActionMock).toHaveBeenCalledWith('hero', {
+      person: { name: 'David' },
+      hidden: true,
+    });
+  });
+
+  it('flushes pending typing into the visibility save snapshot (no split state)', async () => {
+    saveDraftActionMock.mockResolvedValue({ ok: true, updatedAt: new Date().toISOString() });
+    const HeroEditor = await loadEditor();
+    vi.useFakeTimers();
+    try {
+      const { container } = render(<HeroEditor initialDraft={null} initialUpdatedAt={null} />);
+      const nameInput = findInputByLabel(container, 'Name');
+      act(() => {
+        fireEvent.change(nameInput, { target: { value: 'David' } });
+      });
+      // Within debounce window: no save yet.
+      expect(saveDraftActionMock).not.toHaveBeenCalled();
+
+      // Toggle the visibility, which should cancel the pending debounce
+      // and save immediately with the latest typed value.
+      await act(async () => {
+        screen.getByRole('switch', { name: 'Show on site' }).click();
+      });
+      expect(saveDraftActionMock).toHaveBeenCalledTimes(1);
+      expect(saveDraftActionMock).toHaveBeenCalledWith('hero', {
+        person: { name: 'David' },
+        hidden: true,
+      });
+
+      // The cancelled debounce should not fire a stale second call.
+      act(() => {
+        vi.advanceTimersByTime(500);
+      });
+      expect(saveDraftActionMock).toHaveBeenCalledTimes(1);
+    } finally {
+      cleanup();
+      vi.useRealTimers();
+    }
+  });
+
   it('shows the saved-at status after the action resolves', async () => {
     const stamp = new Date('2026-05-07T12:34:00Z');
     saveDraftActionMock.mockResolvedValue({ ok: true, updatedAt: stamp.toISOString() });

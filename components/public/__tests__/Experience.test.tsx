@@ -36,6 +36,18 @@ describe('Experience', () => {
     }
   });
 
+  it('returns null when hidden is true', () => {
+    const { container } = render(
+      <Experience
+        experience={sampleExperience}
+        education={sampleEducation}
+        certs={sampleCerts}
+        hidden={true}
+      />,
+    );
+    expect(container.firstChild).toBeNull();
+  });
+
   it('renders education and certifications blocks at the tail', () => {
     render(
       <Experience experience={sampleExperience} education={sampleEducation} certs={sampleCerts} />,

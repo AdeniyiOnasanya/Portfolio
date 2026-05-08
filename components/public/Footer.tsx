@@ -10,10 +10,20 @@ const ARROW_NE = String.fromCodePoint(0x2197);
 export function Footer({
   footer,
   person,
+  hidden,
 }: {
   footer: FooterType;
   person: Pick<Person, 'email' | 'github' | 'linkedin' | 'phone' | 'cvUrl'>;
+  /**
+   * Slice #47: per-section visibility flag. The public-site read path
+   * does not pass this prop today (the Footer is always shown on the
+   * canonical site), but the future preview pane will so the operator
+   * can hide the contact block while iterating on copy without
+   * scrolling past it.
+   */
+  hidden?: boolean;
 }) {
+  if (hidden) return null;
   const cvFilename = person.cvUrl.split('/').pop() || undefined;
   return (
     <footer id="contact" className="footer">

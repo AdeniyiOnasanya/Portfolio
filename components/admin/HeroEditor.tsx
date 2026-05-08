@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import { saveDraftAction } from '@/lib/draft/actions';
 import { debounce } from '@/lib/draft/debounce';
+import { VisibilityToggle } from './VisibilityToggle';
 
 /**
  * HeroEditor, Phase 7 slice #42.
@@ -43,11 +44,21 @@ type HeroPersonDraft = {
 
 type HeroDraft = {
   person?: HeroPersonDraft;
+  hidden?: boolean;
 };
 
 type HeroEditorProps = {
   initialDraft: HeroDraft | null;
   initialUpdatedAt: string | null;
+  /**
+   * Initial value of the per-section `hidden` flag from the persisted
+   * draft. Default `false` so a fresh hero is shown on the public preview.
+   * Slice #47 wires this through; toggling persists alongside the form
+   * content via the same `saveDraftAction` so the operator never sees a
+   * split state where the field changes saved but the visibility did not
+   * (or vice versa).
+   */
+  initialHidden?: boolean;
 };
 
 // Local, single-instance copies of `TextField` and `TextArea` from
@@ -127,21 +138,34 @@ function formatStatus(updatedAt: string | null, isPending: boolean): string {
   return `Draft saved at ${time}`;
 }
 
-export function HeroEditor({ initialDraft, initialUpdatedAt }: HeroEditorProps) {
+export function HeroEditor({
+  initialDraft,
+  initialUpdatedAt,
+  initialHidden = false,
+}: HeroEditorProps) {
   const [person, setPerson] = useState<HeroPersonDraft>(() => initialDraft?.person ?? {});
+  const [hidden, setHidden] = useState<boolean>(
+    () => initialDraft?.hidden ?? initialHidden ?? false,
+  );
   const [updatedAt, setUpdatedAt] = useState<string | null>(initialUpdatedAt);
   const [isPending, startTransition] = useTransition();
 
-  // The transition state is the source of truth; the ref is only used to
-  // avoid triggering a stale save after unmount. The saved draft is the
-  // whole `person` record, mirroring the design's `data.person` shape.
+  // The transition state is the source of truth; the refs are only used
+  // to avoid triggering a stale save after unmount. The saved draft is
+  // the whole `person` record plus the `hidden` flag, mirroring the
+  // design's `data.person` shape with the per-section visibility added
+  // by slice #47.
   const latestPerson = useRef(person);
+  const latestHidden = useRef(hidden);
   useEffect(() => {
     latestPerson.current = person;
   }, [person]);
+  useEffect(() => {
+    latestHidden.current = hidden;
+  }, [hidden]);
 
   const fire = useCallback(() => {
-    const snapshot: HeroDraft = { person: latestPerson.current };
+    const snapshot: HeroDraft = { person: latestPerson.current, hidden: latestHidden.current };
     startTransition(async () => {
       const result = await saveDraftAction('hero', snapshot);
       if (result.ok) {
@@ -166,6 +190,24 @@ export function HeroEditor({ initialDraft, initialUpdatedAt }: HeroEditorProps) 
     debounced();
   }
 
+  function handleVisibilityChange(nextOn: boolean): void {
+    // The toggle reads "Show on site": on => visible, off => hidden.
+    // Visibility flips are deliberate and rare, so skip the debounce
+    // window and persist immediately. Any in-flight typing save will
+    // still flush its own snapshot via the same action.
+    const nextHidden = !nextOn;
+    setHidden(nextHidden);
+    latestHidden.current = nextHidden;
+    debounced.cancel();
+    const snapshot: HeroDraft = { person: latestPerson.current, hidden: nextHidden };
+    startTransition(async () => {
+      const result = await saveDraftAction('hero', snapshot);
+      if (result.ok) {
+        setUpdatedAt(result.updatedAt);
+      }
+    });
+  }
+
   const longBioValue = (person.longBio ?? []).join('\n\n');
 
   return (
@@ -182,6 +224,14 @@ export function HeroEditor({ initialDraft, initialUpdatedAt }: HeroEditorProps) 
           {formatStatus(updatedAt, isPending)}
         </span>
       </div>
+
+      <VisibilityToggle
+        id="hero-visible"
+        label="Show on site"
+        sub="Section visible on public preview"
+        on={!hidden}
+        onChange={handleVisibilityChange}
+      />
 
       <div className="field-grid">
         <TextField label="Name" value={person.name ?? ''} onChange={(v) => setField('name', v)} />

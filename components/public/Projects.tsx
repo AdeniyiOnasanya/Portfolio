@@ -1,7 +1,8 @@
 import type { Project } from '../../lib/schema';
 import { ProjectsIndex } from './ProjectsIndex';
 
-export function Projects({ projects }: { projects: Project[] }) {
+export function Projects({ projects, hidden }: { projects: Project[]; hidden?: boolean }) {
+  if (hidden) return null;
   return (
     <section id="work" aria-label="Selected work">
       <div className="section-head reveal">
