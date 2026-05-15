@@ -66,25 +66,32 @@ export function summariseHeroDiff(before: HeroDraft, after: HeroDraft): string {
   // is deterministic for snapshot tests.
   const beforePerson: HeroPersonDraft = before.person ?? {};
   const afterPerson: HeroPersonDraft = after.person ?? {};
+  // HeroPersonDraft is a closed shape from `@/lib/draft/hero-types`; every
+  // leaf is `string | number | string[] | undefined`. The cast widens the
+  // value type to `unknown` so the generic walker (`diffField`) can handle
+  // it without per-key fan-out. If the shape ever grows a nested object,
+  // `diffField` will fall through to the JSON.stringify branch and the
+  // unit tests for the new field will surface the gap immediately.
+  const beforeRecord = beforePerson as Record<string, unknown>;
+  const afterRecord = afterPerson as Record<string, unknown>;
   const personKeys = sortedUnion(Object.keys(beforePerson), Object.keys(afterPerson));
   for (const key of personKeys) {
     const path = `hero.person.${key}`;
-    const beforeValue = (beforePerson as Record<string, unknown>)[key];
-    const afterValue = (afterPerson as Record<string, unknown>)[key];
-    const bullet = diffField(path, beforeValue, afterValue);
+    const bullet = diffField(path, beforeRecord[key], afterRecord[key]);
     if (bullet) bullets.push(bullet);
   }
 
   // Top-level hidden flag. The route does not currently set this from the
   // draft (the visibility toggle ships in #47), but the field is part of
   // HeroDraftSchema so the summariser surfaces a flip if a future call
-  // path passes one through. Keeps the function honest about its inputs.
-  if (before.hidden !== after.hidden) {
-    const beforeHidden = before.hidden ?? false;
-    const afterHidden = after.hidden ?? false;
-    if (beforeHidden !== afterHidden) {
-      bullets.push(`- Changed \`hero.hidden\` from ${beforeHidden} to ${afterHidden}`);
-    }
+  // path passes one through. `undefined` and `false` are treated as the
+  // same observable state (section visible), so the comparison runs on
+  // the normalised pair: `undefined -> false` is not a flip, `false ->
+  // true` is.
+  const beforeHidden = before.hidden ?? false;
+  const afterHidden = after.hidden ?? false;
+  if (beforeHidden !== afterHidden) {
+    bullets.push(`- Changed \`hero.hidden\` from ${beforeHidden} to ${afterHidden}`);
   }
 
   const body = bullets.length === 0 ? `${HEADER}\n` : `${HEADER}\n\n${bullets.join('\n')}\n`;
@@ -126,9 +133,12 @@ function diffArrayField(path: string, before: unknown, after: unknown): Bullet |
   const afterArr = Array.isArray(after) ? after : [];
 
   // Pin every element so the eventual bullet text never embeds a stray
-  // forbidden character in a count summary or reorder report.
-  for (const item of beforeArr) assertClean(stringify(item), path);
-  for (const item of afterArr) assertClean(stringify(item), path);
+  // forbidden character in a count summary or reorder report. Label
+  // stays as `pull request body` for consistency with the route's
+  // `isForbiddenCharError` regex and the rest of the file; the offending
+  // field path is still derivable from the per-bullet structure.
+  for (const item of beforeArr) assertClean(stringify(item), 'pull request body');
+  for (const item of afterArr) assertClean(stringify(item), 'pull request body');
 
   if (arraysShallowEqual(beforeArr, afterArr)) return null;
 
