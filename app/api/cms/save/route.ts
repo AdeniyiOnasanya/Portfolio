@@ -209,6 +209,12 @@ export async function POST(request: Request): Promise<Response> {
         { status: 422 },
       );
     }
+    // Regex fallback covers the byte-level `assertNoForbiddenChars` sweep
+    // inside `publishCommit`, which throws a plain `Error` (not the typed
+    // `ForbiddenCharacterError`) for any forbidden char that survives the
+    // walker. The two handlers are not redundant: the typed branch above
+    // names the field; this one is a last-resort 422 without a field name
+    // for offenders found only at the serialised JSON layer.
     if (isForbiddenCharError(error)) {
       return NextResponse.json(GENERIC_UNPROCESSABLE, { status: 422 });
     }

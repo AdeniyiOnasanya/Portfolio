@@ -322,6 +322,12 @@ function assertNoForbiddenCharsInValue(value: unknown, path: string): void {
     const [first] = findForbiddenChars(value);
     if (first) {
       const codePoint = value.codePointAt(first.index) ?? first.char.codePointAt(0) ?? 0;
+      // `<root>` is defensive: the only current caller passes an object
+      // root (`next` in `buildSiteJsonAfterHeroEdit`), so the walker enters
+      // the object branch below and builds paths starting with the first
+      // key. The fallback only fires if a future caller passes a string
+      // value directly, in which case the empty path would otherwise
+      // produce a misleading `forbidden character at ""` label.
       throw new ForbiddenCharacterError({
         field: path || '<root>',
         codePoint,
