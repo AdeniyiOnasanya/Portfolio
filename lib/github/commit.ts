@@ -347,10 +347,12 @@ export async function publishCommit(input: PublishCommitInput): Promise<PublishC
  */
 function isReferenceAlreadyExistsError(error: unknown): boolean {
   if (typeof error !== 'object' || error === null) return false;
-  const status = (error as { status?: unknown }).status;
-  const message = (error as { message?: unknown }).message;
-  if (status !== 422) return false;
-  return typeof message === 'string' && /reference already exists/i.test(message);
+  // The `in` operator narrows the union without an explicit `as` cast, so
+  // a future Octokit version that renames `.status` or `.message` would
+  // fail the guard at runtime rather than silently passing compile-time.
+  if (!('status' in error) || error.status !== 422) return false;
+  if (!('message' in error) || typeof error.message !== 'string') return false;
+  return /reference already exists/i.test(error.message);
 }
 
 function isJsonRecord(value: unknown): value is Record<string, unknown> {

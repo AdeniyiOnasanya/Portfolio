@@ -157,6 +157,13 @@ export async function POST(request: Request): Promise<Response> {
   try {
     const octokit = getOctokit();
     const unixTs = Math.floor(Date.now() / 1000);
+    // `slug` and `sectionId` are both `parsedBody.section` because the
+    // current `ADMIN_SECTION_IDS` set uses kebab-case identifiers that
+    // are also valid display slugs (e.g. `hero`, `projects`). The two
+    // arguments are kept split in the helper so a future section with a
+    // human-facing label distinct from its stable id (e.g. id
+    // `case-studies-2025`, label `case-studies`) can diverge them
+    // without rewriting the call site.
     const branchName = buildDeterministicBranchName({
       slug: parsedBody.section,
       sectionId: parsedBody.section,
