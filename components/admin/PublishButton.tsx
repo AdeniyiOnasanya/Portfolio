@@ -59,12 +59,16 @@ export function PublishButton({ section }: PublishButtonProps) {
             pullRequestUrl: string;
             pullRequestNumber: number;
             branchName: string;
+            // `reused` is sent by /api/cms/save on republish; older builds
+            // that predate slice #50 omit it, so default to `false`.
+            reused?: boolean;
           };
           setOutcome({
             ok: true,
             pullRequestUrl: data.pullRequestUrl,
             pullRequestNumber: data.pullRequestNumber,
             branchName: data.branchName,
+            reused: data.reused === true,
           });
           return;
         }

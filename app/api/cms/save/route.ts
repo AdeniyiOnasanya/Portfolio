@@ -7,7 +7,7 @@ import { loadSite } from '@/lib/content';
 import { parseHeroDraft } from '@/lib/draft/hero-types';
 import { getDraft } from '@/lib/draft/store';
 import { getOctokit } from '@/lib/github';
-import { buildBranchName } from '@/lib/github/branch';
+import { buildDeterministicBranchName } from '@/lib/github/branch';
 import { buildSiteJsonAfterHeroEdit, buildTreeEntries, publishCommit } from '@/lib/github/commit';
 
 /**
@@ -148,10 +148,19 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   // 8. Commit pipeline.
+  //
+  // Slice #50: the branch name is now derived deterministically from the
+  // section id so a second publish on the same section targets the same
+  // branch. The pipeline below force-updates the branch and reuses the
+  // open PR when one exists; the `reused` flag is forwarded to the modal
+  // so the operator sees "draft updated" instead of "new PR opened" copy.
   try {
     const octokit = getOctokit();
     const unixTs = Math.floor(Date.now() / 1000);
-    const branchName = buildBranchName({ unixTs, slug: 'hero' });
+    const branchName = buildDeterministicBranchName({
+      slug: parsedBody.section,
+      sectionId: parsedBody.section,
+    });
     const commitMessage = `cms: update hero (${unixTs})`;
     const result = await publishCommit({
       octokit,
@@ -172,6 +181,7 @@ export async function POST(request: Request): Promise<Response> {
         pullRequestUrl: result.pullRequestUrl,
         pullRequestNumber: result.pullRequestNumber,
         branchName: result.branchName,
+        reused: result.reused,
       },
       { status: 200 },
     );
