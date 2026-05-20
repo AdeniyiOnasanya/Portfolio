@@ -20,7 +20,20 @@ import { Modal } from './Modal';
  */
 
 export type PublishOutcome =
-  | { ok: true; pullRequestUrl: string; pullRequestNumber: number; branchName: string }
+  | {
+      ok: true;
+      pullRequestUrl: string;
+      pullRequestNumber: number;
+      branchName: string;
+      /**
+       * `true` when the publish updated an existing PR rather than
+       * opening a new one (slice #50). The modal swaps to the
+       * "Draft updated" copy so the operator can tell the publish
+       * resulted in a force-push to a known PR rather than a fresh
+       * branch in the GitHub UI.
+       */
+      reused: boolean;
+    }
   | { ok: false; errorCode: PublishErrorCode; field?: string };
 
 export type PublishErrorCode =
@@ -66,9 +79,13 @@ const ERROR_COPY: Record<PublishErrorCode, string> = {
 
 export function PublishResultModal({ outcome, onClose }: PublishResultModalProps) {
   if (outcome.ok) {
+    const title = outcome.reused ? 'Draft updated' : 'Publish opened a PR';
+    const description = outcome.reused
+      ? `The existing pull request #${outcome.pullRequestNumber} on the ${outcome.branchName} branch was updated with your latest changes.`
+      : `The commit pipeline opened pull request #${outcome.pullRequestNumber} on the ${outcome.branchName} branch. Review and merge on GitHub to ship the change.`;
     return (
       <Modal
-        title="Publish opened a PR"
+        title={title}
         onClose={onClose}
         actions={
           <button type="button" className="btn" onClick={onClose}>
@@ -76,10 +93,7 @@ export function PublishResultModal({ outcome, onClose }: PublishResultModalProps
           </button>
         }
       >
-        <p>
-          The commit pipeline opened pull request #{outcome.pullRequestNumber} on the{' '}
-          <code>{outcome.branchName}</code> branch. Review and merge on GitHub to ship the change.
-        </p>
+        <p>{description}</p>
         <p>
           <a
             href={outcome.pullRequestUrl}

@@ -110,6 +110,13 @@ export type PublishCommitResult = {
   pullRequestUrl: string;
   pullRequestNumber: number;
   branchName: string;
+  /**
+   * `true` when the commit pipeline force-updated an existing branch and
+   * reused an open PR; `false` when a fresh branch and PR were opened.
+   * Slice #50 surfaces this flag through the route response so the modal
+   * can switch between "new PR opened" and "draft updated" copy.
+   */
+  reused: boolean;
 };
 
 /**
@@ -153,6 +160,14 @@ export type OctokitClient = {
         ref: string;
         sha: string;
       }) => Promise<{ data: { ref: string; object: { sha: string } } }>;
+      updateRef: (params: {
+        owner: string;
+        repo: string;
+        /** `heads/<branch>` (no `refs/` prefix), per the Git Refs API. */
+        ref: string;
+        sha: string;
+        force?: boolean;
+      }) => Promise<{ data: { ref: string; object: { sha: string } } }>;
     };
     pulls: {
       create: (params: {
@@ -162,6 +177,21 @@ export type OctokitClient = {
         body: string;
         head: string;
         base: string;
+      }) => Promise<{ data: { number: number; html_url: string } }>;
+      list: (params: {
+        owner: string;
+        repo: string;
+        /** `<owner>:<branch>` per GitHub's PR list filter. */
+        head: string;
+        base: string;
+        state: 'open';
+      }) => Promise<{ data: ReadonlyArray<{ number: number; html_url: string }> }>;
+      update: (params: {
+        owner: string;
+        repo: string;
+        pull_number: number;
+        body?: string;
+        title?: string;
       }) => Promise<{ data: { number: number; html_url: string } }>;
     };
   };
@@ -250,12 +280,82 @@ export async function publishCommit(input: PublishCommitInput): Promise<PublishC
     },
   });
 
-  await input.octokit.rest.git.createRef({
+  // Slice #50, idempotent republish.
+  //
+  // The branch name is now deterministic per section (slice #50), so a
+  // second publish on the same section collides on `create-ref` with HTTP
+  // 422 "Reference already exists". Catch that single failure mode and
+  // fast-forward the existing branch to the freshly built commit via
+  // `update-ref` with `force: true`. Other 422 messages (validation, etc.)
+  // and any non-422 status keep their original behaviour: rethrow so the
+  // route handler can map them to a 502.
+  //
+  // Security trade-off worth surfacing in review: force-pushing to an
+  // existing branch overwrites the previous tip. If a reviewer has left
+  // line-anchored comments on the prior commit, those comments may end up
+  // outdated when the PR's diff base shifts. The trade-off is acceptable
+  // for a single-admin CMS where the PR is short-lived (open, review,
+  // merge inside a session); it would not be acceptable on a multi-author
+  // workflow where reviewers expect a stable head sha across rounds. The
+  // PR body is rewritten via `pulls.update` after the force-push so the
+  // reviewer sees the freshest commit context the moment the page reloads.
+  //
+  // The `reused` flag in the return shape tracks PR reuse, not branch
+  // reuse: a force-updated branch with no open PR opens a fresh PR and
+  // reports `reused: false` so the modal copy stays accurate. The two
+  // branches below hardcode their answer at the return site so the bit
+  // never crosses the two outcomes.
+  try {
+    await input.octokit.rest.git.createRef({
+      owner: input.owner,
+      repo: input.repo,
+      ref: `refs/heads/${input.branchName}`,
+      sha: commit.data.sha,
+    });
+  } catch (error) {
+    if (!isReferenceAlreadyExistsError(error)) {
+      throw error;
+    }
+    await input.octokit.rest.git.updateRef({
+      owner: input.owner,
+      repo: input.repo,
+      ref: `heads/${input.branchName}`,
+      sha: commit.data.sha,
+      force: true,
+    });
+  }
+
+  // After the branch is up to date, look for an open PR with this exact
+  // head/base pair. If the operator merged or closed the previous PR, the
+  // list comes back empty and we open a fresh one. Otherwise we reuse the
+  // existing PR's URL and refresh its body so the modal can surface the
+  // "draft updated" affordance.
+  const existingPulls = await input.octokit.rest.pulls.list({
     owner: input.owner,
     repo: input.repo,
-    ref: `refs/heads/${input.branchName}`,
-    sha: commit.data.sha,
+    head: `${input.owner}:${input.branchName}`,
+    base: input.baseBranch,
+    state: 'open',
   });
+
+  if (existingPulls.data.length > 0) {
+    const existing = existingPulls.data[0];
+    if (!existing) {
+      throw new Error('publishCommit: pulls.list returned a non-empty list with an empty head.');
+    }
+    const updated = await input.octokit.rest.pulls.update({
+      owner: input.owner,
+      repo: input.repo,
+      pull_number: existing.number,
+      body: input.pullRequestBody,
+    });
+    return {
+      pullRequestUrl: updated.data.html_url,
+      pullRequestNumber: updated.data.number,
+      branchName: input.branchName,
+      reused: true,
+    };
+  }
 
   const pull = await input.octokit.rest.pulls.create({
     owner: input.owner,
@@ -270,7 +370,27 @@ export async function publishCommit(input: PublishCommitInput): Promise<PublishC
     pullRequestUrl: pull.data.html_url,
     pullRequestNumber: pull.data.number,
     branchName: input.branchName,
+    reused: false,
   };
+}
+
+/**
+ * Recognise the "Reference already exists" 422 from `octokit.rest.git
+ * .createRef`. The Octokit SDK throws a `RequestError` whose `.status`
+ * is the HTTP code and whose `.message` carries the upstream body, so
+ * the structural check on `status === 422` plus a substring match on
+ * the canonical message is enough; pinning to instanceof would couple
+ * us to the Octokit class hierarchy and break the hand-rolled mocks the
+ * unit tests pass in.
+ */
+function isReferenceAlreadyExistsError(error: unknown): boolean {
+  if (typeof error !== 'object' || error === null) return false;
+  // The `in` operator narrows the union without an explicit `as` cast, so
+  // a future Octokit version that renames `.status` or `.message` would
+  // fail the guard at runtime rather than silently passing compile-time.
+  if (!('status' in error) || error.status !== 422) return false;
+  if (!('message' in error) || typeof error.message !== 'string') return false;
+  return /reference already exists/i.test(error.message);
 }
 
 function isJsonRecord(value: unknown): value is Record<string, unknown> {

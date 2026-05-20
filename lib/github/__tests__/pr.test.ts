@@ -23,8 +23,9 @@ function makeOctokit(payload: { number: number; html_url: string }): {
         createTree: vi.fn(),
         createCommit: vi.fn(),
         createRef: vi.fn(),
+        updateRef: vi.fn(),
       },
-      pulls: { create },
+      pulls: { create, list: vi.fn(), update: vi.fn() },
     },
   };
   return { octokit, create };
