@@ -3,6 +3,7 @@ import {
   buildSiteJsonAfterHeroEdit,
   buildTreeEntries,
   CONTENT_SITE_JSON_PATH,
+  ForbiddenCharacterError,
   publishCommit,
 } from '../commit';
 
@@ -100,6 +101,70 @@ describe('buildSiteJsonAfterHeroEdit', () => {
       }),
     ).toThrow(/forbidden/i);
   });
+
+  it('throws ForbiddenCharacterError naming the field path when an em-dash lands in person.name', () => {
+    const emDash = String.fromCharCode(0x2014);
+    let caught: unknown = null;
+    try {
+      buildSiteJsonAfterHeroEdit(baseSite, {
+        person: { name: `Grace${emDash}Hopper` },
+      });
+    } catch (error) {
+      caught = error;
+    }
+    expect(caught).toBeInstanceOf(ForbiddenCharacterError);
+    const err = caught as ForbiddenCharacterError;
+    expect(err.field).toBe('person.name');
+    expect(err.codePoint).toBe(0x2014);
+  });
+
+  it('throws ForbiddenCharacterError naming the field path when an emoji lands in person.statement', () => {
+    // U+1F600 (grinning face) chosen because it is outside the BMP, so the
+    // walker has to use codePointAt to surface the right number rather than
+    // a UTF-16 high surrogate.
+    const emoji = String.fromCodePoint(0x1f600);
+    let caught: unknown = null;
+    try {
+      buildSiteJsonAfterHeroEdit(baseSite, {
+        person: { statement: `Hi ${emoji} there.` },
+      });
+    } catch (error) {
+      caught = error;
+    }
+    expect(caught).toBeInstanceOf(ForbiddenCharacterError);
+    const err = caught as ForbiddenCharacterError;
+    expect(err.field).toBe('person.statement');
+    expect(err.codePoint).toBe(0x1f600);
+  });
+
+  it('reports the first offending field path when a longBio array contains a forbidden char', () => {
+    const emDash = String.fromCharCode(0x2014);
+    let caught: unknown = null;
+    try {
+      buildSiteJsonAfterHeroEdit(baseSite, {
+        person: { longBio: ['clean line', `dirty${emDash}line`, 'also clean'] },
+      });
+    } catch (error) {
+      caught = error;
+    }
+    expect(caught).toBeInstanceOf(ForbiddenCharacterError);
+    const err = caught as ForbiddenCharacterError;
+    expect(err.field).toBe('person.longBio[1]');
+  });
+});
+
+describe('ForbiddenCharacterError', () => {
+  it('exposes field and codePoint as own properties so the route handler can serialise them', () => {
+    const err = new ForbiddenCharacterError({
+      field: 'person.name',
+      codePoint: 0x2014,
+      char: String.fromCharCode(0x2014),
+    });
+    expect(err).toBeInstanceOf(Error);
+    expect(err.field).toBe('person.name');
+    expect(err.codePoint).toBe(0x2014);
+    expect(err.name).toBe('ForbiddenCharacterError');
+  });
 });
 
 describe('buildTreeEntries', () => {
@@ -133,9 +198,12 @@ describe('publishCommit', () => {
       createTree: ReturnType<typeof vi.fn>;
       createCommit: ReturnType<typeof vi.fn>;
       createRef: ReturnType<typeof vi.fn>;
+      updateRef: ReturnType<typeof vi.fn>;
     };
     pulls: {
       create: ReturnType<typeof vi.fn>;
+      list: ReturnType<typeof vi.fn>;
+      update: ReturnType<typeof vi.fn>;
     };
   };
 
@@ -151,9 +219,16 @@ describe('publishCommit', () => {
         createRef: vi.fn().mockResolvedValue({
           data: { ref: 'refs/heads/cms/1-hero', object: { sha: 'COMMIT_SHA' } },
         }),
+        updateRef: vi.fn().mockResolvedValue({
+          data: { ref: 'refs/heads/cms/1-hero', object: { sha: 'COMMIT_SHA' } },
+        }),
       },
       pulls: {
         create: vi.fn().mockResolvedValue({
+          data: { number: 42, html_url: 'https://github.com/owner/repo/pull/42' },
+        }),
+        list: vi.fn().mockResolvedValue({ data: [] }),
+        update: vi.fn().mockResolvedValue({
           data: { number: 42, html_url: 'https://github.com/owner/repo/pull/42' },
         }),
       },
@@ -232,6 +307,7 @@ describe('publishCommit', () => {
       pullRequestUrl: 'https://github.com/owner/repo/pull/42',
       pullRequestNumber: 42,
       branchName: 'cms/1-hero',
+      reused: false,
     });
   });
 
@@ -261,6 +337,140 @@ describe('publishCommit', () => {
     ).rejects.toThrow(/forbidden/i);
     expect(rest.git.createBlob).not.toHaveBeenCalled();
     expect(rest.git.createRef).not.toHaveBeenCalled();
+    expect(rest.pulls.create).not.toHaveBeenCalled();
+  });
+
+  /*
+   * Slice #50, idempotent republish.
+   *
+   * The branch name is now deterministic per section, so a second publish
+   * collides on `create-ref` with HTTP 422 "Reference already exists". The
+   * pipeline must respond by issuing `update-ref` with `force: true` to
+   * fast-forward the branch to the new commit, then look up the open PR for
+   * the head/base pair. If a PR is open, reuse its URL and refresh its body
+   * via `pulls.update`; if none, fall back to opening a fresh PR.
+   *
+   * The 422 mapping uses both the HTTP status and the message body so a
+   * different 422 (validation, for example) does not silently fast-forward
+   * a branch the operator did not intend to clobber.
+   */
+
+  function make422CollisionError(): Error & { status: number } {
+    const error = new Error('Reference already exists') as Error & { status: number };
+    error.status = 422;
+    return error;
+  }
+
+  it('on createRef 422 collision, force-updates the ref and reuses the open PR', async () => {
+    const { octokit, rest } = makeOctokit();
+    rest.git.createRef.mockRejectedValueOnce(make422CollisionError());
+    rest.pulls.list.mockResolvedValueOnce({
+      data: [{ number: 42, html_url: 'https://github.com/owner/repo/pull/42' }],
+    });
+    rest.pulls.update.mockResolvedValueOnce({
+      data: { number: 42, html_url: 'https://github.com/owner/repo/pull/42' },
+    });
+
+    const result = await publishCommit({
+      octokit,
+      owner: 'owner',
+      repo: 'repo',
+      baseBranch: 'develop',
+      branchName: 'cms/hero-3a4f9b2c',
+      commitMessage: 'cms: update hero',
+      authorName: 'Operator',
+      authorEmail: 'ops@example.com',
+      pullRequestTitle: 'cms: update hero',
+      pullRequestBody: 'Updated hero section.',
+      treeEntries: [
+        { path: CONTENT_SITE_JSON_PATH, mode: '100644', type: 'blob', content: '{}\n' },
+      ],
+    });
+
+    expect(rest.git.createRef).toHaveBeenCalledTimes(1);
+    expect(rest.git.updateRef).toHaveBeenCalledWith({
+      owner: 'owner',
+      repo: 'repo',
+      ref: 'heads/cms/hero-3a4f9b2c',
+      sha: 'COMMIT_SHA',
+      force: true,
+    });
+    expect(rest.pulls.list).toHaveBeenCalledWith({
+      owner: 'owner',
+      repo: 'repo',
+      head: 'owner:cms/hero-3a4f9b2c',
+      base: 'develop',
+      state: 'open',
+    });
+    expect(rest.pulls.update).toHaveBeenCalledWith({
+      owner: 'owner',
+      repo: 'repo',
+      pull_number: 42,
+      body: 'Updated hero section.',
+    });
+    expect(rest.pulls.create).not.toHaveBeenCalled();
+    expect(result).toEqual({
+      pullRequestUrl: 'https://github.com/owner/repo/pull/42',
+      pullRequestNumber: 42,
+      branchName: 'cms/hero-3a4f9b2c',
+      reused: true,
+    });
+  });
+
+  it('on createRef 422 collision with no open PR, opens a fresh PR after force-update', async () => {
+    const { octokit, rest } = makeOctokit();
+    rest.git.createRef.mockRejectedValueOnce(make422CollisionError());
+    rest.pulls.list.mockResolvedValueOnce({ data: [] });
+
+    const result = await publishCommit({
+      octokit,
+      owner: 'owner',
+      repo: 'repo',
+      baseBranch: 'develop',
+      branchName: 'cms/hero-3a4f9b2c',
+      commitMessage: 'cms: update hero',
+      authorName: 'Operator',
+      authorEmail: 'ops@example.com',
+      pullRequestTitle: 'cms: update hero',
+      pullRequestBody: 'Updated hero section.',
+      treeEntries: [
+        { path: CONTENT_SITE_JSON_PATH, mode: '100644', type: 'blob', content: '{}\n' },
+      ],
+    });
+
+    expect(rest.git.updateRef).toHaveBeenCalledTimes(1);
+    expect(rest.pulls.update).not.toHaveBeenCalled();
+    expect(rest.pulls.create).toHaveBeenCalledTimes(1);
+    expect(result.reused).toBe(false);
+    expect(result.pullRequestNumber).toBe(42);
+  });
+
+  it('does not fall back to update-ref for a non-422 createRef failure', async () => {
+    const { octokit, rest } = makeOctokit();
+    const boom = new Error('upstream blew up') as Error & { status: number };
+    boom.status = 500;
+    rest.git.createRef.mockRejectedValueOnce(boom);
+
+    await expect(
+      publishCommit({
+        octokit,
+        owner: 'owner',
+        repo: 'repo',
+        baseBranch: 'develop',
+        branchName: 'cms/hero-3a4f9b2c',
+        commitMessage: 'cms: update hero',
+        authorName: 'Operator',
+        authorEmail: 'ops@example.com',
+        pullRequestTitle: 'cms: update hero',
+        pullRequestBody: 'Updated hero section.',
+        treeEntries: [
+          { path: CONTENT_SITE_JSON_PATH, mode: '100644', type: 'blob', content: '{}\n' },
+        ],
+      }),
+    ).rejects.toThrow(/upstream blew up/i);
+    expect(rest.git.updateRef).not.toHaveBeenCalled();
+    expect(rest.pulls.list).not.toHaveBeenCalled();
+    expect(rest.pulls.update).not.toHaveBeenCalled();
     expect(rest.pulls.create).not.toHaveBeenCalled();
   });
 });
