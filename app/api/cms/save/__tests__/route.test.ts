@@ -255,4 +255,55 @@ describe('POST /api/cms/save', () => {
     const body = (await response.json()) as Record<string, unknown>;
     expect(body).toMatchObject({ ok: false });
   });
+
+  it('returns a structured forbidden_character body naming the field on draft em-dash', async () => {
+    // U+2014 sits in the merged Site at person.name; the handler must
+    // surface a 422 with `error: 'forbidden_character'`, `field:
+    // 'hero.person.name'`, and never reach the Octokit pipeline. Built
+    // via String.fromCharCode so the test source itself stays clean of
+    // U+2014.
+    const emDash = String.fromCharCode(0x2014);
+    authMock.mockResolvedValue({ user: { email: 'admin@example.com' } });
+    getDraftMock.mockResolvedValue({
+      id: 'hero',
+      content: { person: { name: `Grace${emDash}Hopper` } },
+      updatedAt: new Date(),
+    });
+    loadSiteMock.mockResolvedValue(validSite);
+    getOctokitMock.mockReturnValue({ rest: {} });
+    const POST = await loadHandler();
+    const response = await POST(makeRequest({ section: 'hero' }));
+    expect(response.status).toBe(422);
+    const body = (await response.json()) as Record<string, unknown>;
+    expect(body).toMatchObject({
+      ok: false,
+      error: 'forbidden_character',
+      field: 'hero.person.name',
+    });
+    // Pipeline must not be reached: no branch and no PR can leak when
+    // the scan refuses the input.
+    expect(publishCommitMock).not.toHaveBeenCalled();
+  });
+
+  it('returns a structured forbidden_character body when an emoji lands in person.statement', async () => {
+    const emoji = String.fromCodePoint(0x1f600);
+    authMock.mockResolvedValue({ user: { email: 'admin@example.com' } });
+    getDraftMock.mockResolvedValue({
+      id: 'hero',
+      content: { person: { statement: `Hi ${emoji} there.` } },
+      updatedAt: new Date(),
+    });
+    loadSiteMock.mockResolvedValue(validSite);
+    getOctokitMock.mockReturnValue({ rest: {} });
+    const POST = await loadHandler();
+    const response = await POST(makeRequest({ section: 'hero' }));
+    expect(response.status).toBe(422);
+    const body = (await response.json()) as Record<string, unknown>;
+    expect(body).toMatchObject({
+      ok: false,
+      error: 'forbidden_character',
+      field: 'hero.person.statement',
+    });
+    expect(publishCommitMock).not.toHaveBeenCalled();
+  });
 });

@@ -8,7 +8,12 @@ import { parseHeroDraft } from '@/lib/draft/hero-types';
 import { getDraft } from '@/lib/draft/store';
 import { getOctokit } from '@/lib/github';
 import { buildBranchName } from '@/lib/github/branch';
-import { buildSiteJsonAfterHeroEdit, buildTreeEntries, publishCommit } from '@/lib/github/commit';
+import {
+  buildSiteJsonAfterHeroEdit,
+  buildTreeEntries,
+  ForbiddenCharacterError,
+  publishCommit,
+} from '@/lib/github/commit';
 
 /**
  * Publish route, Phase 8 slice #48.
@@ -141,6 +146,21 @@ export async function POST(request: Request): Promise<Response> {
     const site = await loadSite();
     siteJson = buildSiteJsonAfterHeroEdit(site, draft);
   } catch (error) {
+    if (error instanceof ForbiddenCharacterError) {
+      // The walker reports the path inside the Site object (e.g.
+      // `person.name`); the operator sees it under the section they
+      // were editing, so prefix with the section id (`hero.person.name`).
+      // The pipeline is never reached on this branch: no branch and no
+      // PR can leak when the scan refuses the input.
+      return NextResponse.json(
+        {
+          ok: false,
+          error: 'forbidden_character',
+          field: `${parsedBody.section}.${error.field}`,
+        },
+        { status: 422 },
+      );
+    }
     if (isForbiddenCharError(error)) {
       return NextResponse.json(GENERIC_UNPROCESSABLE, { status: 422 });
     }
@@ -179,6 +199,22 @@ export async function POST(request: Request): Promise<Response> {
     if (isConfigError(error)) {
       return NextResponse.json(GENERIC_CONFIG_ERROR, { status: 500 });
     }
+    if (error instanceof ForbiddenCharacterError) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: 'forbidden_character',
+          field: `${parsedBody.section}.${error.field}`,
+        },
+        { status: 422 },
+      );
+    }
+    // Regex fallback covers the byte-level `assertNoForbiddenChars` sweep
+    // inside `publishCommit`, which throws a plain `Error` (not the typed
+    // `ForbiddenCharacterError`) for any forbidden char that survives the
+    // walker. The two handlers are not redundant: the typed branch above
+    // names the field; this one is a last-resort 422 without a field name
+    // for offenders found only at the serialised JSON layer.
     if (isForbiddenCharError(error)) {
       return NextResponse.json(GENERIC_UNPROCESSABLE, { status: 422 });
     }
