@@ -1,3 +1,4 @@
+import { Analytics } from '@vercel/analytics/next';
 import type { Metadata } from 'next';
 import { cookies, headers } from 'next/headers';
 import type { ReactNode } from 'react';
@@ -50,6 +51,12 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
           {children}
           <Grain />
         </ThemeProvider>
+        {/* Vercel Web Analytics (Phase 10 #61). Mounted at the root layout
+            so page views from both (public) and (admin) route groups land
+            in the Vercel dashboard. The `/_vercel/insights/*` beacon path
+            is injected by `@vercel/analytics/next`; no client-side env
+            vars are required (the script no-ops on non-Vercel hosts). */}
+        <Analytics />
       </body>
     </html>
   );
