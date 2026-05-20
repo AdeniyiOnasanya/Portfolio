@@ -14,14 +14,19 @@ This repo is a Next.js 16 / TypeScript / pnpm portfolio for David Onasanya. The 
 
 ## Vercel agent skills installed for this project
 
-The `vercel-labs/agent-skills` set is loaded. Skills the agent should reach for during work on this repo:
+The `vercel-labs/agent-skills` set is loaded. Per-task-type preferences below; reach for the skill that matches the surface you are touching:
 
-- `react-best-practices`: every Next.js page or React component. Server/client split, re-render discipline, bundle hygiene.
-- `web-design-guidelines`: every UI review pass. Reduced-motion, focus-visible, tabular-nums, curly quotes, OG typography.
-- `react-view-transitions`: cinematic intro, project-row to case-study morph, before/after slider, list reorder animations.
-- `composition-patterns`: the admin editor surface (ten editors share four primitives).
+| Task type | Primary skill | Secondary | Notes |
+| --- | --- | --- | --- |
+| New page or React component | `react-best-practices` | `web-design-guidelines` | Server/client split, re-render discipline, bundle hygiene; pair with the design-guidelines pass when any new pixels ship. |
+| UI review pass | `web-design-guidelines` | `react-best-practices` | Reduced-motion, focus-visible, tabular-nums, curly quotes, OG typography. |
+| Cinematic / animation slice | `react-view-transitions` | `web-design-guidelines` | Intro fade, project row morph, before/after slider, list reorder. Always pair with the reduced-motion guard. |
+| Admin editor primitive | `composition-patterns` | `react-best-practices` | The ten editors share four primitives; the composition skill keeps the surface reviewable. |
+| OG image route (`/api/og`) | `react-best-practices` | `web-design-guidelines` | Satori subset of CSS only; pair the design skill for the typography rules that mirror the home page. |
+| Contact / Auth / Resend slices | `react-best-practices` | n/a | Server-only handlers; the design skill does not apply. |
+| Lighthouse + e2e workflow YAML | n/a | n/a | No skill mapping; treat as plain CI work. Path filters and concurrency are the only knobs. |
 
-`vercel-deploy-claimable` is available but rarely needed (production deploys go through merges to `main`). `react-native-guidelines` is skipped (web only).
+`vercel-deploy-claimable` is available but rarely needed (production deploys go through merges to `main`). `react-native-guidelines` is skipped (web only). The Sentry + analytics wiring uses `@sentry/nextjs` and `@vercel/analytics` directly with Context7 docs rather than a packaged skill, since both are SDK installs not UX patterns.
 
 ## Subagents installed in this repo
 
