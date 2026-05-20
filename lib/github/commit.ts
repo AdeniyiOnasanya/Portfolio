@@ -299,6 +299,80 @@ function assertNoForbiddenChars(text: string, label: string): void {
 }
 
 /**
+ * Maps a thrown value (typically `@octokit/request-error`'s `RequestError`,
+ * but tolerant of plain `Error` and non-Error throws) to a small structured
+ * kind the route handler turns into a JSON body for the publish modal.
+ *
+ * Mapping, slice #51:
+ *  - 401 -> 'token_invalid'      PAT revoked, expired, or wrong shape.
+ *  - 403 -> 'token_scope'        PAT lacks Contents or Pull-requests perms.
+ *  - 404 -> 'repo_not_found'     `GITHUB_REPO` mismatch, or PAT has no
+ *                                repository access.
+ *  - 422 from create-ref or
+ *         create-pull            -> 'idempotent_collision'. Slice #50 owns
+ *                                  the recovery path; this slice tags the
+ *                                  case so the route handler can keep that
+ *                                  recovery distinct from a generic upstream
+ *                                  failure once #50 lands.
+ *  - anything else               -> 'upstream'. The conservative bucket
+ *                                  covers 5xx, malformed throws, and any
+ *                                  status we have not classified.
+ *
+ * The classifier reads only the numeric `status` and the `request.url`. It
+ * never reads `error.message`, `error.response`, or any header: GitHub
+ * payloads sometimes include rate-limit hints, request IDs, or partial
+ * token fingerprints, and the route handler must surface a fixed,
+ * operator-facing string instead of echoing those bytes.
+ */
+export type GitHubErrorKind =
+  | 'token_invalid'
+  | 'token_scope'
+  | 'repo_not_found'
+  | 'idempotent_collision'
+  | 'upstream';
+
+export type ClassifiedGitHubError = { kind: GitHubErrorKind };
+
+export function classifyGitHubRequestError(error: unknown): ClassifiedGitHubError {
+  if (!isRequestErrorLike(error)) {
+    return { kind: 'upstream' };
+  }
+  switch (error.status) {
+    case 401:
+      return { kind: 'token_invalid' };
+    case 403:
+      return { kind: 'token_scope' };
+    case 404:
+      return { kind: 'repo_not_found' };
+    case 422:
+      return isCreateRefOrCreatePullUrl(error.request?.url)
+        ? { kind: 'idempotent_collision' }
+        : { kind: 'upstream' };
+    default:
+      return { kind: 'upstream' };
+  }
+}
+
+type RequestErrorLike = {
+  status: number;
+  request?: { method?: string; url?: string };
+};
+
+function isRequestErrorLike(value: unknown): value is RequestErrorLike {
+  if (typeof value !== 'object' || value === null) return false;
+  const candidate = value as { status?: unknown };
+  return typeof candidate.status === 'number';
+}
+
+const CREATE_REF_PATH = /\/repos\/[^/]+\/[^/]+\/git\/refs(?:\/|$|\?)/;
+const CREATE_PULL_PATH = /\/repos\/[^/]+\/[^/]+\/pulls(?:\/|$|\?)/;
+
+function isCreateRefOrCreatePullUrl(url: string | undefined): boolean {
+  if (typeof url !== 'string' || url.length === 0) return false;
+  return CREATE_REF_PATH.test(url) || CREATE_PULL_PATH.test(url);
+}
+
+/**
  * Recursively walks a JSON-shaped value and throws a typed
  * `ForbiddenCharacterError` on the first string leaf that contains a
  * forbidden character. The walker is depth-first and visits keys in
