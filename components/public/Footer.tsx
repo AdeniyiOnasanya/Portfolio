@@ -1,4 +1,5 @@
 import type { Footer as FooterType, Person } from '../../lib/schema';
+import { ContactForm } from './ContactForm';
 
 // The <footer> element is not given aria-labelledby because Biome's
 // useAriaPropsSupportedByRole rejects it on the implicit contentinfo
@@ -75,6 +76,16 @@ export function Footer({
           <span>LinkedIn</span>
           <span aria-hidden="true">{ARROW_NE}</span>
         </a>
+      </div>
+      {/* Phase 10 slice #58: contact form lives behind a "Show contact
+          form" pill so the form is not on first paint. The pill expands
+          in place into a Turnstile-gated form; submission lands in
+          slice #59, server-side verification in slice #60. The
+          wrapper sits below `.footer-actions` so the expanded form
+          gets its own row rather than disrupting the action pills'
+          wrap layout. */}
+      <div className="contact-form-shell reveal">
+        <ContactForm />
       </div>
       <div className="foot-row">
         <span>{footer.copyright}</span>

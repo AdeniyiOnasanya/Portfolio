@@ -1602,6 +1602,97 @@ body {
 }
 
 /* ==========================================================================
+   Contact form (Phase 10 slice #58)
+   --------------------------------------------------------------------------
+   The form lives below `.footer-actions` in the public footer. It stays
+   collapsed (a single `.btn-ghost` pill) until the user clicks "Show
+   contact form", at which point the full form expands in place. The
+   layout reuses the existing button + monospace caption tokens so the
+   block sits naturally inside the footer that the design handoff laid
+   down in `design_handoff_portfolio/design/app.jsx#L297-L326` +
+   `styles.css#L1025-L1078`. Inputs adopt the same outline/focus pattern
+   as the action pills so keyboard travel stays consistent across the
+   footer surface.
+   ========================================================================== */
+.contact-form-shell {
+  margin: 24px 0 0;
+}
+.contact-toggle {
+  cursor: pointer;
+}
+.contact-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 560px;
+  padding: 24px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 16px;
+  background: var(--color-surface-canvas);
+}
+.contact-form-heading {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+.contact-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.contact-form-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+.contact-form-input {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--color-text-primary);
+  transition:
+    border-color 0.18s var(--ease-out),
+    background 0.18s var(--ease-out);
+}
+.contact-form-input:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+  border-color: var(--color-text-primary);
+}
+.contact-form-textarea {
+  resize: vertical;
+  min-height: 96px;
+}
+.contact-form-turnstile {
+  min-height: 65px;
+}
+.contact-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 4px;
+}
+.contact-form-status {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+.contact-form-status--error {
+  color: var(--color-accent);
+}
+
+/* ==========================================================================
    Project case study (/projects/[slug])
    --------------------------------------------------------------------------
    Mirrors `design_handoff_portfolio/design/styles.css` `.proj-hero`,
