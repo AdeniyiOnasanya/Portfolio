@@ -1,0 +1,67 @@
+name: E2E
+
+# Phase 12 slices #67, #68, #69, #70.
+#
+# Disabled by file extension (.yml.disabled) while the repo's GitHub
+# Actions billing is paused. Rename back to .yml once billing clears.
+# See USER_TODO.md "Re-enable GitHub Actions" + "Provision e2e CI
+# secrets" before flipping this on.
+#
+# Triggers:
+#   - deployment_status: success runs all opted-in specs against the
+#     Vercel preview origin (slice #67).
+#   - pull_request to develop/staging/main re-runs against the same
+#     origin so the check appears on every PR.
+#
+# Path filters keep this workflow from burning Actions minutes on
+# documentation-only PRs (slice #70). Markdown, license, and the top
+# level docs (CLAUDE.md, README.md, USER_TODO.md, guide.md, etc.) are
+# excluded so a copy-only change does not redeploy + re-test.
+
+on:
+  deployment_status:
+  pull_request:
+    branches: [develop, staging, main]
+    paths-ignore:
+      - '**/*.md'
+      - '**/*.mdx'
+      - 'LICENSE'
+      - 'design_handoff_portfolio/**'
+
+permissions:
+  contents: read
+  pull-requests: write
+  statuses: write
+  deployments: read
+
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    if: github.event.deployment_status.state == 'success' || github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      E2E_BASE_URL: ${{ github.event.deployment_status.target_url }}
+      E2E_ADMIN_EMAIL: ${{ secrets.E2E_ADMIN_EMAIL }}
+      E2E_AUTH_COOKIE: ${{ secrets.E2E_AUTH_COOKIE }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Skip when no preview URL is available (PR event)
+        if: env.E2E_BASE_URL == ''
+        run: |
+          echo "No preview URL on this event; e2e will run on the matching deployment_status:success event instead."
+          exit 0
+
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Run e2e suite against the preview
+        run: pnpm test:e2e
