@@ -143,7 +143,7 @@ describe('app/manifest.ts', () => {
         "name": "Ada Lovelace",
         "short_name": "Ada",
         "start_url": "/",
-        "theme_color": "#7cd87a",
+        "theme_color": "#61d46a",
       }
     `);
   });
