@@ -181,3 +181,118 @@ export class OgForbiddenCharacterError extends Error {
 }
 
 export const OG_TEMPLATE_DIMENSIONS = { width: WIDTH, height: HEIGHT } as const;
+
+/**
+ * Per-project OpenGraph card, Phase 9 slice #54.
+ *
+ * Same 1200x630 canvas, brand-500 stripe, and typography as the home
+ * card (`HomeOgTemplate`), but the body shows the project's title in
+ * Fraunces italic, the kind ("Electron app on Raspberry Pi") in mono
+ * underneath, and a top caption that pairs the project's display
+ * number (`n`) with its year. The `n` value (`01`, `02`, ...) is the
+ * same one the live project row uses.
+ *
+ * The composition reuses every constant (stripe width, canvas
+ * background, text tones) so the two cards stay visually paired in a
+ * social-feed preview. The forbidden-character defence runs on every
+ * interpolated field (title, kind, role, n, year) so a typo in MDX
+ * frontmatter never reaches Twitter or LinkedIn.
+ */
+export type ProjectOgTemplateInput = {
+  /** Project display number from MDX frontmatter, e.g. "01". */
+  n: string;
+  /** Project title from MDX frontmatter, e.g. "Vessel". */
+  title: string;
+  /** Project subtitle, e.g. "Hot-water compliance testing rig". */
+  subtitle: string;
+  /** Project kind, e.g. "Electron app on Raspberry Pi". */
+  kind: string;
+  /** Project year, e.g. "2024". String, not number, to match MDX. */
+  year: string;
+};
+
+export function ProjectOgTemplate(input: ProjectOgTemplateInput): ReactElement {
+  assertCleanField('n', input.n);
+  assertCleanField('title', input.title);
+  assertCleanField('subtitle', input.subtitle);
+  assertCleanField('kind', input.kind);
+  assertCleanField('year', input.year);
+
+  const { n, title, subtitle, kind, year } = input;
+
+  return (
+    <div
+      style={{
+        width: '100%',
+        height: '100%',
+        display: 'flex',
+        backgroundColor: CANVAS_BG,
+        color: TEXT_PRIMARY,
+      }}
+    >
+      <div
+        style={{
+          width: STRIPE_WIDTH,
+          height: '100%',
+          backgroundColor: BRAND_500_HEX,
+        }}
+      />
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          padding: '96px 80px',
+          flex: 1,
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            fontFamily: '"JetBrains Mono", monospace',
+            fontSize: 22,
+            color: TEXT_MUTED,
+            letterSpacing: 2,
+            textTransform: 'uppercase',
+          }}
+        >
+          <span style={{ color: BRAND_500_HEX }}>{n}</span>
+          <span style={{ marginLeft: 16 }}>{`/ ${year}`}</span>
+        </div>
+
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            fontFamily: '"Fraunces", serif',
+            fontStyle: 'italic',
+          }}
+        >
+          <div style={{ fontSize: 152, lineHeight: 1, letterSpacing: -4 }}>{title}</div>
+          <div
+            style={{
+              fontSize: 38,
+              lineHeight: 1.2,
+              marginTop: 16,
+              color: TEXT_MUTED,
+              letterSpacing: -1,
+            }}
+          >
+            {subtitle}
+          </div>
+        </div>
+
+        <div
+          style={{
+            fontFamily: '"JetBrains Mono", monospace',
+            fontSize: 26,
+            color: TEXT_MUTED,
+            letterSpacing: 1,
+          }}
+        >
+          {kind}
+        </div>
+      </div>
+    </div>
+  );
+}
