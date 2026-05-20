@@ -3,6 +3,7 @@ import {
   buildSiteJsonAfterHeroEdit,
   buildTreeEntries,
   CONTENT_SITE_JSON_PATH,
+  ForbiddenCharacterError,
   publishCommit,
 } from '../commit';
 
@@ -99,6 +100,70 @@ describe('buildSiteJsonAfterHeroEdit', () => {
         person: { statement: `Em${emDash}dash slipped through.` },
       }),
     ).toThrow(/forbidden/i);
+  });
+
+  it('throws ForbiddenCharacterError naming the field path when an em-dash lands in person.name', () => {
+    const emDash = String.fromCharCode(0x2014);
+    let caught: unknown = null;
+    try {
+      buildSiteJsonAfterHeroEdit(baseSite, {
+        person: { name: `Grace${emDash}Hopper` },
+      });
+    } catch (error) {
+      caught = error;
+    }
+    expect(caught).toBeInstanceOf(ForbiddenCharacterError);
+    const err = caught as ForbiddenCharacterError;
+    expect(err.field).toBe('person.name');
+    expect(err.codePoint).toBe(0x2014);
+  });
+
+  it('throws ForbiddenCharacterError naming the field path when an emoji lands in person.statement', () => {
+    // U+1F600 (grinning face) chosen because it is outside the BMP, so the
+    // walker has to use codePointAt to surface the right number rather than
+    // a UTF-16 high surrogate.
+    const emoji = String.fromCodePoint(0x1f600);
+    let caught: unknown = null;
+    try {
+      buildSiteJsonAfterHeroEdit(baseSite, {
+        person: { statement: `Hi ${emoji} there.` },
+      });
+    } catch (error) {
+      caught = error;
+    }
+    expect(caught).toBeInstanceOf(ForbiddenCharacterError);
+    const err = caught as ForbiddenCharacterError;
+    expect(err.field).toBe('person.statement');
+    expect(err.codePoint).toBe(0x1f600);
+  });
+
+  it('reports the first offending field path when a longBio array contains a forbidden char', () => {
+    const emDash = String.fromCharCode(0x2014);
+    let caught: unknown = null;
+    try {
+      buildSiteJsonAfterHeroEdit(baseSite, {
+        person: { longBio: ['clean line', `dirty${emDash}line`, 'also clean'] },
+      });
+    } catch (error) {
+      caught = error;
+    }
+    expect(caught).toBeInstanceOf(ForbiddenCharacterError);
+    const err = caught as ForbiddenCharacterError;
+    expect(err.field).toBe('person.longBio[1]');
+  });
+});
+
+describe('ForbiddenCharacterError', () => {
+  it('exposes field and codePoint as own properties so the route handler can serialise them', () => {
+    const err = new ForbiddenCharacterError({
+      field: 'person.name',
+      codePoint: 0x2014,
+      char: String.fromCharCode(0x2014),
+    });
+    expect(err).toBeInstanceOf(Error);
+    expect(err.field).toBe('person.name');
+    expect(err.codePoint).toBe(0x2014);
+    expect(err.name).toBe('ForbiddenCharacterError');
   });
 });
 
