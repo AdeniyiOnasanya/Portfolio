@@ -214,7 +214,8 @@ describe('POST /api/cms/save', () => {
     publishCommitMock.mockResolvedValue({
       pullRequestUrl: 'https://github.com/owner/repo/pull/42',
       pullRequestNumber: 42,
-      branchName: 'cms/1746630000-hero',
+      branchName: 'cms/hero-3a4f9b2c',
+      reused: false,
     });
 
     const POST = await loadHandler();
@@ -226,17 +227,73 @@ describe('POST /api/cms/save', () => {
       ok: true,
       pullRequestUrl: 'https://github.com/owner/repo/pull/42',
       pullRequestNumber: 42,
-      branchName: 'cms/1746630000-hero',
+      branchName: 'cms/hero-3a4f9b2c',
+      reused: false,
     });
     expect(publishCommitMock).toHaveBeenCalledTimes(1);
     const args = publishCommitMock.mock.calls[0][0] as Record<string, unknown>;
     expect(args.owner).toBe('owner');
     expect(args.repo).toBe('repo');
     expect(args.baseBranch).toBe('develop');
-    expect((args.branchName as string).startsWith('cms/')).toBe(true);
+    expect(args.branchName).toMatch(/^cms\/hero-[0-9a-f]{8}$/);
     expect(args.commitMessage).toMatch(/^cms: update hero \(\d+\)$/);
     expect(args.pullRequestTitle).toBe(args.commitMessage);
-    expect(args.pullRequestBody).toBe('Updated hero section.');
+    // #52: PR body is now a real plain-language diff. The header line is
+    // fixed and each changed leaf field is listed as a single bullet. The
+    // fixture above changes `person.name` and `person.role`; both bullets
+    // appear with the dot path rooted at `hero.person`, ordered by the
+    // summariser's stable lexical sort.
+    const pullRequestBody = args.pullRequestBody as string;
+    expect(pullRequestBody.startsWith('Hero section update from the admin CMS.\n')).toBe(true);
+    expect(pullRequestBody).toContain(
+      '- Changed `hero.person.name` from "Ada Lovelace" to "Grace Hopper"',
+    );
+    expect(pullRequestBody).toContain(
+      '- Changed `hero.person.role` from "Software Engineer" to "Compiler Pioneer"',
+    );
+    expect(pullRequestBody).not.toContain('Updated hero section.');
+  });
+
+  it('returns the same PR URL with reused=true when publish is pressed twice on the same section', async () => {
+    authMock.mockResolvedValue({ user: { email: 'admin@example.com' } });
+    getDraftMock.mockResolvedValue({
+      id: 'hero',
+      content: { person: { name: 'Grace Hopper' } },
+      updatedAt: new Date(),
+    });
+    loadSiteMock.mockResolvedValue(validSite);
+    getOctokitMock.mockReturnValue({ rest: {} });
+    publishCommitMock.mockResolvedValueOnce({
+      pullRequestUrl: 'https://github.com/owner/repo/pull/42',
+      pullRequestNumber: 42,
+      branchName: 'cms/hero-3a4f9b2c',
+      reused: false,
+    });
+    publishCommitMock.mockResolvedValueOnce({
+      pullRequestUrl: 'https://github.com/owner/repo/pull/42',
+      pullRequestNumber: 42,
+      branchName: 'cms/hero-3a4f9b2c',
+      reused: true,
+    });
+
+    const POST = await loadHandler();
+    const first = (await (await POST(makeRequest({ section: 'hero' }))).json()) as Record<
+      string,
+      unknown
+    >;
+    const second = (await (await POST(makeRequest({ section: 'hero' }))).json()) as Record<
+      string,
+      unknown
+    >;
+
+    expect(first.pullRequestUrl).toBe('https://github.com/owner/repo/pull/42');
+    expect(first.reused).toBe(false);
+    expect(second.pullRequestUrl).toBe(first.pullRequestUrl);
+    expect(second.reused).toBe(true);
+    // Both calls received the same deterministic branch name.
+    const firstArgs = publishCommitMock.mock.calls[0][0] as Record<string, unknown>;
+    const secondArgs = publishCommitMock.mock.calls[1][0] as Record<string, unknown>;
+    expect(firstArgs.branchName).toBe(secondArgs.branchName);
   });
 
   it('maps a publishCommit forbidden-char throw to a 422', async () => {
@@ -254,5 +311,149 @@ describe('POST /api/cms/save', () => {
     expect(response.status).toBe(422);
     const body = (await response.json()) as Record<string, unknown>;
     expect(body).toMatchObject({ ok: false });
+  });
+
+  it('returns a structured forbidden_character body naming the field on draft em-dash', async () => {
+    // U+2014 sits in the merged Site at person.name; the handler must
+    // surface a 422 with `error: 'forbidden_character'`, `field:
+    // 'hero.person.name'`, and never reach the Octokit pipeline. Built
+    // via String.fromCharCode so the test source itself stays clean of
+    // U+2014.
+    const emDash = String.fromCharCode(0x2014);
+    authMock.mockResolvedValue({ user: { email: 'admin@example.com' } });
+    getDraftMock.mockResolvedValue({
+      id: 'hero',
+      content: { person: { name: `Grace${emDash}Hopper` } },
+      updatedAt: new Date(),
+    });
+    loadSiteMock.mockResolvedValue(validSite);
+    getOctokitMock.mockReturnValue({ rest: {} });
+    const POST = await loadHandler();
+    const response = await POST(makeRequest({ section: 'hero' }));
+    expect(response.status).toBe(422);
+    const body = (await response.json()) as Record<string, unknown>;
+    expect(body).toMatchObject({
+      ok: false,
+      error: 'forbidden_character',
+      field: 'hero.person.name',
+    });
+    // Pipeline must not be reached: no branch and no PR can leak when
+    // the scan refuses the input.
+    expect(publishCommitMock).not.toHaveBeenCalled();
+  });
+
+  it('returns a structured forbidden_character body when an emoji lands in person.statement', async () => {
+    const emoji = String.fromCodePoint(0x1f600);
+    authMock.mockResolvedValue({ user: { email: 'admin@example.com' } });
+    getDraftMock.mockResolvedValue({
+      id: 'hero',
+      content: { person: { statement: `Hi ${emoji} there.` } },
+      updatedAt: new Date(),
+    });
+    loadSiteMock.mockResolvedValue(validSite);
+    getOctokitMock.mockReturnValue({ rest: {} });
+    const POST = await loadHandler();
+    const response = await POST(makeRequest({ section: 'hero' }));
+    expect(response.status).toBe(422);
+    const body = (await response.json()) as Record<string, unknown>;
+    expect(body).toMatchObject({
+      ok: false,
+      error: 'forbidden_character',
+      field: 'hero.person.statement',
+    });
+    expect(publishCommitMock).not.toHaveBeenCalled();
+  });
+
+  /*
+   * Token / repo configuration mappings, slice #51.
+   *
+   * The publishCommit Octokit calls can fail with 401 (token revoked or
+   * invalid), 403 (token missing required scope) or 404 (repo not found
+   * or PAT lacks repository access). Each HTTP status maps to a stable
+   * `errorCode` string the modal already understands. The route must
+   * never echo Octokit's raw `error.message` because GitHub responses
+   * sometimes include rate-limit headers, request IDs, or partial token
+   * fingerprints; the operator-facing copy is the modal's job.
+   */
+
+  type RequestErrorLike = Error & {
+    status: number;
+    request?: { method?: string; url?: string };
+  };
+
+  function makeOctokitError(
+    status: number,
+    url = 'https://api.github.com/repos/owner/repo/git/refs',
+  ): RequestErrorLike {
+    const error = new Error(
+      `mocked upstream: token=ghp_PARTIAL ratelimit-remaining=0`,
+    ) as RequestErrorLike;
+    error.name = 'HttpError';
+    error.status = status;
+    error.request = { method: 'POST', url };
+    return error;
+  }
+
+  function primeAdminAndDraft() {
+    authMock.mockResolvedValue({ user: { email: 'admin@example.com' } });
+    getDraftMock.mockResolvedValue({
+      id: 'hero',
+      content: { person: { name: 'Grace Hopper' } },
+      updatedAt: new Date(),
+    });
+    loadSiteMock.mockResolvedValue(validSite);
+    getOctokitMock.mockReturnValue({ rest: {} });
+  }
+
+  it('maps a 401 from publishCommit to errorCode token_invalid', async () => {
+    primeAdminAndDraft();
+    publishCommitMock.mockRejectedValue(makeOctokitError(401));
+    const POST = await loadHandler();
+    const response = await POST(makeRequest({ section: 'hero' }));
+    expect(response.status).toBe(401);
+    const body = (await response.json()) as Record<string, unknown>;
+    expect(body).toMatchObject({ ok: false, error: 'token_invalid' });
+  });
+
+  it('maps a 403 from publishCommit to errorCode token_scope', async () => {
+    primeAdminAndDraft();
+    publishCommitMock.mockRejectedValue(makeOctokitError(403));
+    const POST = await loadHandler();
+    const response = await POST(makeRequest({ section: 'hero' }));
+    expect(response.status).toBe(403);
+    const body = (await response.json()) as Record<string, unknown>;
+    expect(body).toMatchObject({ ok: false, error: 'token_scope' });
+  });
+
+  it('maps a 404 from publishCommit to errorCode repo_not_found', async () => {
+    primeAdminAndDraft();
+    publishCommitMock.mockRejectedValue(makeOctokitError(404));
+    const POST = await loadHandler();
+    const response = await POST(makeRequest({ section: 'hero' }));
+    expect(response.status).toBe(404);
+    const body = (await response.json()) as Record<string, unknown>;
+    expect(body).toMatchObject({ ok: false, error: 'repo_not_found' });
+  });
+
+  it('does not echo the raw GitHub error message in the JSON body', async () => {
+    primeAdminAndDraft();
+    publishCommitMock.mockRejectedValue(makeOctokitError(401));
+    const POST = await loadHandler();
+    const response = await POST(makeRequest({ section: 'hero' }));
+    const text = await response.text();
+    // Defence: the partial-token fingerprint and the rate-limit hint that
+    // the mock embeds in the error message must never reach the wire.
+    expect(text).not.toContain('ghp_PARTIAL');
+    expect(text).not.toContain('ratelimit-remaining');
+  });
+
+  it('maps a 500 from publishCommit to the generic upstream_error', async () => {
+    primeAdminAndDraft();
+    publishCommitMock.mockRejectedValue(makeOctokitError(500));
+    const POST = await loadHandler();
+    const response = await POST(makeRequest({ section: 'hero' }));
+    expect(response.status).toBe(502);
+    const body = (await response.json()) as Record<string, unknown>;
+    expect(body).toMatchObject({ ok: false, error: 'upstream_error' });
   });
 });
