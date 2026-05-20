@@ -12,6 +12,7 @@ describe('personJsonLd', () => {
         "@context": "https://schema.org",
         "@type": "Person",
         "email": "ada@example.com",
+        "image": "https://davidonasanya.com/api/og",
         "jobTitle": "Software Engineer",
         "name": "Ada Lovelace",
         "sameAs": [
@@ -22,6 +23,11 @@ describe('personJsonLd', () => {
         "url": "https://davidonasanya.com",
       }
     `);
+  });
+
+  it('points image at the home OG route on the supplied origin', () => {
+    const result = personJsonLd(samplePerson, 'https://staging.example.com');
+    expect(result.image).toBe('https://staging.example.com/api/og');
   });
 
   it('round-trips cleanly through JSON.parse(JSON.stringify(...))', () => {
@@ -49,10 +55,22 @@ describe('creativeWorkJsonLd', () => {
         },
         "dateCreated": "2024",
         "description": "A short summary of what this project does.",
+        "genre": "Web platform",
+        "image": "https://davidonasanya.com/api/og/sample-project",
         "name": "Sample Project",
         "url": "https://davidonasanya.com/projects/sample-project",
       }
     `);
+  });
+
+  it('points image at /api/og/<slug> on the supplied origin', () => {
+    const result = creativeWorkJsonLd(sampleProject, samplePerson, 'https://staging.example.com');
+    expect(result.image).toBe('https://staging.example.com/api/og/sample-project');
+  });
+
+  it('maps genre from project.kind', () => {
+    const result = creativeWorkJsonLd(sampleProject, samplePerson, ORIGIN);
+    expect(result.genre).toBe(sampleProject.kind);
   });
 
   it('round-trips cleanly through JSON.parse(JSON.stringify(...))', () => {
