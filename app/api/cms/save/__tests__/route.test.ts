@@ -236,7 +236,20 @@ describe('POST /api/cms/save', () => {
     expect((args.branchName as string).startsWith('cms/')).toBe(true);
     expect(args.commitMessage).toMatch(/^cms: update hero \(\d+\)$/);
     expect(args.pullRequestTitle).toBe(args.commitMessage);
-    expect(args.pullRequestBody).toBe('Updated hero section.');
+    // #52: PR body is now a real plain-language diff. The header line is
+    // fixed and each changed leaf field is listed as a single bullet. The
+    // fixture above changes `person.name` and `person.role`; both bullets
+    // appear with the dot path rooted at `hero.person`, ordered by the
+    // summariser's stable lexical sort.
+    const pullRequestBody = args.pullRequestBody as string;
+    expect(pullRequestBody.startsWith('Hero section update from the admin CMS.\n')).toBe(true);
+    expect(pullRequestBody).toContain(
+      '- Changed `hero.person.name` from "Ada Lovelace" to "Grace Hopper"',
+    );
+    expect(pullRequestBody).toContain(
+      '- Changed `hero.person.role` from "Software Engineer" to "Compiler Pioneer"',
+    );
+    expect(pullRequestBody).not.toContain('Updated hero section.');
   });
 
   it('maps a publishCommit forbidden-char throw to a 422', async () => {
@@ -254,6 +267,57 @@ describe('POST /api/cms/save', () => {
     expect(response.status).toBe(422);
     const body = (await response.json()) as Record<string, unknown>;
     expect(body).toMatchObject({ ok: false });
+  });
+
+  it('returns a structured forbidden_character body naming the field on draft em-dash', async () => {
+    // U+2014 sits in the merged Site at person.name; the handler must
+    // surface a 422 with `error: 'forbidden_character'`, `field:
+    // 'hero.person.name'`, and never reach the Octokit pipeline. Built
+    // via String.fromCharCode so the test source itself stays clean of
+    // U+2014.
+    const emDash = String.fromCharCode(0x2014);
+    authMock.mockResolvedValue({ user: { email: 'admin@example.com' } });
+    getDraftMock.mockResolvedValue({
+      id: 'hero',
+      content: { person: { name: `Grace${emDash}Hopper` } },
+      updatedAt: new Date(),
+    });
+    loadSiteMock.mockResolvedValue(validSite);
+    getOctokitMock.mockReturnValue({ rest: {} });
+    const POST = await loadHandler();
+    const response = await POST(makeRequest({ section: 'hero' }));
+    expect(response.status).toBe(422);
+    const body = (await response.json()) as Record<string, unknown>;
+    expect(body).toMatchObject({
+      ok: false,
+      error: 'forbidden_character',
+      field: 'hero.person.name',
+    });
+    // Pipeline must not be reached: no branch and no PR can leak when
+    // the scan refuses the input.
+    expect(publishCommitMock).not.toHaveBeenCalled();
+  });
+
+  it('returns a structured forbidden_character body when an emoji lands in person.statement', async () => {
+    const emoji = String.fromCodePoint(0x1f600);
+    authMock.mockResolvedValue({ user: { email: 'admin@example.com' } });
+    getDraftMock.mockResolvedValue({
+      id: 'hero',
+      content: { person: { statement: `Hi ${emoji} there.` } },
+      updatedAt: new Date(),
+    });
+    loadSiteMock.mockResolvedValue(validSite);
+    getOctokitMock.mockReturnValue({ rest: {} });
+    const POST = await loadHandler();
+    const response = await POST(makeRequest({ section: 'hero' }));
+    expect(response.status).toBe(422);
+    const body = (await response.json()) as Record<string, unknown>;
+    expect(body).toMatchObject({
+      ok: false,
+      error: 'forbidden_character',
+      field: 'hero.person.statement',
+    });
+    expect(publishCommitMock).not.toHaveBeenCalled();
   });
 
   /*

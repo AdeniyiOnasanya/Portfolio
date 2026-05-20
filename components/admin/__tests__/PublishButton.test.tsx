@@ -149,4 +149,25 @@ describe('PublishButton', () => {
     fireEvent.click(screen.getByRole('button', { name: /publish/i }));
     expect(await screen.findByText(/repo not found/i)).toBeInTheDocument();
   });
+
+  it('forwards a forbidden_character field from the 422 body to the modal', async () => {
+    // The route handler distinguishes a forbidden-char throw from the
+    // generic 'unprocessable' code by emitting `error: 'forbidden_character'`
+    // plus a `field` key. The button must read both and pass them through
+    // so the operator sees the offending field path.
+    fetchMock.mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          ok: false,
+          error: 'forbidden_character',
+          field: 'hero.person.name',
+        }),
+        { status: 422, headers: { 'content-type': 'application/json' } },
+      ),
+    );
+    render(<PublishButton section="hero" />);
+    fireEvent.click(screen.getByRole('button', { name: /publish/i }));
+    expect(await screen.findByText(/hero\.person\.name/)).toBeInTheDocument();
+    expect(screen.getByText(/em-dash or emoji/i)).toBeInTheDocument();
+  });
 });

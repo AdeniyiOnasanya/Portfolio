@@ -12,8 +12,10 @@ import {
   buildSiteJsonAfterHeroEdit,
   buildTreeEntries,
   classifyGitHubRequestError,
+  ForbiddenCharacterError,
   publishCommit,
 } from '@/lib/github/commit';
+import { summariseHeroDiff } from '@/lib/github/diff';
 
 /**
  * Publish route, Phase 8 slice #48.
@@ -143,12 +145,41 @@ export async function POST(request: Request): Promise<Response> {
     return NextResponse.json(GENERIC_CONFIG_ERROR, { status: 500 });
   }
 
-  // 7. Site load + merge.
+  // 7. Site load + merge + diff body. The summariser builds a plain
+  // language description of every leaf field that changed between the
+  // currently published `content/site.json` and the validated draft.
+  // The route used to send a fixed placeholder ("Updated hero section.")
+  // as the PR body; #52 swaps it for `summariseHeroDiff` so the PR list
+  // doubles as a per-publish change log. Both the merge and the diff
+  // sit inside this try block because either step can throw on a stray
+  // forbidden character (see `assertNoForbiddenChars` in commit.ts and
+  // `assertClean` in diff.ts), which the catch maps to a 422.
   let siteJson: string;
+  let pullRequestBody: string;
   try {
     const site = await loadSite();
     siteJson = buildSiteJsonAfterHeroEdit(site, draft);
+    const beforeForDiff = { person: site.person };
+    const afterForDiff = {
+      person: { ...site.person, ...stripUndefined(draft.person ?? {}) },
+    };
+    pullRequestBody = summariseHeroDiff(beforeForDiff, afterForDiff);
   } catch (error) {
+    if (error instanceof ForbiddenCharacterError) {
+      // The walker reports the path inside the Site object (e.g.
+      // `person.name`); the operator sees it under the section they
+      // were editing, so prefix with the section id (`hero.person.name`).
+      // The pipeline is never reached on this branch: no branch and no
+      // PR can leak when the scan refuses the input.
+      return NextResponse.json(
+        {
+          ok: false,
+          error: 'forbidden_character',
+          field: `${parsedBody.section}.${error.field}`,
+        },
+        { status: 422 },
+      );
+    }
     if (isForbiddenCharError(error)) {
       return NextResponse.json(GENERIC_UNPROCESSABLE, { status: 422 });
     }
@@ -171,7 +202,7 @@ export async function POST(request: Request): Promise<Response> {
       authorName: 'CMS Publish',
       authorEmail: email,
       pullRequestTitle: commitMessage,
-      pullRequestBody: 'Updated hero section.',
+      pullRequestBody,
       treeEntries: buildTreeEntries({ siteJson }),
     });
     return NextResponse.json(
@@ -187,6 +218,22 @@ export async function POST(request: Request): Promise<Response> {
     if (isConfigError(error)) {
       return NextResponse.json(GENERIC_CONFIG_ERROR, { status: 500 });
     }
+    if (error instanceof ForbiddenCharacterError) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: 'forbidden_character',
+          field: `${parsedBody.section}.${error.field}`,
+        },
+        { status: 422 },
+      );
+    }
+    // Regex fallback covers the byte-level `assertNoForbiddenChars` sweep
+    // inside `publishCommit`, which throws a plain `Error` (not the typed
+    // `ForbiddenCharacterError`) for any forbidden char that survives the
+    // walker. The two handlers are not redundant: the typed branch above
+    // names the field; this one is a last-resort 422 without a field name
+    // for offenders found only at the serialised JSON layer.
     if (isForbiddenCharError(error)) {
       return NextResponse.json(GENERIC_UNPROCESSABLE, { status: 422 });
     }
@@ -239,4 +286,21 @@ function isForbiddenCharError(error: unknown): boolean {
 
 function isConfigError(error: unknown): boolean {
   return error instanceof Error && /not configured/i.test(error.message);
+}
+
+/**
+ * Drop keys whose value is `undefined` so the spread used to build the
+ * "after" view for `summariseHeroDiff` does not overwrite a published
+ * field with a missing draft value. The hero draft schema is permissive
+ * (every key optional), so a draft that touches `name` only must leave
+ * the other person fields visible to the diff in their published shape;
+ * otherwise the summariser would render every untouched field as
+ * "Cleared", flooding the PR body with phantom changes.
+ */
+function stripUndefined<T extends Record<string, unknown>>(value: T): Partial<T> {
+  const out: Record<string, unknown> = {};
+  for (const [key, val] of Object.entries(value)) {
+    if (val !== undefined) out[key] = val;
+  }
+  return out as Partial<T>;
 }

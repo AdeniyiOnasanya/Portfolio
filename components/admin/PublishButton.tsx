@@ -96,6 +96,21 @@ export function PublishButton({ section }: PublishButtonProps) {
           });
           return;
         }
+        // Forbidden-character branch first (#49): the route emits
+        // `error: 'forbidden_character'` plus a `field` key on 422 so the
+        // modal can name the offending field. Other 422s (#51 server-side
+        // mapping) keep their `error: '<code>'` body and flow through
+        // `readServerErrorCode`; unmapped responses fall back to the
+        // HTTP-status lookup.
+        const errorBody = body as { error?: string; field?: string };
+        if (errorBody.error === 'forbidden_character' && response.status === 422) {
+          setOutcome({
+            ok: false,
+            errorCode: 'forbidden_character',
+            ...(typeof errorBody.field === 'string' ? { field: errorBody.field } : {}),
+          });
+          return;
+        }
         const serverCode = readServerErrorCode(body);
         setOutcome({
           ok: false,
