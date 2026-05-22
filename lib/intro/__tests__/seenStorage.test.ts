@@ -22,10 +22,14 @@ describe('seenStorage', () => {
     });
 
     it('returns false when getItem throws (Safari private mode)', () => {
-      vi.spyOn(window.localStorage, 'getItem').mockImplementation(() => {
+      const spy = vi.spyOn(window.localStorage, 'getItem').mockImplementation(() => {
         throw new Error('SecurityError: storage disabled');
       });
-      expect(hasSeenIntro()).toBe(false);
+      try {
+        expect(hasSeenIntro()).toBe(false);
+      } finally {
+        spy.mockRestore();
+      }
     });
 
     it('returns false when the stored value is something other than the seen marker', () => {
@@ -41,12 +45,16 @@ describe('seenStorage', () => {
     });
 
     it('swallows write errors (Safari private mode, quota)', () => {
-      vi.spyOn(window.localStorage, 'setItem').mockImplementation(() => {
+      const spy = vi.spyOn(window.localStorage, 'setItem').mockImplementation(() => {
         throw new Error('QuotaExceededError');
       });
-      expect(() => {
-        markIntroSeen();
-      }).not.toThrow();
+      try {
+        expect(() => {
+          markIntroSeen();
+        }).not.toThrow();
+      } finally {
+        spy.mockRestore();
+      }
     });
   });
 

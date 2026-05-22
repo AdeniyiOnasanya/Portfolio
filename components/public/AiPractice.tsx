@@ -1,6 +1,7 @@
 import type { AiPractice as AiPracticeType } from '../../lib/schema';
 
-export function AiPractice({ ai }: { ai: AiPracticeType }) {
+export function AiPractice({ ai, hidden }: { ai: AiPracticeType; hidden?: boolean }) {
+  if (hidden) return null;
   return (
     <section id="ai" aria-labelledby="ai-practice-heading">
       <div className="section-head reveal">

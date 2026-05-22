@@ -1,12 +1,18 @@
 import type { MetadataRoute } from 'next';
 import { loadSite } from '../lib/content';
+import { BRAND_500_HEX } from '../lib/seo/brand-colors';
 
-// Hardcoded brand colours mirror tokens.css (--color-neutral-900 canvas in
-// dark, --color-brand-500 accent). Web App Manifest fields require literal
-// CSS colours, so we ship hex approximations of the oklch tokens here and
-// keep the source of truth aligned in tokens.css.
+// Web App Manifest fields require literal CSS <color> strings; the
+// oklch tokens in `tokens.css` would be silently ignored on the Android
+// home-screen and iOS Safari status bar. `BRAND_500_HEX` is the
+// sRGB-resolved value of `--color-brand-500` (oklch(0.78 0.18 145))
+// computed once at module load by `lib/seo/brand-colors.ts`, so a token
+// change in tokens.css plus a one-line update there cascades into the
+// manifest without a hand-maintained constant here. The neutral 900
+// background stays as a literal because there is no token-equivalent
+// for the manifest canvas; the visual identity is the brand stripe.
 const BACKGROUND_COLOR = '#0a0a0a';
-const THEME_COLOR = '#7cd87a';
+const THEME_COLOR = BRAND_500_HEX;
 
 export default async function manifest(): Promise<MetadataRoute.Manifest> {
   const site = await loadSite();

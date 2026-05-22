@@ -95,6 +95,13 @@ describe('Hero', () => {
     expect(link).toHaveAttribute('download', 'Versioned-CV-2026.pdf');
   });
 
+  it('returns null when hidden is true so the section disappears from the public preview', () => {
+    const { container } = render(
+      <Hero person={samplePerson} hero={sampleHero} skills={sampleSkills} hidden={true} />,
+    );
+    expect(container.firstChild).toBeNull();
+  });
+
   it('renders an embedded marquee with the flattened skill items', () => {
     const { container } = renderHero();
     const marquee = container.querySelector('[class*="marquee"]');

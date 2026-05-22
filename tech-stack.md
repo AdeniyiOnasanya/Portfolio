@@ -46,7 +46,7 @@ Admin form submit -> server validates with Zod -> server uses Octokit with a fin
 
 **No auto-merge.** Every content change ships through a PR I read and merge. Vercel picks up the merge and redeploys.
 
-**GitHub App vs PAT:** start with a fine-grained PAT in env (`GITHUB_TOKEN`, scoped to this one private repo, contents + pull-requests write only). Migrate to a GitHub App later if we want rotation or to share with other agents.
+**GitHub App vs PAT:** start with a fine-grained PAT in env (`GITHUB_TOKEN_CMS`, scoped to this one private repo, contents + pull-requests write only). The `_CMS` suffix distinguishes the publish-pipeline credential from any future workflow-level `GITHUB_TOKEN` GitHub Actions auto-injects, and prevents a misconfigured Action from accidentally inheriting publish scope. Migrate to a GitHub App later if we want rotation or to share with other agents.
 
 ### Authentication
 
@@ -207,9 +207,9 @@ AUTH_SECRET=                    Auth.js
 AUTH_URL=                       https://davidonasanya.com (prod), preview URL otherwise
 RESEND_API_KEY=
 RESEND_FROM=                    e.g. "David <hello@davidonasanya.com>"
-GITHUB_TOKEN=                   fine-grained PAT, contents + pull-requests write, this repo only
+GITHUB_TOKEN_CMS=               fine-grained PAT, contents + pull-requests write, this repo only
 GITHUB_REPO=                    "<owner>/<portfolio-repo>"
-GITHUB_BRANCH_BASE=             "main"
+GITHUB_BRANCH_BASE=             "develop"
 DATABASE_URL=                   Neon Postgres (Vercel Marketplace)
 UPSTASH_REDIS_REST_URL=
 UPSTASH_REDIS_REST_TOKEN=

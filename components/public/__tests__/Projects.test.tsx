@@ -31,6 +31,11 @@ describe('Projects', () => {
     }
   });
 
+  it('returns null when hidden is true', () => {
+    const { container } = render(<Projects projects={sampleProjectList} hidden={true} />);
+    expect(container.firstChild).toBeNull();
+  });
+
   it('renders the design 5-cell row content (num, year, title, subtitle, kind)', () => {
     render(<Projects projects={sampleProjectList} />);
     for (const project of sampleProjectList) {

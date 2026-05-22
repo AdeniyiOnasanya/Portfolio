@@ -1,6 +1,7 @@
 import type { Skills as SkillsType } from '../../lib/schema';
 
-export function Skills({ skills }: { skills: SkillsType }) {
+export function Skills({ skills, hidden }: { skills: SkillsType; hidden?: boolean }) {
+  if (hidden) return null;
   return (
     <section id="skills" aria-label="Skills">
       <div className="section-head reveal">
