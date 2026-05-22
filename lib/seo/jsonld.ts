@@ -21,6 +21,7 @@ export type PersonJsonLd = {
   email: string;
   telephone: string;
   url: string;
+  image: string;
   sameAs: string[];
 };
 
@@ -31,6 +32,8 @@ export type CreativeWorkJsonLd = {
   description: string;
   url: string;
   dateCreated: string;
+  genre: string;
+  image: string;
   creator: {
     '@type': 'Person';
     name: string;
@@ -53,6 +56,12 @@ export function personJsonLd(person: Person, origin: string): PersonJsonLd {
     email: person.email,
     telephone: person.phone,
     url: origin,
+    // `image` points at the home OG card so Google's Person rich
+    // result (https://developers.google.com/search/docs/appearance/
+    // structured-data/person) has a representative image. The route
+    // was added in Phase 9 slice #53 and serves the same 1200x630 PNG
+    // that openGraph + twitter metadata already advertises.
+    image: `${origin}/api/og`,
     sameAs: [person.github, person.linkedin],
   };
 }
@@ -75,6 +84,15 @@ export function creativeWorkJsonLd(
     description: project.summary,
     url: `${origin}/projects/${project.slug}`,
     dateCreated: project.year,
+    // `genre` maps to project.kind ("React Native app", "Electron app
+    // on Raspberry Pi"). Google's CreativeWork schema treats genre as
+    // a free-text descriptor of the work's category; using `kind`
+    // keeps it readable in the SERP without inventing taxonomy.
+    genre: project.kind,
+    // `image` points at the per-project OG card from slice #54 so the
+    // rich result has a project-specific preview rather than the
+    // home card.
+    image: `${origin}/api/og/${project.slug}`,
     creator: {
       '@type': 'Person',
       name: person.name,

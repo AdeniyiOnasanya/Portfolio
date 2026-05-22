@@ -49,8 +49,8 @@ The first two should print the values you set; the third confirms the most recen
 
 | Branch | Source of merges | Vercel deploy |
 |---|---|---|
-| `feature/<n>_<slug>` (also `fix/`, `content/`, `chore/`, `docs/`) | branched off `develop` | per-PR auto preview URL |
-| `develop` | feature/fix/content/chore/docs PRs only | per-push auto preview URL |
+| `feature/<n>_<slug>` (also `fix/`, `content/`, `chore/`, `docs/`, `dependabot/...`) | branched off `develop` (Dependabot branches are auto-named) | per-PR auto preview URL |
+| `develop` | feature/fix/content/chore/docs/dependabot PRs only | per-push auto preview URL |
 | `staging` | `develop` PRs only | `staging.davidonasanya.com` |
 | `main` | `staging` PRs only | `davidonasanya.com` (production) |
 

@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { DeepDive } from '../../../../components/public/DeepDive';
 import { ProjectCaseStudy } from '../../../../components/public/ProjectCaseStudy';
@@ -15,6 +16,47 @@ export const dynamicParams = false;
 export async function generateStaticParams() {
   const site = await loadSite();
   return site.projects.map((slug) => ({ slug }));
+}
+
+/**
+ * Per-project OpenGraph + Twitter card metadata, Phase 9 slice #54.
+ *
+ * The image at `/api/og/<slug>` is generated dynamically by `next/og`
+ * (see `app/api/og/[slug]/route.tsx`). Each project page points at
+ * the route with its own slug, so a link shared on Twitter/LinkedIn
+ * renders the project-specific card rather than the home card.
+ *
+ * Title and description come from the same MDX frontmatter the case
+ * study itself reads, so the social preview text stays in sync with
+ * the page content without a parallel source.
+ */
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const file = await loadProjectBySlug(slug);
+  if (!file) {
+    return {};
+  }
+  const { title, subtitle, summary } = file.frontmatter;
+  const imageUrl = `/api/og/${slug}`;
+  return {
+    title: `${title}, ${subtitle}`,
+    description: summary,
+    openGraph: {
+      title: `${title}, ${subtitle}`,
+      description: summary,
+      images: [{ url: imageUrl, width: 1200, height: 630, alt: `${title}, ${subtitle}` }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${title}, ${subtitle}`,
+      description: summary,
+      images: [imageUrl],
+    },
+  };
 }
 
 export default async function ProjectPage({ params }: { params: Promise<{ slug: string }> }) {

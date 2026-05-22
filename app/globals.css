@@ -1602,6 +1602,97 @@ body {
 }
 
 /* ==========================================================================
+   Contact form (Phase 10 slice #58)
+   --------------------------------------------------------------------------
+   The form lives below `.footer-actions` in the public footer. It stays
+   collapsed (a single `.btn-ghost` pill) until the user clicks "Show
+   contact form", at which point the full form expands in place. The
+   layout reuses the existing button + monospace caption tokens so the
+   block sits naturally inside the footer that the design handoff laid
+   down in `design_handoff_portfolio/design/app.jsx#L297-L326` +
+   `styles.css#L1025-L1078`. Inputs adopt the same outline/focus pattern
+   as the action pills so keyboard travel stays consistent across the
+   footer surface.
+   ========================================================================== */
+.contact-form-shell {
+  margin: 24px 0 0;
+}
+.contact-toggle {
+  cursor: pointer;
+}
+.contact-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 560px;
+  padding: 24px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 16px;
+  background: var(--color-surface-canvas);
+}
+.contact-form-heading {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+.contact-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.contact-form-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+.contact-form-input {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--color-text-primary);
+  transition:
+    border-color 0.18s var(--ease-out),
+    background 0.18s var(--ease-out);
+}
+.contact-form-input:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+  border-color: var(--color-text-primary);
+}
+.contact-form-textarea {
+  resize: vertical;
+  min-height: 96px;
+}
+.contact-form-turnstile {
+  min-height: 65px;
+}
+.contact-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 4px;
+}
+.contact-form-status {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+.contact-form-status--error {
+  color: var(--color-accent);
+}
+
+/* ==========================================================================
    Project case study (/projects/[slug])
    --------------------------------------------------------------------------
    Mirrors `design_handoff_portfolio/design/styles.css` `.proj-hero`,
@@ -2385,4 +2476,1223 @@ body {
   --duration-fast: var(--duration-fast);
   --duration-base: var(--duration-base);
   --duration-slow: var(--duration-slow);
+}
+
+/* ==========================================================================
+   Login (admin) page, Phase 6
+   --------------------------------------------------------------------------
+   Mirrors design_handoff_portfolio/design/login.html (style block, lines 13
+   to 175; markup, lines 177 to 241). Two-column shell: dark brand panel on
+   the left, form panel on the right. Tokens map as:
+     - --bg, --fg, --fg-mute, --fg-dim from tokens.css.
+     - --serif, --sans, --mono short aliases from tokens.css.
+     - --accent and --accent-soft for the brand-green accents.
+   Where the design uses raw oklch values for one-off panel constants
+   (gradient, dot glow, link colour), the literal value is preserved so the
+   visual lift mirrors the handoff exactly.
+   ========================================================================== */
+
+.login-shell {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--sans);
+}
+
+/* Brand panel (left) */
+.login-brand {
+  position: relative;
+  background: linear-gradient(180deg, #0a0b0a 0%, #11140f 100%);
+  overflow: hidden;
+  padding: 48px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.login-brand::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    -45deg,
+    transparent 0,
+    transparent 32px,
+    rgba(255, 255, 255, 0.025) 32px,
+    rgba(255, 255, 255, 0.025) 33px
+  );
+  pointer-events: none;
+}
+
+.login-brand .topline {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+  z-index: 2;
+  position: relative;
+}
+
+.login-brand .topline .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 12px oklch(0.78 0.18 145 / 0.6);
+}
+
+.login-display {
+  z-index: 2;
+  position: relative;
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 300;
+  font-size: clamp(64px, 8vw, 120px);
+  line-height: 0.92;
+  letter-spacing: -0.04em;
+  color: #f3efe7;
+  font-variation-settings:
+    "SOFT" 100,
+    "WONK" 1,
+    "opsz" 144;
+}
+
+.login-display em {
+  font-style: italic;
+  color: var(--accent);
+}
+
+.login-foot {
+  z-index: 2;
+  position: relative;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.4);
+  display: flex;
+  gap: 18px;
+}
+
+/* Form panel (right) */
+.login-form {
+  padding: 48px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  max-width: 540px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.login-eyebrow {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--fg-mute);
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.login-eyebrow::before {
+  content: "";
+  width: 24px;
+  height: 1px;
+  background: var(--fg-mute);
+}
+
+.login-form h1 {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: clamp(40px, 5vw, 56px);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  margin: 0 0 16px;
+}
+
+.login-form h1 em {
+  font-style: italic;
+}
+
+.login-form p.lede {
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--fg-dim);
+  margin: 0 0 32px;
+  max-width: 44ch;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.field label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--fg-mute);
+}
+
+.field input {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: var(--fg);
+  padding: 14px 16px;
+  border-radius: 10px;
+  font-family: var(--sans);
+  font-size: 16px;
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    background var(--duration-fast) var(--ease-out);
+  outline: none;
+}
+
+.field input:focus {
+  border-color: var(--accent);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.submit-btn {
+  appearance: none;
+  border: 0;
+  background: var(--fg);
+  color: var(--bg);
+  padding: 14px 22px;
+  border-radius: 10px;
+  font-family: var(--sans);
+  font-weight: 500;
+  font-size: 15px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  transition:
+    transform var(--duration-fast) var(--ease-out),
+    opacity var(--duration-fast) var(--ease-out);
+}
+
+.submit-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.submit-btn .arr {
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.submit-btn:hover:not(:disabled) .arr {
+  transform: translateX(4px);
+}
+
+/*
+ * Error banner. Mirrors design_handoff_portfolio/design/login.html lines
+ * 125 to 129: mono caps tone, light tracking, an oklch red that reads
+ * against the dark form panel without competing with the accent green.
+ */
+.err {
+  margin-top: 12px;
+  color: oklch(0.7 0.2 25);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  line-height: 1.5;
+}
+
+/* Sent state */
+.sent-state {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.sent-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  border: 1px solid oklch(0.78 0.18 145 / 0.4);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+  margin-bottom: 12px;
+}
+
+.login-status {
+  margin-top: auto;
+  padding-top: 32px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--fg-mute);
+  display: flex;
+  gap: 18px;
+}
+
+.login-status .live {
+  color: var(--accent);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.login-status .live::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent);
+  animation: login-status-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes login-status-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(0.8);
+  }
+}
+
+/* Mobile: brand panel collapses, only the form panel renders. */
+@media (max-width: 920px) {
+  .login-shell {
+    grid-template-columns: 1fr;
+  }
+  .login-shell .login-brand {
+    display: none;
+  }
+}
+
+/* ==========================================================================
+   Admin shell, Phase 7 (slice #41)
+   --------------------------------------------------------------------------
+   Mirrors design_handoff_portfolio/design/admin.css lines 1 to 144 (shell
+   grid, sidebar, brand, nav items, footer). The full editor frame (topbar
+   actions, preview pane, item-card lists, tag inputs, modals, toasts,
+   uploader) lands alongside the editor slices #42 to #47; only the shell
+   rules required by slice #41's sidebar plus minimal main pane are copied
+   here. Class names are kept verbatim so the design files stay the source
+   of truth.
+   ========================================================================== */
+
+.admin-app {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  grid-template-rows: 56px 1fr;
+  grid-template-areas:
+    "sidebar topbar"
+    "sidebar main";
+  height: 100vh;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--sans);
+}
+
+.admin-topbar {
+  grid-area: topbar;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  border-bottom: 1px solid var(--line);
+  background: var(--bg);
+  z-index: 5;
+}
+
+.admin-topbar .crumb {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--fg-mute);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.admin-topbar .crumb b {
+  color: var(--fg);
+  font-weight: 500;
+}
+
+.admin-topbar .crumb .slash {
+  opacity: 0.4;
+}
+
+.admin-sidebar {
+  grid-area: sidebar;
+  background: var(--bg-elev);
+  border-right: 1px solid var(--line);
+  padding: 20px 0;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.admin-sidebar .brand {
+  padding: 4px 24px 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.admin-sidebar .brand-mark {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 300;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.admin-sidebar .brand-title {
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.admin-sidebar .brand-name {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--fg-mute);
+}
+
+.admin-sidebar .nav-group {
+  padding: 12px 12px 4px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--fg-mute);
+}
+
+.admin-sidebar .nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 24px;
+  font-size: 14px;
+  color: var(--fg-dim);
+  cursor: pointer;
+  border-left: 2px solid transparent;
+  transition:
+    color var(--duration-fast) var(--ease-out),
+    background var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out);
+  text-decoration: none;
+  user-select: none;
+}
+
+.admin-sidebar .nav-item:hover {
+  color: var(--fg);
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.admin-sidebar .nav-item:focus-visible {
+  outline: none;
+  border-left-color: var(--accent);
+  background: rgba(255, 255, 255, 0.04);
+  box-shadow: var(--shadow-focus);
+}
+
+.admin-sidebar .nav-item.active {
+  color: var(--fg);
+  border-left-color: var(--accent);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.admin-sidebar .nav-item .num {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--fg-mute);
+  width: 18px;
+}
+
+.admin-sidebar .footer {
+  margin-top: auto;
+  padding: 16px 24px;
+  border-top: 1px solid var(--line);
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--fg-mute);
+}
+
+.admin-sidebar .footer .user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.admin-sidebar .footer .user .avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--bg);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 14px;
+}
+
+.admin-sidebar .footer .user .meta {
+  font-size: 10px;
+}
+
+.admin-sidebar .footer .user .meta b {
+  display: block;
+  color: var(--fg);
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  font-family: var(--sans);
+  font-size: 12px;
+}
+
+.admin-sidebar .footer .user .meta .status {
+  color: var(--fg-mute);
+}
+
+.admin-main {
+  grid-area: main;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  overflow: hidden;
+}
+
+.admin-main.no-preview {
+  grid-template-columns: 1fr;
+}
+
+.admin-editor {
+  overflow-y: auto;
+  padding: 32px 40px 80px;
+}
+
+/*
+ * Preview pane, slice #43.
+ *
+ * Mirrors `design_handoff_portfolio/design/admin.css` lines 155 to 166
+ * (`.admin-preview` and `.admin-preview .preview-bar` and `.admin-preview
+ * iframe`). The handoff renders the preview as an iframe; this slice
+ * renders the same `<Hero>` component the public site uses inside a
+ * scrollable `.preview-frame`, so the iframe rule is replaced with a
+ * matching `flex: 1` container.
+ */
+.admin-preview {
+  border-left: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  background: #000;
+  overflow: hidden;
+}
+
+.admin-preview .preview-bar {
+  flex: 0 0 auto;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid var(--line);
+  background: var(--bg-elev);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--fg-mute);
+}
+
+.admin-preview .preview-frame {
+  flex: 1;
+  width: 100%;
+  border: 0;
+  background: var(--bg);
+  overflow: auto;
+}
+
+.editor-section {
+  margin-bottom: 48px;
+}
+
+.editor-section .head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 16px;
+  margin-bottom: 24px;
+}
+
+.editor-section h2 {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-style: italic;
+  font-size: 32px;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.editor-section .head .num {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--fg-mute);
+}
+
+/* Auto-save status sits in the same slot as `.num` in the head row but the
+   string contains mixed case ("Draft saved at 12:34") that would render as
+   ALL CAPS under the `.num` rule. Dedicated class so the cascade does not
+   uppercase the time. */
+.editor-section .head .autosave-status {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--fg-mute);
+}
+
+.section-ribbon {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--fg-mute);
+  margin-bottom: 8px;
+}
+
+.section-ribbon .bar {
+  width: 24px;
+  height: 1px;
+  background: var(--fg-mute);
+}
+
+/* Sign-out button reuses the .btn / .btn-ghost / .btn-sm primitives from
+   design_handoff_portfolio/design/admin.css lines 51 to 73. */
+.admin-sidebar .btn {
+  appearance: none;
+  cursor: pointer;
+  border: 1px solid var(--line-strong);
+  background: transparent;
+  color: var(--fg);
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition:
+    background var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
+}
+
+.admin-sidebar .btn:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+  border-color: var(--color-focus-ring);
+}
+
+.admin-sidebar .sign-out {
+  width: 100%;
+}
+
+.admin-sidebar .btn:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.admin-sidebar .btn:active {
+  transform: translateY(1px);
+}
+
+.admin-sidebar .btn-ghost {
+  border-color: transparent;
+  color: var(--fg-dim);
+}
+
+.admin-sidebar .btn-ghost:hover {
+  color: var(--fg);
+}
+
+.admin-sidebar .btn-sm {
+  padding: 6px 10px;
+  font-size: 12px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-sidebar .nav-item,
+  .admin-sidebar .btn {
+    transition: none;
+  }
+}
+
+/* On narrow viewports the two-column grid collapses: sidebar moves above the
+   editor as a top strip so the editor still fills the screen. */
+@media (max-width: 720px) {
+  .admin-app {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 56px 1fr;
+    grid-template-areas:
+      "sidebar"
+      "topbar"
+      "main";
+    height: auto;
+    min-height: 100vh;
+  }
+
+  .admin-sidebar {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+}
+
+/* Image uploader, Phase 7 slice #45.
+   Mirrors design_handoff_portfolio/design/admin.css lines 336 to 359
+   (.uploader, .uploader .drop, .uploader .preview, .uploader .preview.empty).
+   Same dashed dropzone, same 96px square preview, same hover accent on the
+   dashed border. The .upload-error class is new (the design file ships no
+   error state); it borrows the mono caption style from the rest of the
+   admin shell. */
+.uploader {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+}
+
+/* `.drop` is a real <button> rather than the design's <div> for keyboard
+   accessibility; appearance/background are the button reset to keep the
+   visual identical to the handoff. The error region keeps its own row
+   beneath via flex order on the parent's wrapped layout. */
+.uploader .drop {
+  flex: 1;
+  appearance: none;
+  background: transparent;
+  border: 1px dashed var(--line-strong);
+  border-radius: 10px;
+  padding: 18px;
+  text-align: center;
+  cursor: pointer;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--fg-mute);
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.uploader .drop:hover {
+  border-color: oklch(0.78 0.18 145);
+  color: var(--fg);
+}
+
+.uploader .drop:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+  border-color: var(--color-focus-ring);
+}
+
+.uploader .drop:disabled {
+  cursor: progress;
+  opacity: 0.7;
+}
+
+.uploader .preview {
+  width: 96px;
+  height: 96px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--bg) center / cover no-repeat;
+  flex-shrink: 0;
+}
+
+.uploader .preview.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--fg-mute);
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+}
+
+/* `.upload-error` lives in the `.uploader-region` wrapper alongside the
+   `.uploader` flex row so the design's `.uploader` selector stays a strict
+   mirror of admin.css#L337-L339. */
+.uploader-region {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.uploader-region .upload-error {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: oklch(0.7 0.18 25);
+}
+
+/* ==========================================================================
+   Admin form primitives, Phase 7 (slice #46)
+   --------------------------------------------------------------------------
+   Mirrors design_handoff_portfolio/design/admin.css lines 181 to 231 (.f
+   field wrapper, label/hint, input/textarea, .toggle-row, .switch) and
+   lines 299 to 334 (.modal-mask, .modal, .admin-toast). Class names are
+   kept verbatim so the design files remain the source of truth; on top of
+   the design we add a minimal `.f-error` slot and an `.f-invalid` modifier
+   so inline Zod errors render in-line next to the input that produced
+   them (issue #46), not as a global toast.
+   ========================================================================== */
+
+.field-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 1fr 1fr;
+}
+
+.field-grid.col-1 {
+  grid-template-columns: 1fr;
+}
+
+.field-grid.col-3 {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+.f {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.f label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--fg-mute);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.f label .hint {
+  font-family: var(--sans);
+  font-size: 11px;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--fg-mute);
+}
+
+.f input[type="text"],
+.f input[type="email"],
+.f input[type="tel"],
+.f input[type="url"],
+.f input[type="number"],
+.f textarea,
+.f select {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--line-strong);
+  color: var(--fg);
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-family: var(--sans);
+  font-size: 14px;
+  outline: none;
+  transition: border-color var(--duration-fast) var(--ease-out);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.f textarea {
+  font-family: var(--sans);
+  resize: vertical;
+  min-height: 90px;
+  line-height: 1.5;
+}
+
+.f input:focus,
+.f textarea:focus,
+.f select:focus {
+  border-color: var(--accent);
+}
+
+.f input:focus-visible,
+.f textarea:focus-visible,
+.f select:focus-visible {
+  box-shadow: var(--shadow-focus);
+}
+
+.f input.mono,
+.f textarea.mono,
+.f textarea.markdown {
+  font-family: var(--mono);
+  font-size: 13px;
+}
+
+.f-invalid input,
+.f-invalid textarea,
+.f-invalid select {
+  border-color: oklch(0.7 0.2 25);
+}
+
+.f-error {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: oklch(0.7 0.2 25);
+  line-height: 1.4;
+}
+
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+
+.toggle-row:last-child {
+  border-bottom: 0;
+}
+
+.toggle-row .label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.toggle-row .label b {
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.toggle-row .label span {
+  font-size: 12px;
+  color: var(--fg-dim);
+}
+
+.toggle-row.f-invalid .switch {
+  outline: 1px solid oklch(0.7 0.2 25);
+  outline-offset: 2px;
+}
+
+.toggle-row .f-error {
+  flex-basis: 100%;
+}
+
+.switch {
+  position: relative;
+  width: 38px;
+  height: 22px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 0;
+  padding: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-out);
+  flex-shrink: 0;
+}
+
+.switch::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--fg);
+  transition:
+    transform var(--duration-fast) var(--ease-out),
+    background var(--duration-fast) var(--ease-out);
+}
+
+.switch.on {
+  background: var(--accent);
+}
+
+.switch.on::after {
+  transform: translateX(16px);
+  background: var(--bg);
+}
+
+.switch:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.modal-mask {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 24px;
+}
+
+/* The close button is rendered as a real `<button>` so click and keyboard
+   activation share one a11y-compliant surface. It stretches behind the
+   `.modal` card via absolute positioning, which keeps the visible design
+   from admin.css line 299 onwards intact while satisfying lint/a11y rules
+   that forbid onClick on a static <div>. */
+.modal-mask-close {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  appearance: none;
+  background: transparent;
+  border: 0;
+  margin: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+.modal-mask-close:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.modal {
+  position: relative;
+  z-index: 1;
+  background: var(--bg-elev);
+  border: 1px solid var(--line-strong);
+  border-radius: 14px;
+  width: 100%;
+  max-width: 520px;
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  outline: none;
+}
+
+.modal:focus-visible {
+  box-shadow: var(--shadow-focus);
+}
+
+.modal h3 {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 300;
+  font-size: 26px;
+  margin: 0;
+}
+
+.modal p {
+  color: var(--fg-dim);
+  font-size: 14px;
+  line-height: 1.55;
+  margin: 0;
+}
+
+.modal .row {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.admin-toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-elev);
+  border: 1px solid var(--line-strong);
+  padding: 10px 16px;
+  border-radius: 999px;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--fg);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 200;
+  animation: admin-toast-in 0.22s var(--ease-out);
+}
+
+.admin-toast.ok::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.admin-toast.warn::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: oklch(0.78 0.16 80);
+}
+
+@keyframes admin-toast-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 8px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+/* List items, slice #44 ProjectsEditor.
+   Mirrors design_handoff_portfolio/design/admin.css lines 234 to 260
+   (.item-list, .item-card, .item-card .item-head, .item-card .drag,
+   .item-card.dragging, .item-card.drop-over, .item-card .item-title,
+   .item-card .item-meta, .add-row) and 370 to 379 (.help-panel). The
+   class names match verbatim so dnd-kit-driven rows pick up the same
+   visual frame the design uses for skills, experience, and projects. */
+.item-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.item-card {
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: border-color var(--duration-fast) var(--ease-out);
+}
+
+.item-card:hover {
+  border-color: var(--line-strong);
+}
+
+.item-card .item-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.item-card .drag {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  cursor: grab;
+  color: var(--fg-mute);
+  font-family: var(--mono);
+  font-size: 14px;
+  user-select: none;
+  width: 18px;
+  text-align: center;
+  touch-action: none;
+}
+
+.item-card .drag:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+  border-radius: 4px;
+}
+
+.item-card .drag:active {
+  cursor: grabbing;
+}
+
+.item-card.dragging {
+  opacity: 0.4;
+}
+
+.item-card.drop-over {
+  border-color: var(--accent);
+}
+
+.item-card .item-title {
+  flex: 1;
+  font-weight: 500;
+}
+
+.item-card .item-meta {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--fg-mute);
+}
+
+.help-panel {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 14px 16px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--fg-dim);
+  margin-bottom: 24px;
+}
+
+.help-panel b {
+  color: var(--fg);
+  font-weight: 500;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .uploader .drop,
+  .f input,
+  .f textarea,
+  .f select,
+  .switch,
+  .switch::after,
+  .item-card {
+    transition: none;
+  }
+
+  .admin-toast {
+    animation: none;
+  }
 }

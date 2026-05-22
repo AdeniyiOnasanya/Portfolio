@@ -1,3 +1,4 @@
+import { Analytics } from '@vercel/analytics/next';
 import type { Metadata } from 'next';
 import { cookies, headers } from 'next/headers';
 import type { ReactNode } from 'react';
@@ -10,6 +11,24 @@ import './globals.css';
 export const metadata: Metadata = {
   title: 'David Onasanya',
   description: 'Portfolio. Work in progress.',
+  openGraph: {
+    // `/api/og` returns a 1200x630 PNG composed by `next/og` from
+    // `HomeOgTemplate` (Phase 9 slice #53). The path is relative so the
+    // social-card cache picks up the deployment origin automatically
+    // across develop, staging, and production previews.
+    images: [
+      {
+        url: '/api/og',
+        width: 1200,
+        height: 630,
+        alt: 'David Onasanya, portfolio',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    images: ['/api/og'],
+  },
 };
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
@@ -32,6 +51,12 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
           {children}
           <Grain />
         </ThemeProvider>
+        {/* Vercel Web Analytics (Phase 10 #61). Mounted at the root layout
+            so page views from both (public) and (admin) route groups land
+            in the Vercel dashboard. The `/_vercel/insights/*` beacon path
+            is injected by `@vercel/analytics/next`; no client-side env
+            vars are required (the script no-ops on non-Vercel hosts). */}
+        <Analytics />
       </body>
     </html>
   );

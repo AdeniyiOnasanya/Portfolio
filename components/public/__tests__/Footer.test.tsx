@@ -37,6 +37,13 @@ describe('Footer', () => {
     );
   });
 
+  it('returns null when hidden is true', () => {
+    const { container } = render(
+      <Footer footer={sampleFooter} person={samplePerson} hidden={true} />,
+    );
+    expect(container.firstChild).toBeNull();
+  });
+
   it('renders copy, availability, copyright, and phone in the foot row', () => {
     render(<Footer footer={sampleFooter} person={samplePerson} />);
     expect(screen.getByText(sampleFooter.copy)).toBeInTheDocument();

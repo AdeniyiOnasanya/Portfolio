@@ -18,4 +18,9 @@ describe('About', () => {
       expect(screen.getByText(paragraph)).toBeInTheDocument();
     }
   });
+
+  it('returns null when hidden is true', () => {
+    const { container } = render(<About person={samplePerson} hidden={true} />);
+    expect(container.firstChild).toBeNull();
+  });
 });

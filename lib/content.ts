@@ -1,3 +1,4 @@
+import 'server-only';
 import { readSiteFromDisk } from './content/site-json';
 import type { Site } from './schema';
 
